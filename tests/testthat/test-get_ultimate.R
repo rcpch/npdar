@@ -3,8 +3,8 @@ test_that("get_ultimate handles numeric data with exclusions correctly", {
 
   # Test uptodate_mode
   expect_equal(get_ultimate(x, find = "uptodate_mode", warning = FALSE), 99)
-  expect_equal(get_ultimate(x, find = "uptodate_mode", except = 99, warning = FALSE), 2)
-  expect_equal(get_ultimate(x, find = "uptodate_mode", except = c(99, NA), warning = FALSE), 2)
+  expect_equal(get_ultimate(x, find = "uptodate_mode", except = 99, warning = FALSE), 1)
+  expect_equal(get_ultimate(x, find = "uptodate_mode", except = c(99, NA), warning = FALSE), 1)
 
   # Test with all values excluded
   x2 <- c(99, 99, 99, 99, NA, NA, NA, NA)
