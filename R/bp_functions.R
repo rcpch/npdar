@@ -1,4 +1,4 @@
-#' Blood Pressure Assessment Functions for peadiatric and Adult Populations
+#' Blood Pressure Assessment Functions for Paediatric and Adult Populations
 #'
 #' @description This module provides functions to assess blood pressure (BP) in children,
 #' young people, and adults using age-appropriate clinical guidelines, currently the package uses:
@@ -10,7 +10,7 @@
 #' @details
 #' The functions implement clinical BP categorisation following:
 #' \itemize{
-#'   \item **NHBPEP Fourth Report**: Sex-, age-, and height-specific percentiles for peadiatric BP
+#'   \item **NHBPEP Fourth Report**: Sex-, age-, and height-specific percentiles for paediatric BP
 #'   \item **NICE/BHF Guidelines**: Fixed thresholds for adult hypertension stages
 #'   \item **NPDA Limits**: National Paediatric Diabetes Audit validity ranges (50/15-200/150 mmHg)
 #'   \item **NDA Limits**: National Diabetes Audit validity ranges (70/20-300/150 mmHg)
@@ -366,7 +366,7 @@ get_BPCategory <- function(bp_value, bp_limit = c(-Inf, Inf), ...) {            
     message("NICE/BHF categorize 'Normotension' to 'Stage 3 hypertension'.")
     # 4.1 Input validation (bp_limit)
     if (identical(bp_limit, c(-Inf, Inf))) {                                    # If currently using adult reference & limit not specified, use NDA's limit
-      message("BP outside National Diabetes Audit (NDA) limit removed unless acceptable range is explicity specified by 'bp_limit'.")
+      message("BP outside National Diabetes Audit (NDA) limit removed unless acceptable range is explicitly specified by 'bp_limit'.")
       if (valid$bp_type == "systolic") {
         bp_limit = c(70, 300)
       } else if (valid$bp_type == "diastolic") {
@@ -398,7 +398,7 @@ get_BPCategory <- function(bp_value, bp_limit = c(-Inf, Inf), ...) {            
     message("NHBPEP Fourth Report categorize 'Normotension' to 'Stage 2 hypertension'; Special rules for newborns (<1), children (0-12), adolescents (12-17).")
     # 4.1 Input validation (bp_limit)
     if (identical(bp_limit, c(-Inf, Inf))) {                                    # If currently using cyp reference & limit not specified, use NPDA's limit
-      message("BP outside National Paediatric Diabetes Audit (NPDA) limit removed unless acceptable range is explicity specified by 'bp_limit'.")
+      message("BP outside National Paediatric Diabetes Audit (NPDA) limit removed unless acceptable range is explicitly specified by 'bp_limit'.")
       if (valid$bp_type == "systolic") {
         bp_limit = c(50, 200)
       } else if (valid$bp_type == "diastolic") {
