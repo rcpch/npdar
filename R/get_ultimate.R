@@ -1,4 +1,5 @@
 #' Get the up-to-date/first/last mode or first/last entry from a vector
+#'
 #' @description This function finds the most recent (i.e., up-to-date) mode, the first/last mode, or
 #' the first/last entry from a vector, with options to exclude specific values.
 #' Particularly useful for finding the most current valid values in longitudinal data.
