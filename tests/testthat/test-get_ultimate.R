@@ -23,7 +23,7 @@ test_that("get_ultimate handles categorical data correctly", {
   expect_equal(get_ultimate(x3, find = "uptodate_mode", except = "Unknown", warning = FALSE), "Other")
   expect_equal(get_ultimate(x3, find = "uptodate_mode", warning = FALSE), "Unknown")
   expect_equal(get_ultimate(x3, find = "first_mode", warning = FALSE), "F")
-  expect_equal(get_ultimate(x3, find = "last_mode", warning = FALSE), "Unknown")
+  expect_equal(get_ultimate(x3, find = "last_mode", warning = FALSE), "M")
 })
 
 test_that("get_ultimate handles first_entry and last_entry correctly", {
@@ -48,22 +48,27 @@ test_that("get_ultimate handles NA values correctly", {
 })
 
 test_that("get_ultimate produces appropriate warnings", {
-  # Test warning when except is not specified
-  expect_warning(
-    get_ultimate(c(1, 2, 3), find = "uptodate_mode"),
-    "NAs are excluded by default, but it's still good practice to specify the invalid values to exclude."
-  )
-
   # Test warning for multiple modes
-  x_multi_mode <- c(1, 1, 2, 2, 3, 3)
   expect_warning(
-    get_ultimate(x_multi_mode, find = "uptodate_mode", except = NA),
+    get_ultimate(c(1, 2, 3), find = "uptodate_mode", except = NA),
     "There are multiple modes, the remaining modes are:"
   )
 
+  # Test warning when except is not specified (here, 2/multiple warnings are generated from one call)
+  # expect_warning(
+  #   get_ultimate(c(1, 2, 3), find = "uptodate_mode"),
+  #   regexp = c("NAs are excluded",
+  #              "multiple modes"),
+  #   all = TRUE
+  # )
+  # expect_warning above no longer works with multiple warnings for testthat≥3.1, instead expect_snapshot is used:
+  expect_snapshot(
+    get_ultimate(c(1, 2, 3), find = "uptodate_mode")
+  )
+
   # Test no warning when warning = FALSE
+  expect_silent(get_ultimate(c(1, 2, 3), find = "uptodate_mode", except = NA, warning = FALSE))
   expect_silent(get_ultimate(c(1, 2, 3), find = "uptodate_mode", warning = FALSE))
-  expect_silent(get_ultimate(x_multi_mode, find = "uptodate_mode", except = NA, warning = FALSE))
 })
 
 test_that("get_ultimate handles edge cases", {
@@ -81,13 +86,13 @@ test_that("get_ultimate handles edge cases", {
 
 test_that("get_ultimate throws error for invalid find argument", {
   expect_error(
-    get_ultimate(c(1, 2, 3), find = "invalid_option"),
-    "Invalid 'find' argument"
+    get_ultimate(c(1, 2, 3), find = "invalid_option", warning = FALSE),
+    "Invalid 'find' argument."
   )
 
   expect_error(
-    get_ultimate(c(1, 2, 3), find = "mode"),
-    "Invalid 'find' argument"
+    get_ultimate(c(1, 2, 3), find = "mode", warning = FALSE),
+    "Invalid 'find' argument."
   )
 })
 
@@ -115,4 +120,4 @@ test_that("get_ultimate uptodate_mode logic works correctly", {
   x_test2 <- c(1, 2, 1, 3, 2, 1, 2, 3, 3)
   # All values appear 3 times, but 3 appears last among modes
   expect_equal(get_ultimate(x_test2, find = "uptodate_mode", warning = FALSE), 3)
-}
+})

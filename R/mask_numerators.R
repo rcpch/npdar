@@ -5,12 +5,6 @@
 #' (1) mask any numerators in the range (0, maxNum), and (2) if only one numerator is masked,
 #' also mask all occurrences of the second smallest value to prevent back-calculation.
 #'
-#' ## FUTURE IMPROVEMENT ##
-#' for rows with (2, 3, 3, 3, 3) with threshold being <3, all values are currently masked.
-#' instead, new rules can be implemented in the future:
-#' 1) randomly mask only one of the second smallest value by default,
-#' 2) can give weights to different options, so a certain option may be more likely to be masked
-#'
 #' @param vec A numeric vector of count data (numerators) to be masked.
 #' @param maxNum Numeric. The threshold value for masking. Values greater than 0
 #'   and less than \code{maxNum} will be masked. Default is 3.

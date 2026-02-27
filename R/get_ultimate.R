@@ -5,10 +5,7 @@
 #' Particularly useful for finding the most current valid values in longitudinal data.
 #' \code{NA} values are always excluded by default.
 #'
-#' ## FUTURE IMPROVEMENT ##
-#' Allow vector with POSIXct Date Time values
-#'
-#' @param x A vector of values to be evaluated. Can be numeric, character, but any date (POSIXct) value is currently not supported.
+#' @param x A vector of values to be evaluated. Can be numeric, character, but date (POSIXct) is currently not supported.
 #' @param find Character string specifying what to find. Options are:
 #'   \itemize{
 #'     \item \code{"uptodate_mode"} - Among all modal values, returns the one that appears last in the vector
