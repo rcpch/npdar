@@ -457,7 +457,7 @@ test_that("Functions produce appropriate messages", {
       bp_type = "systolic", sex = 1, male_code = 1, female_code = 2,
       height_z = 0, age_years = 10, ref = "NICE/BHF"
     ),
-    "Ignore.*≤ 17 years"
+    "Ignore.*\u2264 17 years"
   )
 
   # Test height out of range messages
