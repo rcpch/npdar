@@ -1,7 +1,10 @@
 #' Blood Pressure Assessment Functions for Paediatric and Adult Populations
 #'
-#' @description This module provides functions to assess blood pressure (BP) in children,
-#' young people, and adults using age-appropriate clinical guidelines, currently the package uses:
+#' @description
+#' This module provides functions to assess blood pressure (BP) in children,
+#' young people, and adults using age-appropriate clinical guidelines, currently
+#' the package uses:
+#'
 #' \itemize{
 #'   \item Children/adolescents (0-17 years): NHBPEP Fourth Report
 #'   \item Young adults (>17 years): NICE/BHF guidelines
@@ -21,10 +24,12 @@
 #' @author Zhaonan Fang
 #'
 #' @template bp_refs
-#'
-#' @name bp_functions
-#' @keywords internal
-"_PACKAGE"
+#' @family BP functions
+#' @name family_BP
+#' @aliases BloodPressure
+NULL
+
+# ========== 0. Blood Pressure Regression Coefficients from the NHBPEP Fourth Report (Appendix Table B-1) ==========
 
 #' Blood Pressure Regression Coefficients from the NHBPEP Fourth Report (Appendix Table B-1)
 #'
@@ -49,6 +54,7 @@
 #'
 #' @keywords internal
 #' @noRd
+#' @family BP functions
 .coefs_BPFourth <- list(
   systolic = list(
     male = list(intercept = 102.19768,                                  # α
@@ -72,6 +78,7 @@
   )
 )
 
+# ========== 1. (Helper) Function to Validate Demographic Inputs for BP Functions (Internal) ==========
 #' Validate Demographic Inputs for BP Functions (Internal)
 #'
 #' @description Internal helper function to validate and standardize demographic inputs
@@ -96,6 +103,7 @@
 #'
 #' @keywords internal
 #' @noRd
+#' @family BP functions
 .valid_BPDemoInput <- function(bp_type = c("systolic", "diastolic"),
                                sex, male_code, female_code,
                                height_z, height_limit=5,
@@ -145,6 +153,7 @@
   return(mget(c("bp_type", "sex", "age_years", "height_z", "ref")))
 }
 
+# ========== 2. Compute Expected Blood Pressure (μ) ==========
 #' Compute Expected Blood Pressure (μ)
 #'
 #' @description Returns the expected blood pressure (mean/50th percentile) based on CYP sex, age, and height z-score.
@@ -188,8 +197,6 @@
 #'
 #' @template bp_refs
 #'
-#' @seealso [get_BPRelative()], [get_BPCategory()], [get_BP()]
-#'
 #' @examples
 #' # Expected systolic BP for a 10-year-old boy at median height, and other some other children:
 #' get_BPExpected(
@@ -207,6 +214,8 @@
 #'   sex = "M", male_code = "M", female_code = "F",
 #'   height_z = 0, age_years = 25, ref = "NICE/BHF"
 #' )
+#'
+#' @family BP functions
 #'
 #' @export
 #' @importFrom purrr pmap_dbl map_lgl
@@ -241,7 +250,8 @@ get_BPExpected <- function(..., .quiet = FALSE){                                
   return(mu)
 }
 
-#' Compute BP Z-score and Percentile
+# ========== 3. Compute Blood Pressure Z-score and Percentile ==========
+#' Compute Blood Pressure Z-score and Percentile
 #'
 #' @description Computes z-scores and percentiles for observed BP values against expected values
 #' (μ, σ) from a specified reference (currently only NHBPEP Fourth Report is available). For \code{ref = "NICE/BHF"},
@@ -255,8 +265,6 @@ get_BPExpected <- function(..., .quiet = FALSE){                                
 #'
 #' @template bp_refs
 #'
-#' @seealso [get_BPExpected()], [get_BPCategory()], [get_BP()]
-#'
 #' @examples
 #' # Z-score and percentile for systolic BP in children using Fourth Report:
 #' get_BPRelative(
@@ -268,6 +276,8 @@ get_BPExpected <- function(..., .quiet = FALSE){                                
 #'   age_years = c(8, 12, 16),
 #'   ref = "Fourth Report"
 #' )
+#'
+#' @family BP functions
 #'
 #' @export
 #' @importFrom purrr pmap_dbl pmap_chr map_lgl
@@ -303,6 +313,7 @@ get_BPRelative <- function(bp_value, ..., .quiet=FALSE) {                       
   return(tibble::tibble(zscore, percentile))
 }
 
+# ========== 4. Categorise Blood Pressure (Children/Adolescents and Young Adults) ==========
 #' Categorise Blood Pressure (Children/Adolescents and Young Adults)
 #'
 #' @description Categorises observed BP values into guideline-based categories. For ages 0–17,
@@ -329,8 +340,6 @@ get_BPRelative <- function(bp_value, ..., .quiet=FALSE) {                       
 #'
 #' @template bp_refs
 #'
-#' @seealso [get_BPExpected()], [get_BPRelative()], [get_BP()]
-#'
 #' @examples
 #' # Child/adolescent categorisation (Fourth Report):
 #' get_BPCategory(
@@ -352,6 +361,8 @@ get_BPRelative <- function(bp_value, ..., .quiet=FALSE) {                       
 #'   age_years = c(22, 30, 45, 67),
 #'   ref = "NICE/BHF"
 #' )
+#'
+#' @family BP functions
 #'
 #' @export
 #' @importFrom purrr pmap_chr pmap_dbl map_lgl
@@ -430,6 +441,7 @@ get_BPCategory <- function(bp_value, bp_limit = c(-Inf, Inf), ...) {            
   return(category)
 }
 
+# ========== 5. Master Wrapper for Blood Pressure Utilities ==========
 #' Master Wrapper for Blood Pressure Utilities
 #'
 #' @description Convenience wrapper to access expected values, z-scores, percentiles,
@@ -449,7 +461,6 @@ get_BPCategory <- function(bp_value, bp_limit = c(-Inf, Inf), ...) {            
 #'     \item \code{"category"}: character vector of categories
 #'   }
 #'
-#' @seealso [get_BPExpected()], [get_BPRelative()], [get_BPCategory()]
 #' @examples
 #' # One-stop interface:
 #' get_BP(
@@ -462,6 +473,7 @@ get_BPCategory <- function(bp_value, bp_limit = c(-Inf, Inf), ...) {            
 #'   ref = "Fourth Report"
 #' )
 #'
+#' @family BP functions
 #' @export
 get_BP <- function(option = c("expected", "zscore", "percentile", "category"), ...) {
   option <- match.arg(option)                                                   # Partial match (e.g. "centile" → "percentile")

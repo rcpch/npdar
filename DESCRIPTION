@@ -1,7 +1,7 @@
 Package: npdar
 Type: Package
 Title: National Paediatric Diabetes Audit R Tools
-Version: 0.2.0
+Version: 0.3.0
 Authors@R: c(
     person(
       "Zhaonan", "Fang",
@@ -13,17 +13,18 @@ Description: An R package that provides functions for analysing National Paediat
 License: GPL (>= 3)
 Encoding: UTF-8
 LazyData: false
-RoxygenNote: 7.3.2
+RoxygenNote: 7.3.3
 Depends: 
     R (>= 4.1.0)
 Imports:
     purrr,
     tibble
 Suggests:
-    testthat (>= 3.0.0),
     dplyr,
     knitr,
-    rmarkdown
+    rmarkdown,
+    ggplot2,
+    testthat (>= 3.0.0)
 Config/testthat/edition: 3
 URL: https://github.com/RCPCH/npdar
 BugReports: https://github.com/RCPCH/npdar/issues
