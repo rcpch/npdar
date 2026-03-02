@@ -18,7 +18,7 @@ get_ultimate(x, find, except, warning = TRUE)
   \item \code{"last_entry"} - The last valid entry in the vector (after exclusions)
 }}
 
-\item{except}{A value or vector of values to exclude from consideration.
+\item{except}{A value or vector of values to ignore/exclude from consideration.
 \code{NA} values are always excluded automatically. Can be a single value (e.g., 99, "Unknown", NA)
 or multiple values (e.g., \code{c(99, "Unknown")}). If not specified, a warning is issued.}
 
@@ -34,34 +34,46 @@ The result based on the \code{find} and \code{except} parameters.
 }
 \description{
 This function finds the most recent (i.e., up-to-date) mode, the first/last mode, or
-the first/last entry from a vector, with options to exclude specific values.
+the first/last entry from a vector, with options to ignore specific values.
 Particularly useful for finding the most current valid values in longitudinal data.
 \code{NA} values are always excluded by default.
 }
 \examples{
 # Example 1: Exclude invalid entries before finding the designated value
 x <- c(1, 1, 2, 2, 2, 1, 99, 99, 99, 99, NA, NA, NA, NA)
-get_ultimate(x, find="uptodate_mode")                       # Returns 99 (BAD)
-get_ultimate(x, find="uptodate_mode", except=99)            # Return 1 NAs are excluded by default (GOOD)
-get_ultimate(x, find="uptodate_mode", except=c(99, NA))     # Return 1 (GOOD)
+get_ultimate(x, find="uptodate_mode")  # 99 (BAD)
+get_ultimate(x, find="uptodate_mode",
+             except=99)                # 1 NAs excluded by default (GOOD)
+get_ultimate(x, find="uptodate_mode",
+             except=c(99, NA))         # 1 (GOOD)
 # When all values are excluded
 x <- c(99, 99, 99, 99, NA, NA, NA, NA)
-get_ultimate(x, find='uptodate_mode')                       # Return 99 (BAD PRACTICE)
-get_ultimate(x, find='uptodate_mode', except=99)            # Return NA (GOOD PRACTICE)
-get_ultimate(c(9,9,9,9,9), find='uptodate_mode', except=9, warning=F)         # Return NA
-get_ultimate(c(9,9,9,9,9), find='last_entry', except=9, warning=F)            # Return NA
+get_ultimate(x, find='uptodate_mode')  # 99 (BAD PRACTICE)
+get_ultimate(x, find='uptodate_mode',
+             except=99)                # NA (GOOD PRACTICE)
+get_ultimate(c(9,9,9,9,9), find='uptodate_mode',
+             except=9, warning=F)      # NA
+get_ultimate(c(9,9,9,9,9), find='last_entry',
+             except=9, warning=F)      # NA
 
 # Example 2: Finding up-to-date mode with categorical data
-x <- c("F", "F", "Other", "Other", "Unknown", "Other", "M", "M", "M", "M",
-        "F", "F", "Other", "Unknown", "Unknown", "Unknown")
-get_ultimate(x, find = "uptodate_mode", except = "Unknown") # Returns "Other" (last occurrence) (GOOD)
-get_ultimate(x, find = "uptodate_mode")                     # Returns "Unknown" (BAD)
-get_ultimate(x, find = "first_mode", warning = FALSE)       # Returns "F" (first among unique modes)
-get_ultimate(x, find = "last_mode", warning = FALSE)        # Returns "Unknown" (last among unique modes)
+x <- c("F", "F", "Other", "Other", "Unknown",
+        "Other", "M", "M", "M", "M", "F", "F",
+        "Other", "Unknown", "Unknown", "Unknown")
+get_ultimate(x, find = "uptodate_mode",
+             except = "Unknown")        # "Other" (last occurrence) (GOOD)
+get_ultimate(x, find = "uptodate_mode") # "Unknown" (BAD)
+get_ultimate(x, find = "first_mode",
+             warning = FALSE)           # "F" (first among unique modes)
+get_ultimate(x, find = "last_mode",
+             warning = FALSE)           # "Unknown" (last among unique modes)
 
 # Example 3: Finding first/last valid entry
-get_ultimate(x, find = "last_entry", warning = FALSE)                      # Returns "Unknown" (BAD)
-get_ultimate(x, find = "last_entry", except = "Unknown", warning = FALSE)  # Returns "Other" (GOOD)
-get_ultimate(x, find = "first_entry", except = "Unknown", warning = FALSE) # Returns "F"
+get_ultimate(x, find = "last_entry",
+             warning = FALSE)           # "Unknown" (BAD)
+get_ultimate(x, find = "last_entry", except = "Unknown",
+             warning = FALSE)           # "Other" (GOOD)
+get_ultimate(x, find = "first_entry", except = "Unknown",
+             warning = FALSE)           # "F"
 
 }
