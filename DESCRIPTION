@@ -1,7 +1,7 @@
 Package: npdar
 Type: Package
 Title: National Paediatric Diabetes Audit R Tools
-Version: 0.2.0
+Version: 0.3.0
 Authors@R: c(
     person(
       "Zhaonan", "Fang",
