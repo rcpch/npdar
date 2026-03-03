@@ -1,7 +1,6 @@
 <!-- badges: start -->
 [![R Package](https://img.shields.io/badge/R-package-blue)](https://github.com/rcpch/npdar)
 [![GPLv3 license](https://img.shields.io/badge/License-GPLv3-blue.svg)](http://perso.crans.org/besson/LICENSE.html)
-[![Version](https://img.shields.io/badge/version-0.2.0-green)](https://github.com/rcpch/npdar)
 <!-- badges: end -->
 
 ## Overview
@@ -13,23 +12,20 @@ The package currently includes functions for:
 - **Blood pressure assessment** — age-appropriate BP categorisation for children/adolescents (NHBPEP Fourth Report) and adults (NICE/BHF guidelines), including expected values, z-scores, percentiles, and hypertension staging.
 - **Finding audit year(s)** - determining the NPDA audt period based on the provided date.
 - **Data privacy suppression** — masking small numerators in a categorical variable to protect patient privacy.
-- **Statistical Utilities** — identifying the most recent/first/last modal value or the first/last entry from a vector with options to ignore specific values.
+- **Statistical utilities** — identifying the most recent/first/last modal value or the first/last entry from a vector with options to ignore specific values.
 
 ---
 
 ## Installation
 
-**npdar** is not currently available on CRAN. Install the development version from GitHub using the [`devtools`](https://devtools.r-lib.org/) or [`remotes`](https://remotes.r-lib.org/) package:
+**npdar** is not currently available on CRAN. Install the development version from GitHub with [`devtools`](https://devtools.r-lib.org/):
 
 ```r
-# Install devtools if not already installed
 install.packages("devtools")
-
-# Install npdar from GitHub
 devtools::install_github("rcpch/npdar")
 ```
 
-Or using `remotes`:
+Or with [`remotes`](https://remotes.r-lib.org/):
 
 ```r
 install.packages("remotes")
@@ -62,36 +58,55 @@ get_BP(
   age_years  = c(10, 15, 25),
   ref        = c("Fourth Report")
 )
-#> [1] "Normotension"    "Prehypertension" NA 
+#> Ignore 1 age(s) outside 0-17 years. NHBPEP Fourth Report is only designed for children ≤ 17 years.
+#> NHBPEP Fourth Report categorise 'Normotension' to 'Stage 2 hypertension'; Special rules for newborns (<1), children (0-12), adolescents (12-17).
+#> BP outside National Paediatric Diabetes Audit (NPDA) limit removed unless acceptable range is explicitly specified by 'bp_limit'.
+#> [1] "Normotension"    "Prehypertension" NA
+
 
 # --- Privacy masking ---
 
 # Mask numerator counts below 3 in audit outputs
 mask_numerators(c(4, 6, 2, 4, 0))
 #> [1] "masked" "6"      "masked" "masked" "0"
+mask_numerators(c(4, 6, 2, 4, 0), maxNum = 3, maskMessage = "*")
+#> [1] "*" "6" "*" "*" "0"
+
 
 # --- Longitudinal summarisation ---
 
 # Find the desired mode
 x <- c("A", "B", "C", "A", "A", "Unknown", "Unknown", NA, "C", "C", "B", "B", "Unknown")
-# The most recent/up-to-date mode
-get_ultimate(x, find = "uptodate_mode", except = c("Unknown", NA)) # Returns "B"
+
+# The most recent mode
+get_ultimate(x, find = "uptodate_mode", except = c("Unknown", NA)) 
+#> Warning in get_ultimate(x, find = "uptodate_mode", except = c("Unknown")) :
+#> There are multiple modes, the remaining modes are: A, C
+#> [1] "B"
+
 # The last mode
-get_ultimate(x, find = "last_mode", except = c("Unknown", NA)) # Returns "C"
+get_ultimate(x, find = "last_mode", except = c("Unknown"))
+#> Warning in get_ultimate(x, find = "last_mode", except = except = c("Unknown")) :
+#> There are multiple modes, the remaining modes are: A, B
+#> [1] "C"
+
 
 # --- Finding audit year(s) ---
-get_AuditYear(as.Date("2025-03-31"))  # Returns "2024/25" (Q4 end)
+get_AuditYear(as.Date("2025-03-31"))  
+#> [1] "2024/25"
+
 data.frame(
   audit_year = get_AuditYears(2010, 2015),
   audit_year_numeric = get_AuditYears(2010, 2015, format = FALSE)
 )
-#   audit_year audit_year_numeric
-# 1    2010/11               2010
-# 2    2011/12               2011
-# 3    2012/13               2012
-# 4    2013/14               2013
-# 5    2014/15               2014
-# 6    2015/16               2015
+#>   audit_year audit_year_numeric
+#> 1    2010/11               2010
+#> 2    2011/12               2011
+#> 3    2012/13               2012
+#> 4    2013/14               2013
+#> 5    2014/15               2014
+#> 6    2015/16               2015
+
 
 ```
 
@@ -108,20 +123,20 @@ data.frame(
 - [ ] for rows with (2, 3, 3, 3, 3) with threshold being <3, all values are currently masked.
 - [ ] instead, new rules can be implemented in the future:
   1) randomly mask only one of the second smallest value if specify set.seed(),
-  2) can give weights to different options, so a certain option may be more likely to be masked
+  2) can give weights to different options, so a certain option may be more likely to be masked.
 
 
 ### BP functions
 
 - [ ] Review unit testing.
+- [ ] Review non-ASCII characters.
 - [ ] Add new references apart from Fourth Report and NICE/BHF.
-- [ ] Check non-ASCII characters.
 
 ### Audit Year functions
 
 - [ ] Review unit testing.
-- [ ] Option to determine current audit quarter (Q1-Q4)
-- [ ] Return quarter period boundaries (start/end timestamps)
+- [ ] Option to determine current audit quarter (Q1-Q4).
+- [ ] Return quarter period boundaries (start/end timestamps).
 
 ### AOB
 
@@ -140,5 +155,5 @@ This package is licensed under the [GNU General Public License v3.0](LICENSE.md)
 
 - **Zhaonan Fang** — [zhaonan.fang@rcpch.ac.uk](mailto:zhaonan.fang@rcpch.ac.uk) — Author & Maintainer  
   *Royal College of Paediatrics and Child Health (RCPCH)*
-- **RCPCH Analysts** 
+- **RCPCH Audit Analysts** — Contributor  
   *Royal College of Paediatrics and Child Health (RCPCH)*
