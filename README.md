@@ -9,8 +9,8 @@
 
 The package currently includes functions for:
 
-- **Blood pressure assessment** — age-appropriate BP categorisation for children/adolescents (NHBPEP Fourth Report) and adults (NICE/BHF guidelines), including expected values, z-scores, percentiles, and hypertension staging.
-- **Finding audit year(s)** - determining the NPDA audt period based on the provided date.
+- **Blood pressure assessment** — calculating expected BP values, z-scores, percentiles, and categorising hypertension for children and adults based on appropriate references or guidelines.
+- **Finding audit year(s)** — determining the NPDA audit period based on the provided date.
 - **Data privacy suppression** — masking small numerators in a categorical variable to protect patient privacy.
 - **Statistical utilities** — identifying the most recent/first/last modal value or the first/last entry from a vector with options to ignore specific values.
 
