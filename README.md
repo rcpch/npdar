@@ -80,7 +80,7 @@ x <- c("A", "B", "C", "A", "A", "Unknown", "Unknown", NA, "C", "C", "B", "B", "U
 
 # The most recent mode
 get_ultimate(x, find = "uptodate_mode", except = c("Unknown", NA)) 
-#> Warning in get_ultimate(x, find = "uptodate_mode", except = c("Unknown")) :
+#> Warning in get_ultimate(x, find = "uptodate_mode", except = c("Unknown", NA)) :
 #> There are multiple modes, the remaining modes are: A, C
 #> [1] "B"
 
