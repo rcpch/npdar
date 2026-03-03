@@ -5,44 +5,72 @@
 
 ## Overview
 
-**npdar** is an R package that provides utility functions to support the [National Paediatric Diabetes Audit (NPDA)](https://www.rcpch.ac.uk/work-we-do/clinical-audits/npda) programme, developed and maintained by the [Royal College of Paediatrics and Child Health (RCPCH)](https://www.rcpch.ac.uk/).
+**npdar** is an R package that provides utility functions to support the 
+[National Paediatric Diabetes Audit (NPDA)](https://www.rcpch.ac.uk/work-we-do/clinical-audits/npda) programme,
+developed and maintained by the [Royal College of Paediatrics and Child Health (RCPCH)](https://www.rcpch.ac.uk/).
 
 The package currently includes functions for:
 
-- **Blood pressure assessment** — calculating expected BP values, z-scores, percentiles, and categorising hypertension for children and adults based on appropriate references or guidelines.
-- **Finding audit year(s)** — determining the NPDA audit period based on the provided date.
-- **Data privacy suppression** — masking small numerators in a categorical variable to protect patient privacy.
-- **Statistical utilities** — identifying the most recent/first/last modal value or the first/last entry from a vector with options to ignore specific values.
+-   **Blood pressure assessment** — calculating expected BP values, z-scores, 
+    percentiles, and categorising hypertension for children and adults based on
+    appropriate references or guidelines.
+-   **Finding audit year(s)** — determining the NPDA audit period based on the
+    provided date.
+-   **Data privacy suppression** — masking small numerators in a categorical
+    variable to protect patient privacy.
+-   **Statistical utilities** — identifying the most recent/first/last modal
+    value or the first/last entry from a vector with options to ignore specific
+    values.
 
----
+## ⚠️Disclaimer
+
+**This package is designed for:**
+
+-   Assisting NPDA data analysis.
+-   Improving transparency and reproducibility of NPDA analysis.
+-   Helping other research and epidemiological analysis.
+
+**This package is NOT:**
+
+-   A clinical decision support or diagnosis tool.
+-   Approved for use in clinical care pathways.
+
+Healthcare professionals must use validated clinical tools and their
+professional judgement when making patient care decisions. The blood pressure
+categorisation functions implement published research guidelines (NHBPEP Fourth
+Report, NICE/BHF guidances) 
+**for audit analysis purposes only, not for clinical use**.
+
+--------------------------------------------------------------------------------
 
 ## Installation
 
-**npdar** is not currently available on CRAN. Install the development version from GitHub with [`devtools`](https://devtools.r-lib.org/):
+**npdar** is not currently available on CRAN. Install the development version
+from GitHub with [`devtools`](https://devtools.r-lib.org/):
 
-```r
+``` r
 install.packages("devtools")
 devtools::install_github("rcpch/npdar")
 ```
 
 Or with [`remotes`](https://remotes.r-lib.org/):
 
-```r
+``` r
 install.packages("remotes")
 remotes::install_github("rcpch/npdar")
 ```
 
 Then load the package:
 
-```r
+``` r
 library(npdar)
 ```
 
----
+--------------------------------------------------------------------------------
 
 ## Quick Start
 
-```r
+``` r
 library(npdar)
 
 # --- Blood Pressure ---
@@ -106,54 +134,57 @@ data.frame(
 #> 4    2013/14               2013
 #> 5    2014/15               2014
 #> 6    2015/16               2015
-
-
 ```
 
----
+--------------------------------------------------------------------------------
 
 ## Planned Improvements
 
 ### get_ultimate()
 
-- [ ] Allow vector with POSIXct Date Time values
+-   [ ] Allow vector with POSIXct Date Time values
 
 ### mask_numerators()
 
-- [ ] for rows with (2, 3, 3, 3, 3) with threshold being <3, all values are currently masked.
-- [ ] instead, new rules can be implemented in the future:
-  1) randomly mask only one of the second smallest value if specify set.seed(),
-  2) can give weights to different options, so a certain option may be more likely to be masked.
-
+-   [ ] for rows with (2, 3, 3, 3, 3) with threshold being \<3, all values are
+    currently masked.
+-   [ ] instead, new rules can be implemented in the future:
+    1)  randomly mask only one of the second smallest value if specify
+        set.seed(),
+    2)  can give weights to different options, so a certain option may be more
+        likely to be masked.
 
 ### BP functions
 
-- [ ] Review unit testing.
-- [ ] Review non-ASCII characters.
-- [ ] Add new references apart from Fourth Report and NICE/BHF.
+-   [ ] Review unit testing.
+-   [ ] Review non-ASCII characters.
+-   [ ] Add new references apart from Fourth Report and NICE/BHF.
 
 ### Audit Year functions
 
-- [ ] Review unit testing.
-- [ ] Option to determine current audit quarter (Q1-Q4).
-- [ ] Return quarter period boundaries (start/end timestamps).
+-   [ ] Review unit testing.
+-   [ ] Option to determine current audit quarter (Q1-Q4).
+-   [ ] Return quarter period boundaries (start/end timestamps).
 
 ### AOB
 
-- [ ] Better documentation and reference.
+-   [ ] Finalise and add Disclaimer to package documentation.
 
+-   [ ] Better documentation and reference.
 
----
+--------------------------------------------------------------------------------
 
 ## License
 
 This package is licensed under the [GNU General Public License v3.0](LICENSE.md).
 
----
+--------------------------------------------------------------------------------
 
 ## Authors
 
-- **Zhaonan Fang** — [zhaonan.fang@rcpch.ac.uk](mailto:zhaonan.fang@rcpch.ac.uk) — Author & Maintainer  
-  *Royal College of Paediatrics and Child Health (RCPCH)*
-- **RCPCH Audit Analysts** — Contributor  
-  *Royal College of Paediatrics and Child Health (RCPCH)*
+-   **Zhaonan Fang** —
+    [zhaonan.fang\@rcpch.ac.uk](mailto:zhaonan.fang@rcpch.ac.uk) — Author &
+    Maintainer\
+    *Royal College of Paediatrics and Child Health (RCPCH)*
+-   **RCPCH Audit Analysts** — Contributor\
+    *Royal College of Paediatrics and Child Health (RCPCH)*
