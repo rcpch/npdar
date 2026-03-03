@@ -371,10 +371,10 @@ get_BPCategory <- function(bp_value, bp_limit = c(-Inf, Inf), ...) {            
   # 1. Input validation
   valid <- .valid_BPDemoInput(..., .quiet=FALSE)
 
-  # 4. Categorize BP
+  # 4. Categorise BP
   if (valid$ref == "NICE/BHF") {
     # 4.0 Message about categories
-    message("NICE/BHF categorize 'Normotension' to 'Stage 3 hypertension'.")
+    message("NICE/BHF categorise 'Normotension' to 'Stage 3 hypertension'.")
     # 4.1 Input validation (bp_limit)
     if (identical(bp_limit, c(-Inf, Inf))) {                                    # If currently using adult reference & limit not specified, use NDA's limit
       message("BP outside National Diabetes Audit (NDA) limit removed unless acceptable range is explicitly specified by 'bp_limit'.")
@@ -406,7 +406,7 @@ get_BPCategory <- function(bp_value, bp_limit = c(-Inf, Inf), ...) {            
     })
   } else if (valid$ref == "Fourth Report") {
     # 4.0 Message about categories
-    message("NHBPEP Fourth Report categorize 'Normotension' to 'Stage 2 hypertension'; Special rules for newborns (<1), children (0-12), adolescents (12-17).")
+    message("NHBPEP Fourth Report categorise 'Normotension' to 'Stage 2 hypertension'; Special rules for newborns (<1), children (0-12), adolescents (12-17).")
     # 4.1 Input validation (bp_limit)
     if (identical(bp_limit, c(-Inf, Inf))) {                                    # If currently using cyp reference & limit not specified, use NPDA's limit
       message("BP outside National Paediatric Diabetes Audit (NPDA) limit removed unless acceptable range is explicitly specified by 'bp_limit'.")
