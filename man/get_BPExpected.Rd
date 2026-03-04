@@ -2,7 +2,7 @@
 % Please edit documentation in R/family_BP.R
 \name{get_BPExpected}
 \alias{get_BPExpected}
-\title{Compute Expected Blood Pressure (μ)}
+\title{Compute Expected Blood Pressure (\eqn{\mu})}
 \usage{
 get_BPExpected(..., .quiet = FALSE)
 }
@@ -17,17 +17,17 @@ using \code{male_code} and \code{female_code}. Values not matching these codes b
 \item{male_code, female_code}{Scalar values that identify the male and female codes in \code{sex}
 (e.g., \code{1} and \code{2}, or \code{"M"} and \code{"F"}).}
 
-\item{height_z}{Numeric vector of height z-scores. Must already be z-transformed (e.g., UK‑WHO).}
+\item{height_z}{Numeric vector of height z-scores. Must already be z-transformed (e.g., UK-WHO).}
 
 \item{height_limit}{Positive numeric; z-scores with \code{|z| > height_limit} are treated as invalid
 and set to \code{NA}. Default \code{5}.}
 
 \item{age_years}{Numeric vector of ages in years.}
 
-\item{ref}{Reference: \code{"Fourth Report"} (children/adolescents, 0–17) or \code{"NICE/BHF"} (adults, >17).}
+\item{ref}{Reference: \code{"Fourth Report"} (children/adolescents, 0-17) or \code{"NICE/BHF"} (adults, >17).}
 }
 \value{
-A numeric vector of expected BP values in mmHg (μ). Returns \code{NA} for:
+A numeric vector of expected BP values in mmHg (\eqn{\mu}). Returns \code{NA} for:
   \itemize{
     \item NICE/BHF reference (adults)
     \item Ages outside reference range
@@ -37,15 +37,15 @@ A numeric vector of expected BP values in mmHg (μ). Returns \code{NA} for:
 }
 \description{
 Returns the expected blood pressure (mean/50th percentile) based on CYP sex, age, and height z-score.
-Currently, only NHBPEP Fourth Report regression models are available for use for children and adolescents (0–17 years).
+Currently, only NHBPEP Fourth Report regression models are available for use for children and adolescents (0-17 years).
 For \code{ref = "NICE/BHF"} or people >17 years old, expected BP is not defined and \code{NA} is returned.
 }
 \details{
-The Fourth Report uses regression models with age (centered at 10 years) and
+The Fourth Report uses regression models with age (centred at 10 years) and
 height z-score polynomial terms (up to 4th degree) to calculate expected BP:
 \deqn{\mu = \alpha + \sum_{i=1}^{4} \beta_i (Age-10)^i + \sum_{i=1}^{4} \gamma_i (Zht)^i}
 
-To calculate UK–WHO height or BMI z-scores, two recommended approaches are:
+To calculate UK-WHO height or BMI z-scores, two recommended approaches are:
 
 1. childsds R package (https://mvogel78.r-universe.dev/childsds),
    which provides SDS/z-score calculations based on multiple growth standards.
@@ -53,7 +53,7 @@ To calculate UK–WHO height or BMI z-scores, two recommended approaches are:
 2. RCPCHGrowth Python library (https://growth.rcpch.ac.uk/products/python-library/), with API accessible from R,
    which implements the official RCPCH UK-WHO growth chart algorithms.
 
-Both provide validated z‑score calculations suitable for downstream BP modelling.
+Both provide validated z-score calculations suitable for downstream BP modelling.
 }
 \examples{
 # Expected systolic BP for a 10-year-old boy at median height, and other some other children:

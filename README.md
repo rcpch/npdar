@@ -157,7 +157,6 @@ data.frame(
 ### BP functions
 
 -   [ ] Review unit testing.
--   [ ] Review non-ASCII characters.
 -   [ ] Add new references apart from Fourth Report and NICE/BHF.
 
 ### Audit Year functions

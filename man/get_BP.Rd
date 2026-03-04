@@ -22,9 +22,9 @@ Defaults to \code{c(-Inf, Inf)}; if left as-is, NPDA/NDA defaults are applied ba
 \value{
 Depending on \code{option}:
   \itemize{
-    \item \code{"expected"}: numeric vector of μ
+    \item \code{"expected"}: numeric vector of \eqn{\mu}
     \item \code{"zscore"}: numeric vector of z-scores
-    \item \code{"percentile"}: numeric vector (0–100)
+    \item \code{"percentile"}: numeric vector (0-100)
     \item \code{"category"}: character vector of categories
   }
 }
