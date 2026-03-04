@@ -68,6 +68,11 @@ Useful links:
 }
 }
 \author{
-Zhaonan Fang
+\itemize{
+  \item Zhaonan Fang (Author, Maintainer) \email{Zhaonan.Fang@rcpch.ac.uk}
+  \item Amani Krayem (Contributor) \email{Amani.Krayem@rcpch.ac.uk}
+  \item Humfrey Legge (Contributor) \email{Humfrey.Legge@rcpch.ac.uk}
+  \item Saira Pons Perez (Contributor) \email{Saira.PonsPerez@rcpch.ac.uk}
+}
 }
 \keyword{internal}

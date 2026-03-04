@@ -41,17 +41,13 @@
 #'   \item \code{\link{family_AuditYear}}
 #' }
 #'
-#' \strong{Data Privacy Functions:}
+#' @author
 #' \itemize{
-#'   \item \code{\link{mask_numerators}}: Mask small numerators
+#'   \item Zhaonan Fang (Author, Maintainer) \email{Zhaonan.Fang@rcpch.ac.uk}
+#'   \item Amani Krayem (Contributor) \email{Amani.Krayem@rcpch.ac.uk}
+#'   \item Humfrey Legge (Contributor) \email{Humfrey.Legge@rcpch.ac.uk}
+#'   \item Saira Pons Perez (Contributor) \email{Saira.PonsPerez@rcpch.ac.uk}
 #' }
-#'
-#' \strong{Statistical Utility Functions:}
-#' \itemize{
-#'   \item \code{\link{get_ultimate}}: Find up-to-date/first/last modes and entries
-#' }
-#'
-#' @author Zhaonan Fang
 #'
 #' @seealso
 #' Useful links:

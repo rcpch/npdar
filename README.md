@@ -183,8 +183,15 @@ This package is licensed under the [GNU General Public License v3.0](LICENSE.md)
 ## Authors
 
 -   **Zhaonan Fang** —
-    [zhaonan.fang\@rcpch.ac.uk](mailto:zhaonan.fang@rcpch.ac.uk) — Author &
-    Maintainer\
+    [Zhaonan.Fang@rcpch.ac.uk](mailto:Zhaonan.Fang@rcpch.ac.uk) — Author & Maintainer\
     *Royal College of Paediatrics and Child Health (RCPCH)*
--   **RCPCH Audit Analysts** — Contributor\
+-   **Amani Krayem** —
+    [Amani.Krayem@rcpch.ac.uk}](mailto:Amani.Krayem@rcpch.ac.uk) — Contributor\
     *Royal College of Paediatrics and Child Health (RCPCH)*
+-   **Humfrey Legge** —
+    [Humfrey.Legge@rcpch.ac.uk}](mailto:Humfrey.Legge@rcpch.ac.uk) — Contributor\
+    *Royal College of Paediatrics and Child Health (RCPCH)*
+-   **Saira Pons Perez** —
+    [Saira.PonsPerez@rcpch.ac.uk}](mailto:Saira.PonsPerez@rcpch.ac.uk) — Contributor\
+    *Royal College of Paediatrics and Child Health (RCPCH)*
+
