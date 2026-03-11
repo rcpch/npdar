@@ -13,13 +13,15 @@
 #' @details
 #' The functions implement clinical BP categorisation following:
 #' \itemize{
-#'   \item **NHBPEP Fourth Report**: Sex-, age-, and height-specific percentiles for paediatric BP
-#'   \item **NICE/BHF Guidelines**: Fixed thresholds for adult hypertension stages
-#'   \item **NPDA Limits**: National Paediatric Diabetes Audit validity ranges (50/15-200/150 mmHg)
-#'   \item **NDA Limits**: National Diabetes Audit validity ranges (70/20-300/150 mmHg)
+#'   \item \strong{NHBPEP Fourth Report}: Sex-, age-, and height-specific percentiles for paediatric BP
+#'   \item \strong{NICE/BHF Guidelines}: Fixed thresholds for adult hypertension stages
+#'   \item \strong{NPDA Limits}: National Paediatric Diabetes Audit validity ranges (50/15-200/150 mmHg)
+#'   \item \strong{NDA Limits}: National Diabetes Audit validity ranges (70/20-300/150 mmHg)
 #' }
 #'
 #' @template bp_categories
+#'
+#' @template bp_fourth
 #'
 #' @template bp_refs
 #' @family BP functions
@@ -81,8 +83,7 @@ NULL
 #'   using \code{male_code} and \code{female_code}. Values not matching these codes become \code{NA}.
 #' @param male_code,female_code Scalar values that identify the male and female codes in \code{sex}
 #'   (e.g., \code{1} and \code{2}, or \code{"M"} and \code{"F"}).
-#' @param height_z Numeric vector of height z-scores. Must already be z-transformed (e.g., UK-WHO).
-#'   To determine a child's BMI from the UK-WHO Growth Charts, I recommend 2 approaches, approach 1: Mandy Vogel's childsds (https://mvogel78.r-universe.dev/childsds) R package, or the RCPCH Python library RCPCHGrowth (https://growth.rcpch.ac.uk/products/python-library/), where API can be called in R.
+#' @param height_z Numeric vector of height z-scores. Must already be z-transformed (e.g., US CDC, UK-WHO).
 #' @param height_limit Positive numeric; z-scores with \code{|z| > height_limit} are treated as invalid
 #'   and set to \code{NA}. Default \code{5}.
 #' @param age_years Numeric vector of ages in years.
@@ -162,20 +163,7 @@ NULL
 #' @param age_years Numeric vector of ages in years.
 #' @param ref Reference: \code{"Fourth Report"} (children/adolescents, 0-17) or \code{"NICE/BHF"} (adults, >17).
 #'
-#' @details
-#' The Fourth Report uses regression models with age (centred at 10 years) and
-#' height z-score polynomial terms (up to 4th degree) to calculate expected BP:
-#' \deqn{\mu = \alpha + \sum_{i=1}^{4} \beta_i (Age-10)^i + \sum_{i=1}^{4} \gamma_i (Zht)^i}
-#'
-#' To calculate UK-WHO height or BMI z-scores, two recommended approaches are:
-#'
-#' 1. childsds R package (https://mvogel78.r-universe.dev/childsds),
-#'    which provides SDS/z-score calculations based on multiple growth standards.
-#'
-#' 2. RCPCHGrowth Python library (https://growth.rcpch.ac.uk/products/python-library/), with API accessible from R,
-#'    which implements the official RCPCH UK-WHO growth chart algorithms.
-#'
-#' Both provide validated z-score calculations suitable for downstream BP modelling.
+#' @template bp_fourth
 #'
 #' @return A numeric vector of expected BP values in mmHg (\eqn{\mu}). Returns \code{NA} for:
 #'   \itemize{
