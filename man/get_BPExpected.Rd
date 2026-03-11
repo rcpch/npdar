@@ -2,7 +2,7 @@
 % Please edit documentation in R/family_BP.R
 \name{get_BPExpected}
 \alias{get_BPExpected}
-\title{Compute Expected Blood Pressure (μ)}
+\title{Compute Expected Blood Pressure (\eqn{\mu})}
 \usage{
 get_BPExpected(..., .quiet = FALSE)
 }
@@ -17,17 +17,17 @@ using \code{male_code} and \code{female_code}. Values not matching these codes b
 \item{male_code, female_code}{Scalar values that identify the male and female codes in \code{sex}
 (e.g., \code{1} and \code{2}, or \code{"M"} and \code{"F"}).}
 
-\item{height_z}{Numeric vector of height z-scores. Must already be z-transformed (e.g., UK‑WHO).}
+\item{height_z}{Numeric vector of height z-scores. Must already be z-transformed (e.g., UK-WHO).}
 
 \item{height_limit}{Positive numeric; z-scores with \code{|z| > height_limit} are treated as invalid
 and set to \code{NA}. Default \code{5}.}
 
 \item{age_years}{Numeric vector of ages in years.}
 
-\item{ref}{Reference: \code{"Fourth Report"} (children/adolescents, 0–17) or \code{"NICE/BHF"} (adults, >17).}
+\item{ref}{Reference: \code{"Fourth Report"} (children/adolescents, 0-17) or \code{"NICE/BHF"} (adults, >17).}
 }
 \value{
-A numeric vector of expected BP values in mmHg (μ). Returns \code{NA} for:
+A numeric vector of expected BP values in mmHg (\eqn{\mu}). Returns \code{NA} for:
   \itemize{
     \item NICE/BHF reference (adults)
     \item Ages outside reference range
@@ -37,24 +37,47 @@ A numeric vector of expected BP values in mmHg (μ). Returns \code{NA} for:
 }
 \description{
 Returns the expected blood pressure (mean/50th percentile) based on CYP sex, age, and height z-score.
-Currently, only NHBPEP Fourth Report regression models are available for use for children and adolescents (0–17 years).
+Currently, only NHBPEP Fourth Report regression models are available for use for children and adolescents (0-17 years).
 For \code{ref = "NICE/BHF"} or people >17 years old, expected BP is not defined and \code{NA} is returned.
 }
-\details{
-The Fourth Report uses regression models with age (centered at 10 years) and
+\section{Height Reference Standards for the Fourth Report}{
+
+
+\strong{Fourth Report Regression Model:}
+
+The Fourth Report uses regression models with age (centred at 10 years) and
 height z-score polynomial terms (up to 4th degree) to calculate expected BP:
-\deqn{\mu = \alpha + \sum_{i=1}^{4} \beta_i (Age-10)^i + \sum_{i=1}^{4} \gamma_i (Zht)^i}
 
-To calculate UK–WHO height or BMI z-scores, two recommended approaches are:
+\deqn{\mu = \alpha + \sum_{j=1}^{4} \beta_j (Age-10)^j + \sum_{k=1}^{4} \gamma_k (Z_{ht})^k}
 
-1. childsds R package (https://mvogel78.r-universe.dev/childsds),
-   which provides SDS/z-score calculations based on multiple growth standards.
+\strong{BMI References:}
 
-2. RCPCHGrowth Python library (https://growth.rcpch.ac.uk/products/python-library/), with API accessible from R,
-   which implements the official RCPCH UK-WHO growth chart algorithms.
+The Fourth Report was developed and validated using US CDC 2000 growth references
+for height percentiles. Your height z-scores should ideally be based on US CDC reference.
+However, UK clinical practice and NPDA audit analysis use UK-WHO growth charts as standard
+(historically the NPDA used the British 1990), so using the UK-WHO is also considered
+acceptable in UK contexts (based on the assumption that the two populations are similar enough).
 
-Both provide validated z‑score calculations suitable for downstream BP modelling.
+To our knowledge, the Fourth Report BP percentiles have not been validated
+using UK-WHO height references. The clinical impact of applying Fourth Report regression
+coefficients with UK-WHO (rather than US CDC) height z-scores has not been
+formally evaluated. Users should be aware of this methodological discrepancy
+when interpreting results or comparing to US-based implementations.
+
+\strong{Calculating Height Z-Scores:}
+
+This package requires height z-scores as input and does not calculate them
+internally. Two approaches I recommended for obtaining height z-scores are:
+
+\enumerate{
+  \item \strong{childsds R package} (\url{https://mvogel78.r-universe.dev/childsds}),
+  which provides SDS/z-score calculations based on multiple growth standards (including UK–WHO, US CDC references).
+
+  \item \strong{RCPCHGrowth Python library} (\url{https://growth.rcpch.ac.uk/products/python-library/}),
+  which is the official RCPCH implementation of UK-WHO growth charts, with API accessible from R.
 }
+}
+
 \examples{
 # Expected systolic BP for a 10-year-old boy at median height, and other some other children:
 get_BPExpected(

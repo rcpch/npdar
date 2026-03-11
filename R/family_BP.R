@@ -13,15 +13,15 @@
 #' @details
 #' The functions implement clinical BP categorisation following:
 #' \itemize{
-#'   \item **NHBPEP Fourth Report**: Sex-, age-, and height-specific percentiles for paediatric BP
-#'   \item **NICE/BHF Guidelines**: Fixed thresholds for adult hypertension stages
-#'   \item **NPDA Limits**: National Paediatric Diabetes Audit validity ranges (50/15-200/150 mmHg)
-#'   \item **NDA Limits**: National Diabetes Audit validity ranges (70/20-300/150 mmHg)
+#'   \item \strong{NHBPEP Fourth Report}: Sex-, age-, and height-specific percentiles for paediatric BP
+#'   \item \strong{NICE/BHF Guidelines}: Fixed thresholds for adult hypertension stages
+#'   \item \strong{NPDA Limits}: National Paediatric Diabetes Audit validity ranges (50/15-200/150 mmHg)
+#'   \item \strong{NDA Limits}: National Diabetes Audit validity ranges (70/20-300/150 mmHg)
 #' }
 #'
 #' @template bp_categories
 #'
-#' @author Zhaonan Fang
+#' @template bp_fourth
 #'
 #' @template bp_refs
 #' @family BP functions
@@ -33,34 +33,26 @@ NULL
 
 #' Blood Pressure Regression Coefficients from the NHBPEP Fourth Report (Appendix Table B-1)
 #'
-#' @description Internal coefficient lists to compute expected systolic/diastolic BP (mean, μ)
-#' and standard deviations (σ) for children and adolescents (0–17 years),
+#' @description Internal coefficient lists to compute expected systolic/diastolic BP (mean, \eqn{\mu})
+#' and standard deviations (\eqn{\sigma}) for children and adolescents (0-17 years),
 #' stratified by sex, as described in the NHBPEP Fourth Report.
 #'
 #' @details
 #' These coefficients are used by \code{get_BPExpected()}, \code{get_BPRelative()},
 #' and \code{get_BPCategory()} when \code{ref = "Fourth Report"}.
-#'
-#' @format A nested list with top-level names \code{systolic}, \code{diastolic},
-#'   each containing \code{male} and \code{female} lists with:
-#'   \itemize{
-#'     \item \code{intercept} Numeric scalar (α)
-#'     \item \code{age_coef} Numeric vector of length 4 (β1–β4) applied to
-#'       \eqn{(Age-10), (Age-10)^2, (Age-10)^3, (Age-10)^4}
-#'     \item \code{height_coef} Numeric vector of length 4 (γ1–γ4) applied to
-#'       \eqn{Z_{ht}, Z_{ht}^2, Z_{ht}^3, Z_{ht}^4}
-#'     \item \code{std} Numeric scalar (σ)
-#'   }
+#' The Fourth Report uses regression models with age (centred at 10 years) and
+#' height z-score polynomial terms (up to 4th degree) to calculate expected BP:
+#' \deqn{\mu = \alpha + \sum_{i=1}^{4} \beta_i (Age-10)^i + \sum_{i=1}^{4} \gamma_i (Zht)^i}
 #'
 #' @keywords internal
 #' @noRd
 #' @family BP functions
 .coefs_BPFourth <- list(
   systolic = list(
-    male = list(intercept = 102.19768,                                  # α
-                age_coef = c(1.82416, 0.12776, 0.00249, -0.00135),      # β1, β2, β3, β4
-                height_coef = c(2.73157, -0.19618, -0.04659, 0.00947),  # γ1, γ2, γ3, γ4
-                std = 10.7128),                                         # σ
+    male = list(intercept = 102.19768,                                  # alpha
+                age_coef = c(1.82416, 0.12776, 0.00249, -0.00135),      # beta1, beta2, beta3, beta4
+                height_coef = c(2.73157, -0.19618, -0.04659, 0.00947),  # gamma1, gamma2, gamma3, gamma4
+                std = 10.7128),                                         # sigma
     female = list(intercept = 102.01027,
                   age_coef = c(1.94397, 0.00598, -0.00789, -0.00059),
                   height_coef = c(2.03526, 0.02534, -0.01884, 0.00121),
@@ -91,12 +83,11 @@ NULL
 #'   using \code{male_code} and \code{female_code}. Values not matching these codes become \code{NA}.
 #' @param male_code,female_code Scalar values that identify the male and female codes in \code{sex}
 #'   (e.g., \code{1} and \code{2}, or \code{"M"} and \code{"F"}).
-#' @param height_z Numeric vector of height z-scores. Must already be z-transformed (e.g., UK‑WHO).
-#'   To determine a child's BMI from the UK-WHO Growth Charts, I recommend 2 approaches, approach 1: Mandy Vogel’s childsds (https://mvogel78.r-universe.dev/childsds) R package, or the RCPCH Python library RCPCHGrowth (https://growth.rcpch.ac.uk/products/python-library/), where API can be called in R.
+#' @param height_z Numeric vector of height z-scores. Must already be z-transformed (e.g., US CDC, UK-WHO).
 #' @param height_limit Positive numeric; z-scores with \code{|z| > height_limit} are treated as invalid
 #'   and set to \code{NA}. Default \code{5}.
 #' @param age_years Numeric vector of ages in years.
-#' @param ref Reference: \code{"Fourth Report"} (children/adolescents, 0–17) or \code{"NICE/BHF"} (young adults, >17).
+#' @param ref Reference: \code{"Fourth Report"} (children/adolescents, 0-17) or \code{"NICE/BHF"} (young adults, >17).
 #'
 #' @return A list with normalized elements: \code{bp_type}, \code{sex} (\code{"male"} or \code{"female"} or \code{NA}),
 #'   \code{age_years} (invalid ages set to \code{NA} given \code{ref}), \code{height_z} (out-of-bound z set to \code{NA}), and \code{ref}.
@@ -114,16 +105,16 @@ NULL
   if (missing(ref)) {                                                           # Reminder to specify as match.arg() use first option as default
     stop("'ref' must be specified.")
   }
-  ref <- match.arg(ref)                                                         # Partial match (e.g. "NICE" → "NICE/BHF")
+  ref <- match.arg(ref)                                                         # Partial match (e.g. "NICE" -> "NICE/BHF")
 
   ## 1.2 Blood Pressure
   if (missing(bp_type)) {
     stop("'bp_type' must be specified.")
   }
-  bp_type <- match.arg(bp_type)                                                 # Partial match (e.g. "sys" → "systolic")
+  bp_type <- match.arg(bp_type)                                                 # Partial match (e.g. "sys" -> "systolic")
 
   ## 1.3 Sex
-  sex <- as.character(factor(sex,                                               # Vectorized sex mapping (e.g. 1/m/boy → male, 2/m/girl → female)
+  sex <- as.character(factor(sex,                                               # Vectorized sex mapping (e.g. 1/m/boy -> male, 2/m/girl -> female)
                              levels = c(male_code, female_code),
                              labels = c("male", "female")))
 
@@ -131,33 +122,33 @@ NULL
   if (ref=="NICE/BHF") {                                                        # For NPDA, for those >17 years, do not calculate anything later unless we specify adult NICE/BHF guidelines.
     age_invalid <- purrr::map_lgl(age_years, function(n) n<=17)                 # Capture invalid age (outside >17) that will be excluded
     if (!.quiet && any(age_invalid)) {
-      message("Ignore ", sum(age_invalid, na.rm = TRUE), " age(s) ≤ 17 years. NPDA only uses NICE/BHF reference for (young) adults >17 years.")
+      message("Ignore ", sum(age_invalid, na.rm = TRUE), " age(s) \u2264 17 years. NPDA only uses NICE/BHF reference for (young) adults >17 years.")
     }
   } else if (ref=="Fourth Report") {
     age_invalid <- purrr::map_lgl(age_years, function(n) n>17 || n<0)           # Capture invalid age (outside 0-17) that will be excluded
     if (!.quiet && any(age_invalid)) {
-      message("Ignore ", sum(age_invalid, na.rm = TRUE), " age(s) outside 0-17 years. NHBPEP Fourth Report is only designed for children ≤ 17 years.")
+      message("Ignore ", sum(age_invalid, na.rm = TRUE), " age(s) outside 0-17 years. NHBPEP Fourth Report is only designed for children <= 17 years.")
     }
   } # (FUTURE ADD NEW REF IF AVAILABLE)
 
   age_years <- ifelse(!age_invalid, age_years, NA)                              # Keep age only if within age range for that reference (e.g., 0-17, >17)
 
   ## 1.5 Height
-  height_invalid <- purrr::map_lgl(height_z, function(n) abs(n) > height_limit) # Capture invalid height beyond a certain SD (default is ±5) that we won't use to calculate expected BP later
+  height_invalid <- purrr::map_lgl(height_z, function(n) abs(n) > height_limit) # Capture invalid height beyond a certain SD (default is +-5) that we won't use to calculate expected BP later
   if (!.quiet && any(height_invalid, na.rm=TRUE)) {
-    message("Ignore ", sum(height_invalid, na.rm = TRUE), " height(s) beyond ±", height_limit, "SD based on 'height_limit'. Make sure heights have been z-transformed / rare cases (dwarfism/gigantism) exist in your dataset.")
+    message("Ignore ", sum(height_invalid, na.rm = TRUE), " height(s) beyond \u00b1", height_limit, "SD based on 'height_limit'. Make sure heights have been z-transformed / rare cases (dwarfism/gigantism) exist in your dataset.")
   }
 
-  height_z <- ifelse(!height_invalid, height_z, NA)                             # Keep height only if within a certain SD (default is ±5)
+  height_z <- ifelse(!height_invalid, height_z, NA)                             # Keep height only if within a certain SD (default is +-5)
 
   return(mget(c("bp_type", "sex", "age_years", "height_z", "ref")))
 }
 
-# ========== 2. Compute Expected Blood Pressure (μ) ==========
-#' Compute Expected Blood Pressure (μ)
+# ========== 2. Compute Expected Blood Pressure (mu) ==========
+#' Compute Expected Blood Pressure (\eqn{\mu})
 #'
 #' @description Returns the expected blood pressure (mean/50th percentile) based on CYP sex, age, and height z-score.
-#' Currently, only NHBPEP Fourth Report regression models are available for use for children and adolescents (0–17 years).
+#' Currently, only NHBPEP Fourth Report regression models are available for use for children and adolescents (0-17 years).
 #' For \code{ref = "NICE/BHF"} or people >17 years old, expected BP is not defined and \code{NA} is returned.
 #'
 #' @param .quiet Logical; suppress validation messages (default \code{FALSE}).
@@ -166,28 +157,15 @@ NULL
 #'   using \code{male_code} and \code{female_code}. Values not matching these codes become \code{NA}.
 #' @param male_code,female_code Scalar values that identify the male and female codes in \code{sex}
 #'   (e.g., \code{1} and \code{2}, or \code{"M"} and \code{"F"}).
-#' @param height_z Numeric vector of height z-scores. Must already be z-transformed (e.g., UK‑WHO).
+#' @param height_z Numeric vector of height z-scores. Must already be z-transformed (e.g., UK-WHO).
 #' @param height_limit Positive numeric; z-scores with \code{|z| > height_limit} are treated as invalid
 #'   and set to \code{NA}. Default \code{5}.
 #' @param age_years Numeric vector of ages in years.
-#' @param ref Reference: \code{"Fourth Report"} (children/adolescents, 0–17) or \code{"NICE/BHF"} (adults, >17).
+#' @param ref Reference: \code{"Fourth Report"} (children/adolescents, 0-17) or \code{"NICE/BHF"} (adults, >17).
 #'
-#' @details
-#' The Fourth Report uses regression models with age (centered at 10 years) and
-#' height z-score polynomial terms (up to 4th degree) to calculate expected BP:
-#' \deqn{\mu = \alpha + \sum_{i=1}^{4} \beta_i (Age-10)^i + \sum_{i=1}^{4} \gamma_i (Zht)^i}
+#' @template bp_fourth
 #'
-#' To calculate UK–WHO height or BMI z-scores, two recommended approaches are:
-#'
-#' 1. childsds R package (https://mvogel78.r-universe.dev/childsds),
-#'    which provides SDS/z-score calculations based on multiple growth standards.
-#'
-#' 2. RCPCHGrowth Python library (https://growth.rcpch.ac.uk/products/python-library/), with API accessible from R,
-#'    which implements the official RCPCH UK-WHO growth chart algorithms.
-#'
-#' Both provide validated z‑score calculations suitable for downstream BP modelling.
-#'
-#' @return A numeric vector of expected BP values in mmHg (μ). Returns \code{NA} for:
+#' @return A numeric vector of expected BP values in mmHg (\eqn{\mu}). Returns \code{NA} for:
 #'   \itemize{
 #'     \item NICE/BHF reference (adults)
 #'     \item Ages outside reference range
@@ -224,7 +202,7 @@ get_BPExpected <- function(..., .quiet = FALSE){                                
   # 1. Input validation
   valid <- .valid_BPDemoInput(..., .quiet=.quiet)
 
-  # 2. Calculate expected BP (μ)
+  # 2. Calculate expected BP (mu)
   if (valid$ref == "NICE/BHF") {
     message("NICE/BHF only provides category guidelines, expected BP not calculated.")
     mu <- NA
@@ -254,13 +232,13 @@ get_BPExpected <- function(..., .quiet = FALSE){                                
 #' Compute Blood Pressure Z-score and Percentile
 #'
 #' @description Computes z-scores and percentiles for observed BP values against expected values
-#' (μ, σ) from a specified reference (currently only NHBPEP Fourth Report is available). For \code{ref = "NICE/BHF"},
+#' (\eqn{\mu, \sigma}) from a specified reference (currently only NHBPEP Fourth Report is available). For \code{ref = "NICE/BHF"},
 #' z-scores are not defined and \code{NA} is returned with a message.
 #'
 #' @param bp_value Numeric vector of observed BP values (mmHg).
 #' @inheritDotParams get_BPExpected
 #'
-#' @return A tibble with two columns: \code{zscore} and \code{percentile} (0–100).
+#' @return A tibble with two columns: \code{zscore} and \code{percentile} (0-100).
 #'   \code{NA} where expected BP could not be computed (e.g., invalid inputs or adult reference).
 #'
 #' @template bp_refs
@@ -286,7 +264,7 @@ get_BPExpected <- function(..., .quiet = FALSE){                                
 get_BPRelative <- function(bp_value, ..., .quiet=FALSE) {                       # Extra argument: bp_value. Quiet validation message unless being called directly
   # 1. Input validation
   valid <- .valid_BPDemoInput(..., .quiet=TRUE)
-  # 2. Calculate expected BP (μ)
+  # 2. Calculate expected BP (mu)
   bp_expected <- get_BPExpected(..., .quiet=.quiet)
 
   # 3. Calculate z-score and percentile
@@ -316,14 +294,14 @@ get_BPRelative <- function(bp_value, ..., .quiet=FALSE) {                       
 # ========== 4. Categorise Blood Pressure (Children/Adolescents and Young Adults) ==========
 #' Categorise Blood Pressure (Children/Adolescents and Young Adults)
 #'
-#' @description Categorises observed BP values into guideline-based categories. For ages 0–17,
+#' @description Categorises observed BP values into guideline-based categories. For ages 0-17,
 #' currently NHBPEP Fourth Report thresholds are applied (with newborn and adolescent rules).
 #' For >17, NICE/BHF adult thresholds are applied.
 #'
 #' Unless \code{bp_limit} is explicitly provided, implausible values are excluded using:
 #' \itemize{
-#'   \item NPDA limit (children/adolescents): SBP [50–200] mmHg, DBP [15–150] mmHg
-#'   \item NDA limit (young adults): SBP [70–300] mmHg, DBP [20–150] mmHg
+#'   \item NPDA limit (children/adolescents): SBP [50-200] mmHg, DBP [15-150] mmHg
+#'   \item NDA limit (young adults): SBP [70-300] mmHg, DBP [20-150] mmHg
 #' }
 #'
 #' @param bp_value Numeric vector of observed BP values (mmHg).
@@ -416,8 +394,8 @@ get_BPCategory <- function(bp_value, bp_limit = c(-Inf, Inf), ...) {            
         bp_limit = c(15, 150)
       }
     }
-    # 4.2 Calculate expected BP (μ)
-    bp_expected <- get_BPExpected(..., .quiet=TRUE)                             # Calculate 50th/mean/μ
+    # 4.2 Calculate expected BP (mu)
+    bp_expected <- get_BPExpected(..., .quiet=TRUE)                             # Calculate 50th/mean/mu
     # 4.3 categorisation
     category <- purrr::pmap_chr(list(bp_value, bp_expected, valid$age_years, valid$sex), function(bpObserved, bpExpected, ageY, sexBinary) {
       if (is.na(bpExpected) | is.na(bpObserved)) return(NA)                   # This exclude anyone with invalid age/sex/height/bp_value
@@ -455,9 +433,9 @@ get_BPCategory <- function(bp_value, bp_limit = c(-Inf, Inf), ...) {            
 #'
 #' @return Depending on \code{option}:
 #'   \itemize{
-#'     \item \code{"expected"}: numeric vector of μ
+#'     \item \code{"expected"}: numeric vector of \eqn{\mu}
 #'     \item \code{"zscore"}: numeric vector of z-scores
-#'     \item \code{"percentile"}: numeric vector (0–100)
+#'     \item \code{"percentile"}: numeric vector (0-100)
 #'     \item \code{"category"}: character vector of categories
 #'   }
 #'
@@ -476,7 +454,7 @@ get_BPCategory <- function(bp_value, bp_limit = c(-Inf, Inf), ...) {            
 #' @family BP functions
 #' @export
 get_BP <- function(option = c("expected", "zscore", "percentile", "category"), ...) {
-  option <- match.arg(option)                                                   # Partial match (e.g. "centile" → "percentile")
+  option <- match.arg(option)                                                   # Partial match (e.g. "centile" -> "percentile")
 
   switch(option,
          expected   = get_BPExpected(...),

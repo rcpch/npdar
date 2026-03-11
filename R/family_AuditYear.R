@@ -22,7 +22,6 @@
 #'   \item Optional integer or formatted string output
 #' }
 #'
-#' @author Zhaonan Fang
 #' @family AuditYear functions
 #' @name family_AuditYear
 #' @aliases AuditYear AuditYears

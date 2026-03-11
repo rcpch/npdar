@@ -1,13 +1,12 @@
 Package: npdar
 Type: Package
 Title: National Paediatric Diabetes Audit R Tools
-Version: 0.3.0
+Version: 0.3.1
 Authors@R: c(
-    person(
-      "Zhaonan", "Fang",
-      email = "zhaonan.fang@rcpch.ac.uk",
-      role = c("aut", "cre")
-    )
+    person("Zhaonan", "Fang", email = "Zhaonan.Fang@rcpch.ac.uk", role = c("aut", "cre")),
+    person("Amani", "Krayem", email = "Amani.Krayem@rcpch.ac.uk", role = c("ctb")),
+    person("Humfrey", "Legge", email = "Humfrey.Legge@rcpch.ac.uk", role = c("ctb")),
+    person("Saira", "Pons Perez", email = "Saira.PonsPerez@rcpch.ac.uk", role = c("ctb"))
   )
 Description: An R package that provides functions for analysing National Paediatric Diabetes Audit (NPDA) data. 
 License: GPL (>= 3)
@@ -24,6 +23,7 @@ Suggests:
     knitr,
     rmarkdown,
     ggplot2,
+    childsds,
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
 URL: https://github.com/RCPCH/npdar

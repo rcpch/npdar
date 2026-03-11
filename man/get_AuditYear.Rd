@@ -38,9 +38,9 @@ divided into four quarters:
 
 For example:
 \itemize{
-  \item A date of 15 May 2024 → 2024/25 (Q1)
-  \item A date of 15 February 2025 → 2024/25 (Q4)
-  \item A date of 15 April 2025 → 2025/26 (Q1)
+  \item A date of 15 May 2025: 2025/26 (Q1)
+  \item A date of 15 March 2026: 2025/26 (Q4)
+  \item A date of 15 April 2026: 2025/26 (Q1)
 }
 }
 

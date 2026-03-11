@@ -8,50 +8,43 @@
 #'
 #' \strong{Blood Pressure Assessment:}
 #' \itemize{
-#'   \item Calculate expected blood pressure, z-scores and centiles based on given reference
-#'   \item Categorise blood pressure into clinical stages (e.g., Hypertension)
-#' }
+#'   \item \code{\link{family_BP}}:
+#'   \itemize{
+#'     \item Calculate expected blood pressure, z-scores and centiles based on given reference
+#'     \item Categorise blood pressure into clinical stages (e.g., Hypertension)
+#' }}
 #'
 #' \strong{Finding audit year(s):}
 #' \itemize{
-#'   \item Determine current NPDA audit year from dates
-#'   \item Generate sequential lists of audit years
-#'   \item Handle NPDA fiscal year structure (April-March)
-#' }
+#'   \item \code{\link{family_AuditYear}}:
+#'   \itemize{
+#'     \item Determine current NPDA audit year from dates
+#'     \item Generate sequential lists of audit years
+#'     \item Handle NPDA fiscal year structure (April-March)
+#' }}
+#'
 #' \strong{Data Privacy suppression:}
 #' \itemize{
-#'   \item Mask small numerators to protect patient privacy
-#' }
+#'   \item \code{\link{mask_numerators}}:
+#'   \itemize{
+#'     \item Mask small numerators to protect patient privacy
+#' }}
 #'
 #' \strong{Statistical Utilities:}
 #' \itemize{
-#'   \item Find up-to-date/last/first modes and entries
-#'   \item Handle missing and invalid data
-#' }
+#'   \item \code{\link{get_ultimate}}:
+#'   \itemize{
+#'     \item Find up-to-date/last/first modes and entries
+#'     \item Handle missing and invalid data
+#' }}
 #'
-#' @section Key Functions:
-#'
-#' \strong{Blood Pressure Functions:}
+#' @author
 #' \itemize{
-#'   \item \code{\link{family_BP}}
+#'   \item Zhaonan Fang (Author, Maintainer) \email{Zhaonan.Fang@rcpch.ac.uk}
+#'   \item Amani Krayem (Contributor) \email{Amani.Krayem@rcpch.ac.uk}
+#'   \item Humfrey Legge (Contributor) \email{Humfrey.Legge@rcpch.ac.uk}
+#'   \item Saira Pons Perez (Contributor) \email{Saira.PonsPerez@rcpch.ac.uk}
 #' }
-#'
-#' \strong{Audit Year Functions:}
-#' \itemize{
-#'   \item \code{\link{family_AuditYear}}
-#' }
-#'
-#' \strong{Data Privacy Functions:}
-#' \itemize{
-#'   \item \code{\link{mask_numerators}}: Mask small numerators
-#' }
-#'
-#' \strong{Statistical Utility Functions:}
-#' \itemize{
-#'   \item \code{\link{get_ultimate}}: Find up-to-date/first/last modes and entries
-#' }
-#'
-#' @author Zhaonan Fang
 #'
 #' @seealso
 #' Useful links:

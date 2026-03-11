@@ -16,12 +16,12 @@ get_BPRelative(bp_value, ..., .quiet = FALSE)
   }}
 }
 \value{
-A tibble with two columns: \code{zscore} and \code{percentile} (0–100).
+A tibble with two columns: \code{zscore} and \code{percentile} (0-100).
   \code{NA} where expected BP could not be computed (e.g., invalid inputs or adult reference).
 }
 \description{
 Computes z-scores and percentiles for observed BP values against expected values
-(μ, σ) from a specified reference (currently only NHBPEP Fourth Report is available). For \code{ref = "NICE/BHF"},
+(\eqn{\mu, \sigma}) from a specified reference (currently only NHBPEP Fourth Report is available). For \code{ref = "NICE/BHF"},
 z-scores are not defined and \code{NA} is returned with a message.
 }
 \examples{
