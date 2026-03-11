@@ -1,7 +1,7 @@
 Package: npdar
 Type: Package
 Title: National Paediatric Diabetes Audit R Tools
-Version: 0.3.0
+Version: 0.3.1
 Authors@R: c(
     person("Zhaonan", "Fang", email = "Zhaonan.Fang@rcpch.ac.uk", role = c("aut", "cre")),
     person("Amani", "Krayem", email = "Amani.Krayem@rcpch.ac.uk", role = c("ctb")),
