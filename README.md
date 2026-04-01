@@ -138,59 +138,6 @@ data.frame(
 
 --------------------------------------------------------------------------------
 
-## Planned Improvements
-
-### get_ultimate()
-
--   [ ] Allow vector with POSIXct Date Time values
-
-### mask_numerators()
-
--   [ ] for rows with (2, 3, 3, 3, 3) with threshold being \<3, all values are
-    currently masked.
--   [ ] instead, new rules can be implemented in the future:
-    1)  randomly mask only one of the second smallest value if specify
-        set.seed(),
-    2)  can give weights to different options, so a certain option may be more
-        likely to be masked.
-
-### BP functions
-
--   [ ] Review unit testing.
--   [ ] Add new references apart from Fourth Report and NICE/BHF.
-
-### Audit Year functions
-
--   [ ] Review unit testing.
--   [ ] Option to determine current audit quarter (Q1-Q4).
--   [ ] Return quarter period boundaries (start/end timestamps).
-
-### AOB
-
--   [ ] Finalise and add Disclaimer to package documentation.
-
--   [ ] Better documentation and reference.
-
---------------------------------------------------------------------------------
-
 ## License
 
 This package is licensed under the [GNU General Public License v3.0](LICENSE.md).
-
---------------------------------------------------------------------------------
-
-## Authors
-
--   **Zhaonan Fang** —
-    [Zhaonan.Fang@rcpch.ac.uk](mailto:Zhaonan.Fang@rcpch.ac.uk) — Author & Maintainer\
-    *Royal College of Paediatrics and Child Health (RCPCH)*
--   **Amani Krayem** —
-    [Amani.Krayem@rcpch.ac.uk}](mailto:Amani.Krayem@rcpch.ac.uk) — Contributor\
-    *Royal College of Paediatrics and Child Health (RCPCH)*
--   **Humfrey Legge** —
-    [Humfrey.Legge@rcpch.ac.uk}](mailto:Humfrey.Legge@rcpch.ac.uk) — Contributor\
-    *Royal College of Paediatrics and Child Health (RCPCH)*
--   **Saira Pons Perez** —
-    [Saira.PonsPerez@rcpch.ac.uk}](mailto:Saira.PonsPerez@rcpch.ac.uk) — Contributor\
-    *Royal College of Paediatrics and Child Health (RCPCH)*
-
