@@ -16,10 +16,13 @@ RoxygenNote: 7.3.3
 Depends: 
     R (>= 4.1.0)
 Imports:
-    purrr,
-    tibble
-Suggests:
     dplyr,
+    purrr,
+    rlang,
+    tibble,
+    tidyr,
+    tidyselect
+Suggests:
     knitr,
     rmarkdown,
     ggplot2,
