@@ -1,3 +1,7 @@
+# npdar 0.4.1
+
+* Fixed `get_frequency()` drop logical/factor measures' unobserved levels (PR #16).
+
 # npdar 0.4.0
 
 * Added `get_frequency()` to summarise categorical measures by group, returning
