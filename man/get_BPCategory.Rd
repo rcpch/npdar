@@ -91,6 +91,7 @@ get_BPCategory(
 }
 \seealso{
 Other BP functions: 
+\code{\link{.valid_BPDemoInput}()},
 \code{\link{family_BP}},
 \code{\link{get_BP}()},
 \code{\link{get_BPExpected}()},

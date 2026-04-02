@@ -12,8 +12,10 @@ get_BPRelative(bp_value, ..., .quiet = FALSE)
 \item{...}{
   Arguments passed on to \code{\link[=get_BPExpected]{get_BPExpected}}
   \describe{
-    \item{\code{.quiet}}{Logical; suppress validation messages (default \code{FALSE}).}
+    \item{\code{}}{}
   }}
+
+\item{.quiet}{Logical; suppress validation messages (default \code{FALSE}).}
 }
 \value{
 A tibble with two columns: \code{zscore} and \code{percentile} (0-100).
@@ -50,6 +52,7 @@ get_BPRelative(
 }
 \seealso{
 Other BP functions: 
+\code{\link{.valid_BPDemoInput}()},
 \code{\link{family_BP}},
 \code{\link{get_BP}()},
 \code{\link{get_BPCategory}()},
