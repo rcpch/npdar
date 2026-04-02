@@ -29,13 +29,19 @@ long tibble.
 }
 \examples{
 \dontrun{
-group_cols <- c("overall", "country", "region") # Define groups
-measure_cols <- df |> # Select relevant measures
+group_cols <- c("overall", "country", "region")
+measure_cols <- df |>
   dplyr::select(
     tidyselect::matches("q[0-9]+_mcq_.*") |
     tidyselect::matches("q[0-9]+_catq")
   ) |>
   names()
+
+sum_categorical_measures <- get_frequency(
+  data = df,
+  measures = measure_cols,
+  groups = group_cols
+)
 }
 
 }

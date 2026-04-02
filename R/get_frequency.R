@@ -18,25 +18,26 @@
 #'
 #' @examples
 #' \dontrun{
-#' group_cols <- c("overall", "country", "region") # Define groups
-#' measure_cols <- df |> # Select relevant measures
+#' group_cols <- c("overall", "country", "region")
+#' measure_cols <- df |>
 #'   dplyr::select(
 #'     tidyselect::matches("q[0-9]+_mcq_.*") |
 #'     tidyselect::matches("q[0-9]+_catq")
 #'   ) |>
 #'   names()
-# sum_categorical_measures <- get_frequency(data = df,
-#                                           measures = measure_cols,
-#                                           groups = group_cols)
+#'
+#' sum_categorical_measures <- get_frequency(
+#'   data = df,
+#'   measures = measure_cols,
+#'   groups = group_cols
+#' )
 #' }
 #'
-#' @importFrom dplyr filter mutate group_by summarise ungroup across bind_rows sym n
+#' @importFrom dplyr group_by select across filter mutate summarise ungroup bind_rows n
 #' @importFrom tidyr pivot_longer complete nesting
-#' @importFrom rlang sym
+#' @importFrom rlang .data sym
 #' @importFrom tidyselect all_of
-#'
 #' @export
-#'
 get_frequency <- function(data, measures, groups = "overall") {
   results <- list()
 
@@ -54,30 +55,40 @@ get_frequency <- function(data, measures, groups = "overall") {
 
     # Step 2. Summarise each measure within this group
     results[[grp]] <- grp_data |>
-      dplyr::mutate(across(dplyr::all_of(measures), as.character)) |> # Coerce to character so logical, factor, and character cols are handled uniformly by pivot_longer
-      tidyr::pivot_longer(                                            # Reshape: one row per respondent × measure
-        cols      = all_of(measures),
+      dplyr::mutate(dplyr::across(               # Coerce to character so logical, factor, and character cols are handled uniformly by pivot_longer
+        dplyr::all_of(measures),
+        as.character)) |>
+      tidyr::pivot_longer(                       # Reshape: one row per respondent × measure
+        cols      = tidyselect::all_of(measures),
         names_to  = "measure",
         values_to = "response"
       ) |>
-      dplyr::group_by(across(dplyr::all_of(c(grp, "measure", "response")))) |> # Count occurrences of each response within group × measure
-      dplyr::summarise(numerator = n(), .groups = "drop") |>
-      dplyr::filter(!is.na(response)) |>                                       # Exclude NAs from denominator (i.e., treat as skipped)
-      tidyr::complete(                                                         # Fill in 0 for missing combinations
-        !!rlang::sym(grp), tidyr::nesting(measure, response),
+      dplyr::group_by(dplyr::across(
+        dplyr::all_of(c(grp, "measure", "response"))
+        )) |>                                    # Count occurrences of each response within group × measure
+      dplyr::summarise(numerator = dplyr::n(), .groups = "drop") |>
+      dplyr::filter(!is.na(.data$response)) |>   # Exclude NAs from denominator (i.e., treat as skipped)
+      tidyr::complete(                           # Fill in 0 for missing combinations
+        !!rlang::sym(grp),
+        tidyr::nesting(
+          !!rlang::sym("measure"),
+          !!rlang::sym("response")
+        ),
         fill = list(numerator = 0)
       ) |>
-      dplyr::group_by(across(dplyr::all_of(c(grp, "measure")))) |>             # Compute denominator and percentage within group × measure
+      dplyr::group_by(dplyr::across(             # Compute denominator and percentage within group × measure
+        dplyr::all_of(c(grp, "measure"))
+        )) |>
       dplyr::mutate(
-        denominator = sum(numerator),
-        percent     = numerator / denominator
+        denominator = sum(.data$numerator),
+        percent     = .data$numerator / .data$denominator
       ) |>
       dplyr::ungroup()
   }
 
   # Step 3. Combine all groups
-  dplyr::bind_rows(results) |>                                        # bind_rows fills missing group columns with NA across groups
-    dplyr::select(dplyr::all_of(groups),
-                  measure, response,
-                  numerator, denominator, percent)
+  dplyr::bind_rows(results) |>                   # Compute denominator and percentage within group × measure
+    dplyr::select(
+      dplyr::all_of(c(groups, "measure", "response", "numerator", "denominator", "percent"))
+    )
 }
