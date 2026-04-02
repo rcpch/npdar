@@ -1,6 +1,7 @@
 <!-- badges: start -->
 [![R Package](https://img.shields.io/badge/R-package-blue)](https://github.com/rcpch/npdar)
 [![GPLv3 license](https://img.shields.io/badge/License-GPLv3-blue.svg)](http://perso.crans.org/besson/LICENSE.html)
+[![R-CMD-check](https://github.com/rcpch/npdar/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/rcpch/npdar/actions/workflows/R-CMD-check.yaml)
 <!-- badges: end -->
 
 ## Overview
