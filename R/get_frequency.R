@@ -3,7 +3,7 @@
 #' For each specified grouping variable, count the frequency of each response
 #' option of the given measure column(s), and compute the denominator (non-missing
 #' responses) and percentage. Results for the specified group(s) are combined into a single
-#' long tibble.
+#' long tibble for easy use in `ggplot` or `plotly`.
 #'
 #' @param data A data frame containing measure columns (and grouping columns), with one row per participant.
 #' @param measures A character vector of column names to summarise. All columns
@@ -17,21 +17,38 @@
 #' @return A tibble in long format with one row per group level × measure × response combination.
 #'
 #' @examples
-#' \dontrun{
+#' set.seed(1999)
+#' df <- data.frame(participant_id = 1:60,
+#'                  country        = c(rep("England", 30), rep("Wales", 30)),
+#'                  region         = c(
+#'                    rep("East England", 10), rep("West England", 10), rep(NA, 10),
+#'                    rep("North Wales", 10), rep("South Wales", 10), rep(NA, 10)
+#'                  ),
+#'                  # Q3 categorical
+#'                  q3_catq        = sample(c("A", "B", "C", NA), 60, replace = TRUE),
+#'                  # Q4 categorical
+#'                  q4_catq        = sample(c("A", "B", "C", "D", "E", NA), 60, replace = TRUE)
+#' )
+#'
 #' group_cols <- c("overall", "country", "region")
+#'
 #' measure_cols <- df |>
-#'   dplyr::select(
-#'     tidyselect::matches("q[0-9]+_mcq_.*") |
-#'     tidyselect::matches("q[0-9]+_catq")
-#'   ) |>
+#'   dplyr::select(tidyselect::matches("q[0-9]+_catq")) |>
 #'   names()
 #'
 #' sum_categorical_measures <- get_frequency(
-#'   data = df,
+#'   data     = df,
 #'   measures = measure_cols,
-#'   groups = group_cols
+#'   groups   = group_cols
 #' )
-#' }
+#'
+#' head(sum_categorical_measures)
+#'
+#' sum_categorical_measures |>
+#' dplyr::filter(!is.na(country)) |>
+#' dplyr::group_by(measure) |>
+#' dplyr::do(p=plotly::plot_ly(., x = ~country, y = ~percent, color = ~response, type = "bar")) |>
+#' plotly::subplot(nrows = 1, shareX = TRUE, shareY = TRUE)
 #'
 #' @importFrom dplyr group_by select across filter mutate summarise ungroup bind_rows n
 #' @importFrom tidyr pivot_longer complete nesting
