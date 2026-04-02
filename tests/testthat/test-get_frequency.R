@@ -10,8 +10,8 @@ df <- data.frame(
                           rep("North Wales", 10), rep("South Wales", 10), rep(NA, 10)),
   # Q1 MCQ (logical T/F)
   q1_mcq_optionA         = c(rep(TRUE, 30), rep(FALSE, 30)),
-  q1_mcq_optionB         = sample(c(TRUE, FALSE), 60, prob = c(0.4, 0.6), replace = TRUE),
-  q1_mcq_optionC         = sample(c(TRUE, FALSE), 60, prob = c(0.8, 0.2), replace = TRUE),
+  q1_mcq_optionB         = FALSE, # no one selected this option
+  q1_mcq_optionC         = TRUE,  # everyone selected this option
   # Q2 MCQ (logical T/F)
   q2_mcq_optionX         = sample(c(TRUE, FALSE), 60, replace = TRUE),
   q2_mcq_optionY         = sample(c(TRUE, FALSE), 60, prob = c(0.4, 0.6), replace = TRUE),
@@ -45,6 +45,31 @@ test_that("NA responses are excluded from numerator and denominator", {
   expect_false(any(is.na(summary_long$response)))
 })
 
+test_that("Unobserved logical level should still be preserved", {
+  q1B_distinct <- summary_long |>
+    filter(measure == "q1_mcq_optionB") |>
+    distinct(response) |>
+    pull(response)
+
+  q1C_distinct <- summary_long |>
+    filter(measure == "q1_mcq_optionC") |>
+    distinct(response) |>
+    pull(response)
+
+  expect_setequal(q1B_distinct, c("TRUE", "FALSE"))
+  expect_setequal(q1C_distinct, c("TRUE", "FALSE"))
+})
+
+test_that("Unobserved logical level gets numerator 0", {
+  q1B_true <- summary_long |>
+    filter(measure == "q1_mcq_optionB" & response == "TRUE" & overall == "overall")
+
+  expect_equal(nrow(q1B_true), 1)
+  expect_equal(q1B_true$numerator, 0)
+  expect_equal(q1B_true$denominator, 60)
+  expect_equal(q1B_true$percent, 0)
+})
+
 test_that("get_frequency() handles a measure with all NA values", {
   df_allna <- df |> mutate(q3_catq = NA_character_)
   summary_test <- get_frequency(data = df_allna,
@@ -64,30 +89,29 @@ test_that("get_frequency() handles a measure that is all one value", {
 
 ##### Test denominator #####
 test_that("Overall denominator equals total participants for a logical measure without NA", {
-  overall_q1B_denominator <- summary_long |>
+  overall_q1A_denominator <- summary_long |>
     filter(overall == "overall" & measure == "q1_mcq_optionA") |>
     distinct(denominator) |>
     pull()
-  expect_equal(overall_q1B_denominator, nrow(df))
+  expect_equal(overall_q1A_denominator, nrow(df))
 })
 
 test_that("Region denominators equal all participants in the region for a logical measure without NA", {
-  region_q1B_denominator <- summary_long |>
+  region_q1A_denominator <- summary_long |>
     filter(!is.na(region) & measure == "q1_mcq_optionA") |>
     distinct(region, denominator)
 
-  region_q1B_denominator <- setNames(region_q1B_denominator$denominator,
-                                     region_q1B_denominator$region)
+  region_q1A_denominator <- setNames(region_q1A_denominator$denominator,
+                                     region_q1A_denominator$region)
 
   expect_equal(
-    region_q1B_denominator,
+    region_q1A_denominator,
     c(table(df$region))
   )
 })
 
 
 ##### Test numerator/percent #####
-
 test_that("q1_mcq_optionA is exactly 50/50 T/F overall", {
   expect_equal(summary_long |> filter(measure == "q1_mcq_optionA" & overall == "overall" & response == "TRUE") |> pull(percent), 0.5)
   expect_equal(summary_long |> filter(measure == "q1_mcq_optionA" & overall == "overall" & response == "FALSE") |> pull(percent), 0.5)
