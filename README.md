@@ -1,6 +1,7 @@
 <!-- badges: start -->
 [![R Package](https://img.shields.io/badge/R-package-blue)](https://github.com/rcpch/npdar)
 [![GPLv3 license](https://img.shields.io/badge/License-GPLv3-blue.svg)](http://perso.crans.org/besson/LICENSE.html)
+[![R-CMD-check](https://github.com/rcpch/npdar/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/rcpch/npdar/actions/workflows/R-CMD-check.yaml)
 <!-- badges: end -->
 
 ## Overview
@@ -14,13 +15,14 @@ The package currently includes functions for:
 -   **Blood pressure assessment** — calculating expected BP values, z-scores, 
     percentiles, and categorising hypertension for children and adults based on
     appropriate references or guidelines.
--   **Finding audit year(s)** — determining the NPDA audit period based on the
-    provided date.
+-   **Statistical utilities** — 1) identifying the most recent/first/last modal
+    value or the first/last entry from a vector with options to ignore specific
+    values. 2) summarising categorical measure(s) by group(s), returning count, 
+    denominator, and percentage in long format for easy use in `ggplot2` or `plotly`.
 -   **Data privacy suppression** — masking small numerators in a categorical
     variable to protect patient privacy.
--   **Statistical utilities** — identifying the most recent/first/last modal
-    value or the first/last entry from a vector with options to ignore specific
-    values.
+-   **Finding audit year(s)** — determining the NPDA audit period based on the
+    provided date.
 
 ## ⚠️Disclaimer
 
@@ -101,7 +103,7 @@ mask_numerators(c(4, 6, 2, 4, 0), maxNum = 3, maskMessage = "*")
 #> [1] "*" "6" "*" "*" "0"
 
 
-# --- Longitudinal summarisation ---
+# --- Longitudinal summarisation (first/last/most recent modal values) ---
 
 # Find the desired mode
 x <- c("A", "B", "C", "A", "A", "Unknown", "Unknown", NA, "C", "C", "B", "B", "Unknown")
@@ -118,6 +120,46 @@ get_ultimate(x, find = "last_mode", except = c("Unknown"))
 #> There are multiple modes, the remaining modes are: A, B
 #> [1] "C"
 
+# --- Categorical frequency summarisation ---
+set.seed(1999)
+df <- data.frame(participant_id = 1:60,
+                 country        = c(rep("England", 30), rep("Wales", 30)),
+                 region         = c(
+                   rep("East England", 10), rep("West England", 10), rep(NA, 10),
+                   rep("North Wales", 10), rep("South Wales", 10), rep(NA, 10)
+                 ),
+                 # Q3 categorical
+                 q3_catq        = sample(c("A", "B", "C", NA), 60, replace = TRUE),
+                 # Q4 categorical
+                 q4_catq        = sample(c("A", "B", "C", "D", "E", NA), 60, replace = TRUE)
+)
+
+group_cols <- c("overall", "country", "region")
+
+measure_cols <- df |>
+  dplyr::select(tidyselect::matches("q[0-9]+_catq")) |>
+  names()
+
+sum_categorical_measures <- get_frequency(
+  data     = df,
+  measures = measure_cols,
+  groups   = group_cols
+)
+
+head(sum_categorical_measures)
+#>   overall country region measure response numerator denominator percent
+#> 1 overall NA      NA     q3_catq A               10          41   0.244
+#> 2 overall NA      NA     q3_catq B               18          41   0.439
+#> 3 overall NA      NA     q3_catq C               13          41   0.317
+#> 4 overall NA      NA     q4_catq A                9          54   0.167
+#> 5 overall NA      NA     q4_catq B               16          54   0.296
+#> 6 overall NA      NA     q4_catq C               10          54   0.185
+
+sum_categorical_measures |>
+  dplyr::filter(!is.na(country)) |>
+  dplyr::group_by(measure) |>
+  do(p=plotly::plot_ly(., x = ~country, y = ~percent, color = ~response, type = "bar")) |>
+  subplot(nrows = 1, shareX = TRUE, shareY = TRUE)
 
 # --- Finding audit year(s) ---
 get_AuditYear(as.Date("2025-03-31"))  
@@ -138,59 +180,6 @@ data.frame(
 
 --------------------------------------------------------------------------------
 
-## Planned Improvements
-
-### get_ultimate()
-
--   [ ] Allow vector with POSIXct Date Time values
-
-### mask_numerators()
-
--   [ ] for rows with (2, 3, 3, 3, 3) with threshold being \<3, all values are
-    currently masked.
--   [ ] instead, new rules can be implemented in the future:
-    1)  randomly mask only one of the second smallest value if specify
-        set.seed(),
-    2)  can give weights to different options, so a certain option may be more
-        likely to be masked.
-
-### BP functions
-
--   [ ] Review unit testing.
--   [ ] Add new references apart from Fourth Report and NICE/BHF.
-
-### Audit Year functions
-
--   [ ] Review unit testing.
--   [ ] Option to determine current audit quarter (Q1-Q4).
--   [ ] Return quarter period boundaries (start/end timestamps).
-
-### AOB
-
--   [ ] Finalise and add Disclaimer to package documentation.
-
--   [ ] Better documentation and reference.
-
---------------------------------------------------------------------------------
-
 ## License
 
 This package is licensed under the [GNU General Public License v3.0](LICENSE.md).
-
---------------------------------------------------------------------------------
-
-## Authors
-
--   **Zhaonan Fang** —
-    [Zhaonan.Fang@rcpch.ac.uk](mailto:Zhaonan.Fang@rcpch.ac.uk) — Author & Maintainer\
-    *Royal College of Paediatrics and Child Health (RCPCH)*
--   **Amani Krayem** —
-    [Amani.Krayem@rcpch.ac.uk}](mailto:Amani.Krayem@rcpch.ac.uk) — Contributor\
-    *Royal College of Paediatrics and Child Health (RCPCH)*
--   **Humfrey Legge** —
-    [Humfrey.Legge@rcpch.ac.uk}](mailto:Humfrey.Legge@rcpch.ac.uk) — Contributor\
-    *Royal College of Paediatrics and Child Health (RCPCH)*
--   **Saira Pons Perez** —
-    [Saira.PonsPerez@rcpch.ac.uk}](mailto:Saira.PonsPerez@rcpch.ac.uk) — Contributor\
-    *Royal College of Paediatrics and Child Health (RCPCH)*
-

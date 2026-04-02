@@ -30,7 +30,6 @@
 NULL
 
 # ========== 0. Blood Pressure Regression Coefficients from the NHBPEP Fourth Report (Appendix Table B-1) ==========
-
 #' Blood Pressure Regression Coefficients from the NHBPEP Fourth Report (Appendix Table B-1)
 #'
 #' @description Internal coefficient lists to compute expected systolic/diastolic BP (mean, \eqn{\mu})
@@ -70,7 +69,7 @@ NULL
   )
 )
 
-# ========== 1. (Helper) Function to Validate Demographic Inputs for BP Functions (Internal) ==========
+# ========== 1. (Internal Helper) Function to Validate Demographic Inputs for BP Functions ==========
 #' Validate Demographic Inputs for BP Functions (Internal)
 #'
 #' @description Internal helper function to validate and standardize demographic inputs
@@ -87,13 +86,13 @@ NULL
 #' @param height_limit Positive numeric; z-scores with \code{|z| > height_limit} are treated as invalid
 #'   and set to \code{NA}. Default \code{5}.
 #' @param age_years Numeric vector of ages in years.
-#' @param ref Reference: \code{"Fourth Report"} (children/adolescents, 0-17) or \code{"NICE/BHF"} (young adults, >17).
+#' @param ref Reference: \code{"Fourth Report"} (children/adolescents, 0-17) or \code{"NICE/BHF"} (adults, >17).
 #'
 #' @return A list with normalized elements: \code{bp_type}, \code{sex} (\code{"male"} or \code{"female"} or \code{NA}),
 #'   \code{age_years} (invalid ages set to \code{NA} given \code{ref}), \code{height_z} (out-of-bound z set to \code{NA}), and \code{ref}.
 #'
 #' @keywords internal
-#' @noRd
+#'
 #' @family BP functions
 .valid_BPDemoInput <- function(bp_type = c("systolic", "diastolic"),
                                sex, male_code, female_code,
@@ -121,12 +120,12 @@ NULL
   ## 1.4 Age
   if (ref=="NICE/BHF") {                                                        # For NPDA, for those >17 years, do not calculate anything later unless we specify adult NICE/BHF guidelines.
     age_invalid <- purrr::map_lgl(age_years, function(n) n<=17)                 # Capture invalid age (outside >17) that will be excluded
-    if (!.quiet && any(age_invalid)) {
+    if (!.quiet && any(age_invalid, na.rm=TRUE)) {
       message("Ignore ", sum(age_invalid, na.rm = TRUE), " age(s) \u2264 17 years. NPDA only uses NICE/BHF reference for (young) adults >17 years.")
     }
   } else if (ref=="Fourth Report") {
     age_invalid <- purrr::map_lgl(age_years, function(n) n>17 || n<0)           # Capture invalid age (outside 0-17) that will be excluded
-    if (!.quiet && any(age_invalid)) {
+    if (!.quiet && any(age_invalid, na.rm=TRUE)) {
       message("Ignore ", sum(age_invalid, na.rm = TRUE), " age(s) outside 0-17 years. NHBPEP Fourth Report is only designed for children <= 17 years.")
     }
   } # (FUTURE ADD NEW REF IF AVAILABLE)
@@ -152,16 +151,7 @@ NULL
 #' For \code{ref = "NICE/BHF"} or people >17 years old, expected BP is not defined and \code{NA} is returned.
 #'
 #' @param .quiet Logical; suppress validation messages (default \code{FALSE}).
-#' @param bp_type Character; \code{"systolic"} or \code{"diastolic"}.
-#' @param sex Vector of sex codes in your data. Will be mapped to \code{"male"} or \code{"female"}
-#'   using \code{male_code} and \code{female_code}. Values not matching these codes become \code{NA}.
-#' @param male_code,female_code Scalar values that identify the male and female codes in \code{sex}
-#'   (e.g., \code{1} and \code{2}, or \code{"M"} and \code{"F"}).
-#' @param height_z Numeric vector of height z-scores. Must already be z-transformed (e.g., UK-WHO).
-#' @param height_limit Positive numeric; z-scores with \code{|z| > height_limit} are treated as invalid
-#'   and set to \code{NA}. Default \code{5}.
-#' @param age_years Numeric vector of ages in years.
-#' @param ref Reference: \code{"Fourth Report"} (children/adolescents, 0-17) or \code{"NICE/BHF"} (adults, >17).
+#' @inheritDotParams .valid_BPDemoInput
 #'
 #' @template bp_fourth
 #'
@@ -197,7 +187,6 @@ NULL
 #'
 #' @export
 #' @importFrom purrr pmap_dbl map_lgl
-#' @importFrom stats qnorm pnorm
 get_BPExpected <- function(..., .quiet = FALSE){                                # Quiet validation message unless being called directly
   # 1. Input validation
   valid <- .valid_BPDemoInput(..., .quiet=.quiet)
@@ -205,7 +194,9 @@ get_BPExpected <- function(..., .quiet = FALSE){                                
   # 2. Calculate expected BP (mu)
   if (valid$ref == "NICE/BHF") {
     message("NICE/BHF only provides category guidelines, expected BP not calculated.")
-    mu <- NA
+    # mu <- NA
+    mu <- rep(NA_real_, length(valid$age_years))
+
   } else if (valid$ref == "Fourth Report") {
     mu <- purrr::pmap_dbl(list(valid$sex, valid$age_years, valid$height_z), function(sexBinary, ageY, heightZ) {
       ageC <- ageY - 10                                                         # Center age to 10
@@ -235,6 +226,7 @@ get_BPExpected <- function(..., .quiet = FALSE){                                
 #' (\eqn{\mu, \sigma}) from a specified reference (currently only NHBPEP Fourth Report is available). For \code{ref = "NICE/BHF"},
 #' z-scores are not defined and \code{NA} is returned with a message.
 #'
+#' @param .quiet Logical; suppress validation messages (default \code{FALSE}).
 #' @param bp_value Numeric vector of observed BP values (mmHg).
 #' @inheritDotParams get_BPExpected
 #'
@@ -260,7 +252,7 @@ get_BPExpected <- function(..., .quiet = FALSE){                                
 #' @export
 #' @importFrom purrr pmap_dbl pmap_chr map_lgl
 #' @importFrom tibble tibble
-#' @importFrom stats pnorm qnorm
+#' @importFrom stats pnorm
 get_BPRelative <- function(bp_value, ..., .quiet=FALSE) {                       # Extra argument: bp_value. Quiet validation message unless being called directly
   # 1. Input validation
   valid <- .valid_BPDemoInput(..., .quiet=TRUE)
@@ -284,7 +276,7 @@ get_BPRelative <- function(bp_value, ..., .quiet=FALSE) {                       
   } # (FUTURE ADD NEW REF IF AVAILABLE)
 
   ## 3.2 Calculate percentile
-  percentile <- pnorm(zscore) * 100
+  percentile <- stats::pnorm(zscore) * 100
 
   # return(mget(c("zscore", "percentile")))
   # return a tibble that allows mutate() to unpack automatically into new columns
@@ -401,9 +393,9 @@ get_BPCategory <- function(bp_value, bp_limit = c(-Inf, Inf), ...) {            
       if (is.na(bpExpected) | is.na(bpObserved)) return(NA)                   # This exclude anyone with invalid age/sex/height/bp_value
 
       coefs <- .coefs_BPFourth[[valid$bp_type]][[sexBinary]]                  # Get coefs from NHBPEP Fourth refs according to bp_type and sex
-      bp90Centile <- qnorm(0.90, mean = bpExpected, sd = coefs$std)           # Calculate values based on percentiles
-      bp95Centile <- qnorm(0.95, mean = bpExpected, sd = coefs$std)
-      bp99Centile_plus5 <- qnorm(0.99, mean = bpExpected, sd = coefs$std) + 5
+      bp90Centile <- stats::qnorm(0.90, mean = bpExpected, sd = coefs$std)           # Calculate values based on percentiles
+      bp95Centile <- stats::qnorm(0.95, mean = bpExpected, sd = coefs$std)
+      bp99Centile_plus5 <- stats::qnorm(0.99, mean = bpExpected, sd = coefs$std) + 5
 
       if (ageY <= 12 && bpObserved >= bp_limit[1] && bpObserved < bp90Centile) return("Normotension")
       else if (ageY > 12 && bpObserved >= bp_limit[1] && bpObserved < 120 && valid$bp_type == "systolic") return("Normotension")

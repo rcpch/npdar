@@ -549,7 +549,7 @@ test_that("Functions accept partial matching for arguments", {
   expect_type(result1, "double")
   expect_type(result2, "double")
   expect_type(result3, "double")
-  expect_type(result4, "logical")
+  expect_type(result4, "double")
 })
 
 

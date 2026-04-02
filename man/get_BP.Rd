@@ -47,6 +47,7 @@ get_BP(
 }
 \seealso{
 Other BP functions: 
+\code{\link{.valid_BPDemoInput}()},
 \code{\link{family_BP}},
 \code{\link{get_BPCategory}()},
 \code{\link{get_BPExpected}()},

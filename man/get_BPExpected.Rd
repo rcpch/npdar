@@ -7,24 +7,22 @@
 get_BPExpected(..., .quiet = FALSE)
 }
 \arguments{
-\item{.quiet}{Logical; suppress validation messages (default \code{FALSE}).}
-
-\item{bp_type}{Character; \code{"systolic"} or \code{"diastolic"}.}
-
-\item{sex}{Vector of sex codes in your data. Will be mapped to \code{"male"} or \code{"female"}
+\item{...}{
+  Arguments passed on to \code{\link[=.valid_BPDemoInput]{.valid_BPDemoInput}}
+  \describe{
+    \item{\code{bp_type}}{Character; \code{"systolic"} or \code{"diastolic"}.}
+    \item{\code{sex}}{Vector of sex codes in your data. Will be mapped to \code{"male"} or \code{"female"}
 using \code{male_code} and \code{female_code}. Values not matching these codes become \code{NA}.}
-
-\item{male_code, female_code}{Scalar values that identify the male and female codes in \code{sex}
+    \item{\code{male_code,female_code}}{Scalar values that identify the male and female codes in \code{sex}
 (e.g., \code{1} and \code{2}, or \code{"M"} and \code{"F"}).}
-
-\item{height_z}{Numeric vector of height z-scores. Must already be z-transformed (e.g., UK-WHO).}
-
-\item{height_limit}{Positive numeric; z-scores with \code{|z| > height_limit} are treated as invalid
+    \item{\code{height_z}}{Numeric vector of height z-scores. Must already be z-transformed (e.g., US CDC, UK-WHO).}
+    \item{\code{height_limit}}{Positive numeric; z-scores with \code{|z| > height_limit} are treated as invalid
 and set to \code{NA}. Default \code{5}.}
+    \item{\code{age_years}}{Numeric vector of ages in years.}
+    \item{\code{ref}}{Reference: \code{"Fourth Report"} (children/adolescents, 0-17) or \code{"NICE/BHF"} (adults, >17).}
+  }}
 
-\item{age_years}{Numeric vector of ages in years.}
-
-\item{ref}{Reference: \code{"Fourth Report"} (children/adolescents, 0-17) or \code{"NICE/BHF"} (adults, >17).}
+\item{.quiet}{Logical; suppress validation messages (default \code{FALSE}).}
 }
 \value{
 A numeric vector of expected BP values in mmHg (\eqn{\mu}). Returns \code{NA} for:
@@ -110,6 +108,7 @@ get_BPExpected(
 }
 \seealso{
 Other BP functions: 
+\code{\link{.valid_BPDemoInput}()},
 \code{\link{family_BP}},
 \code{\link{get_BP}()},
 \code{\link{get_BPCategory}()},

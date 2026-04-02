@@ -14,28 +14,35 @@
 #'     \item Categorise blood pressure into clinical stages (e.g., Hypertension)
 #' }}
 #'
-#' \strong{Finding audit year(s):}
-#' \itemize{
-#'   \item \code{\link{family_AuditYear}}:
-#'   \itemize{
-#'     \item Determine current NPDA audit year from dates
-#'     \item Generate sequential lists of audit years
-#'     \item Handle NPDA fiscal year structure (April-March)
-#' }}
-#'
-#' \strong{Data Privacy suppression:}
-#' \itemize{
-#'   \item \code{\link{mask_numerators}}:
-#'   \itemize{
-#'     \item Mask small numerators to protect patient privacy
-#' }}
-#'
 #' \strong{Statistical Utilities:}
 #' \itemize{
 #'   \item \code{\link{get_ultimate}}:
 #'   \itemize{
 #'     \item Find up-to-date/last/first modes and entries
 #'     \item Handle missing and invalid data
+#' }}
+#'
+#' \itemize{
+#'   \item \code{\link{get_frequency}}:
+#'   \itemize{
+#'     \item Summarise categorical measure(s) by group(s), returning count,
+#'     denominator, and percentage in long format for easy use in `ggplot2` or `plotly`
+#' }}
+#'
+#' \strong{Data Privacy Suppression:}
+#' \itemize{
+#'   \item \code{\link{mask_numerators}}:
+#'   \itemize{
+#'     \item Mask small numerators to protect patient privacy
+#' }}
+#'
+#' #' \strong{Finding Audit Year(s):}
+#' \itemize{
+#'   \item \code{\link{family_AuditYear}}:
+#'   \itemize{
+#'     \item Determine current NPDA audit year from dates
+#'     \item Generate sequential lists of audit years
+#'     \item Handle NPDA fiscal year structure (April-March)
 #' }}
 #'
 #' @author
