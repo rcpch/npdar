@@ -121,12 +121,12 @@ NULL
   ## 1.4 Age
   if (ref=="NICE/BHF") {                                                        # For NPDA, for those >17 years, do not calculate anything later unless we specify adult NICE/BHF guidelines.
     age_invalid <- purrr::map_lgl(age_years, function(n) n<=17)                 # Capture invalid age (outside >17) that will be excluded
-    if (!.quiet && any(age_invalid)) {
+    if (!.quiet && any(age_invalid, na.rm=TRUE)) {
       message("Ignore ", sum(age_invalid, na.rm = TRUE), " age(s) \u2264 17 years. NPDA only uses NICE/BHF reference for (young) adults >17 years.")
     }
   } else if (ref=="Fourth Report") {
     age_invalid <- purrr::map_lgl(age_years, function(n) n>17 || n<0)           # Capture invalid age (outside 0-17) that will be excluded
-    if (!.quiet && any(age_invalid)) {
+    if (!.quiet && any(age_invalid, na.rm=TRUE)) {
       message("Ignore ", sum(age_invalid, na.rm = TRUE), " age(s) outside 0-17 years. NHBPEP Fourth Report is only designed for children <= 17 years.")
     }
   } # (FUTURE ADD NEW REF IF AVAILABLE)
@@ -205,7 +205,9 @@ get_BPExpected <- function(..., .quiet = FALSE){                                
   # 2. Calculate expected BP (mu)
   if (valid$ref == "NICE/BHF") {
     message("NICE/BHF only provides category guidelines, expected BP not calculated.")
-    mu <- NA
+    # mu <- NA
+    mu <- rep(NA_real_, length(valid$age_years))
+
   } else if (valid$ref == "Fourth Report") {
     mu <- purrr::pmap_dbl(list(valid$sex, valid$age_years, valid$height_z), function(sexBinary, ageY, heightZ) {
       ageC <- ageY - 10                                                         # Center age to 10
