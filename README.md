@@ -149,7 +149,7 @@ sum_categorical_measures <- get_frequency(
 )
 
 head(sum_categorical_measures)
-#>   overall country region measure response numerator denominator percent
+#>   overall country region measure category numerator denominator percent
 #> 1 overall NA      NA     q3_catq A               10          41   0.244
 #> 2 overall NA      NA     q3_catq B               18          41   0.439
 #> 3 overall NA      NA     q3_catq C               13          41   0.317
@@ -160,7 +160,7 @@ head(sum_categorical_measures)
 sum_categorical_measures |>
   filter(!is.na(country)) |>
   group_by(measure) |>
-  do(p=plot_ly(., x = ~country, y = ~percent, color = ~response, type = "bar")) |>
+  do(p=plot_ly(., x = ~country, y = ~percent, color = ~category, type = "bar")) |>
   subplot(nrows = 1, shareX = TRUE, shareY = TRUE)
 
 # --- Finding audit period(s) ---
