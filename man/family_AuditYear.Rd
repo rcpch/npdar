@@ -13,7 +13,7 @@ Audit years are formatted as "YYYY/YY" (e.g., "2024/25").
 
 \strong{Available Functions:}
 \itemize{
-  \item \code{\link{get_AuditYear}}: Determine audit year from date(s)
+  \item \code{\link{get_AuditYear}}: Determine audit year & quarter from date(s)
   \item \code{\link{get_AuditYears}}: Generate sequence of audit years
 }
 }
