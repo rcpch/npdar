@@ -1,3 +1,9 @@
+# npdar 0.4.2
+
+* Renamed `get_frequency()` "response" as "category" (PR #20).
+* Added new feature for `get_AuditYear()` to customise `start_month` and return quarter (PR #20).
+* Revised `get_AuditYear()` unit tests (PR #20).
+
 # npdar 0.4.1
 
 * Fixed `get_frequency()` drop logical/factor measures' unobserved levels (PR #16).

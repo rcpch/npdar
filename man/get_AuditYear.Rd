@@ -2,17 +2,20 @@
 % Please edit documentation in R/family_AuditYear.R
 \name{get_AuditYear}
 \alias{get_AuditYear}
-\title{Get Current Audit Year}
+\title{Get Current Audit Year (& Quarters)}
 \usage{
-get_AuditYear(date = Sys.Date(), format = TRUE)
+get_AuditYear(date = Sys.Date(), start_month = 4, format = TRUE)
 }
 \arguments{
 \item{date}{Date object or string that can be coerced to Date. The date for
 which to determine the audit year. Default is \code{Sys.Date()} (today).}
 
-\item{format}{Logical. If \code{TRUE} (default), returns audit year as formatted
-string "YYYY/YY" (e.g., "2024/25"). If \code{FALSE}, returns the start year
-as an integer (e.g., 2024).}
+\item{start_month}{Integer. The month (1-12) that the audit year starts.
+Default is 4 (April, which is the NPDA default).}
+
+\item{format}{Logical. If \code{TRUE} (default), returns audit year & quarter
+as formatted string "YYYY/YY Qx" (e.g., "2024/25 Q3").
+If \code{FALSE}, returns the start year as an integer (e.g., 2024).}
 }
 \value{
 If \code{format = TRUE}, returns a character string in format "YYYY/YY".
@@ -20,9 +23,10 @@ If \code{format = TRUE}, returns a character string in format "YYYY/YY".
   start year.
 }
 \description{
-Determines the current NPDA audit year based on a given date. The NPDA audit
-year runs from 1 April to 31 March, so dates from January-March fall into
-the audit year that started in the previous calendar year.
+Determines the current audit year (& quarter) based on a given date.
+As an example, the default is NPDA audit year, which runs from 1 April to 31 March,
+so dates from January-March fall into the audit year that started
+in the previous calendar year.
 }
 \section{Audit Year Structure}{
 
@@ -51,11 +55,14 @@ get_AuditYear()
 # Get current audit year as integer
 get_AuditYear(format = FALSE)
 
+# Customise Q1 start month
+get_AuditYear(start_month = 1)
+
 # Determine audit year for specific dates
-get_AuditYear(as.Date("2025-05-15"))  # Returns "2025/26"
-get_AuditYear(as.Date("2025-02-15"))  # Returns "2024/25" (Q4)
-get_AuditYear(as.Date("2025-04-01"))  # Returns "2025/26" (Q1 start)
-get_AuditYear(as.Date("2025-03-31"))  # Returns "2024/26" (Q4 end)
+get_AuditYear("2025-05-15")  # Returns "2025/26 Q1"
+get_AuditYear("2025-02-15")  # Returns "2024/25 Q4"
+get_AuditYear("2025-04-01")  # Returns "2025/26 Q1"
+get_AuditYear("2025-03-31")  # Returns "2024/26 Q4"
 
 # Use in data processing
 \dontrun{

@@ -21,8 +21,8 @@ The package currently includes functions for:
     denominator, and percentage in long format for easy use in `ggplot2` or `plotly`.
 -   **Data privacy suppression** — masking small numerators in a categorical
     variable to protect patient privacy.
--   **Finding audit year(s)** — determining the NPDA audit period based on the
-    provided date.
+-   **Finding audit year(s)** — determining current audit year & quarter based on 
+    the provided date and Q1 start month.
 
 ## ⚠️Disclaimer
 
@@ -89,8 +89,10 @@ get_BP(
   ref        = c("Fourth Report")
 )
 #> Ignore 1 age(s) outside 0-17 years. NHBPEP Fourth Report is only designed for children ≤ 17 years.
-#> NHBPEP Fourth Report categorise 'Normotension' to 'Stage 2 hypertension'; Special rules for newborns (<1), children (0-12), adolescents (12-17).
-#> BP outside National Paediatric Diabetes Audit (NPDA) limit removed unless acceptable range is explicitly specified by 'bp_limit'.
+#> NHBPEP Fourth Report categorise 'Normotension' to 'Stage 2 hypertension'; Special rules for 
+#> newborns (<1), children (0-12), adolescents (12-17).
+#> BP outside National Paediatric Diabetes Audit (NPDA) limit removed unless acceptable range is 
+#> explicitly specified by 'bp_limit'.
 #> [1] "Normotension"    "Prehypertension" NA
 
 
@@ -137,7 +139,7 @@ df <- data.frame(participant_id = 1:60,
 group_cols <- c("overall", "country", "region")
 
 measure_cols <- df |>
-  dplyr::select(tidyselect::matches("q[0-9]+_catq")) |>
+  select(matches("q[0-9]+_catq")) |>
   names()
 
 sum_categorical_measures <- get_frequency(
@@ -147,7 +149,7 @@ sum_categorical_measures <- get_frequency(
 )
 
 head(sum_categorical_measures)
-#>   overall country region measure response numerator denominator percent
+#>   overall country region measure category numerator denominator percent
 #> 1 overall NA      NA     q3_catq A               10          41   0.244
 #> 2 overall NA      NA     q3_catq B               18          41   0.439
 #> 3 overall NA      NA     q3_catq C               13          41   0.317
@@ -156,14 +158,22 @@ head(sum_categorical_measures)
 #> 6 overall NA      NA     q4_catq C               10          54   0.185
 
 sum_categorical_measures |>
-  dplyr::filter(!is.na(country)) |>
-  dplyr::group_by(measure) |>
-  do(p=plotly::plot_ly(., x = ~country, y = ~percent, color = ~response, type = "bar")) |>
+  filter(!is.na(country)) |>
+  group_by(measure) |>
+  do(p=plot_ly(., x = ~country, y = ~percent, color = ~category, type = "bar")) |>
   subplot(nrows = 1, shareX = TRUE, shareY = TRUE)
 
-# --- Finding audit year(s) ---
-get_AuditYear(as.Date("2025-03-31"))  
-#> [1] "2024/25"
+# --- Finding audit period(s) ---
+get_AuditYear() # Return current audit year & quarter (based on NPDA default Q1 start month)
+
+get_AuditYear("2025-03-31")  
+#> [1] "2024/25 Q4"
+
+get_AuditYear("2025-03-31", format = F)  
+#> [1] 2024
+
+get_AuditYear("2025-03-31", start_month = 1)  
+#> [1] "2025/26 Q1"
 
 data.frame(
   audit_year = get_AuditYears(2010, 2015),

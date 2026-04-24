@@ -27,9 +27,9 @@ If \code{format = TRUE}, returns a character vector of audit years in
   audit year start years.
 }
 \description{
-Creates a sequential list of NPDA audit years between specified start and end years.
-Useful for generating axis labels, filtering data by multiple audit years, or
-creating comprehensive reports across multiple audit periods.
+Creates a sequential list of NPDA audit years between specified
+start and end years. Useful for generating axis labels, filtering data by
+multiple audit years, or creating comprehensive reports across multiple audit periods.
 }
 \details{
 This function generates all audit years from \code{startYear} to \code{endYear}

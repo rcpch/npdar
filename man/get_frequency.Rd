@@ -19,12 +19,12 @@ Rows where the grouping variable is \code{NA} are excluded
 from that group's summary.}
 }
 \value{
-A tibble in long format with one row per group level × measure × response combination.
+A tibble in long format with one row per group level × measure × category combination.
 }
 \description{
-For each specified grouping variable, count the frequency of each response
-option of the given measure column(s), and compute the denominator (non-missing
-responses) and percentage. Results for the specified group(s) are combined into a single
+For each specified grouping variable, count the frequency of each unique category
+of the given measure column(s), and compute the denominator (non-missing
+categories) and percentage. Results for the specified group(s) are combined into a single
 long tibble for easy use in `ggplot` or `plotly`.
 }
 \examples{
@@ -58,7 +58,7 @@ head(sum_categorical_measures)
 sum_categorical_measures |>
 dplyr::filter(!is.na(country)) |>
 dplyr::group_by(measure) |>
-dplyr::do(p=plotly::plot_ly(., x = ~country, y = ~percent, color = ~response, type = "bar")) |>
+dplyr::do(p=plotly::plot_ly(., x = ~country, y = ~percent, color = ~category, type = "bar")) |>
 plotly::subplot(nrows = 1, shareX = TRUE, shareY = TRUE)
 
 }

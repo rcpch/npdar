@@ -8,7 +8,7 @@
 #'
 #' \strong{Available Functions:}
 #' \itemize{
-#'   \item \code{\link{get_AuditYear}}: Determine audit year from date(s)
+#'   \item \code{\link{get_AuditYear}}: Determine audit year & quarter from date(s)
 #'   \item \code{\link{get_AuditYears}}: Generate sequence of audit years
 #' }
 #'
@@ -52,18 +52,21 @@ NULL
 }
 
 # ========== 1. Get Current Audit Year ==========
-#' Get Current Audit Year
+#' Get Current Audit Year (& Quarters)
 #'
 #' @description
-#' Determines the current NPDA audit year based on a given date. The NPDA audit
-#' year runs from 1 April to 31 March, so dates from January-March fall into
-#' the audit year that started in the previous calendar year.
+#' Determines the current audit year (& quarter) based on a given date.
+#' As an example, the default is NPDA audit year, which runs from 1 April to 31 March,
+#' so dates from January-March fall into the audit year that started
+#' in the previous calendar year.
 #'
 #' @param date Date object or string that can be coerced to Date. The date for
 #'   which to determine the audit year. Default is \code{Sys.Date()} (today).
-#' @param format Logical. If \code{TRUE} (default), returns audit year as formatted
-#'   string "YYYY/YY" (e.g., "2024/25"). If \code{FALSE}, returns the start year
-#'   as an integer (e.g., 2024).
+#' @param start_month Integer. The month (1-12) that the audit year starts.
+#'   Default is 4 (April, which is the NPDA default).
+#' @param format Logical. If \code{TRUE} (default), returns audit year & quarter
+#' as formatted string "YYYY/YY Qx" (e.g., "2024/25 Q3").
+#' If \code{FALSE}, returns the start year as an integer (e.g., 2024).
 #'
 #' @return If \code{format = TRUE}, returns a character string in format "YYYY/YY".
 #'   If \code{format = FALSE}, returns an integer representing the audit year's
@@ -81,11 +84,14 @@ NULL
 #' # Get current audit year as integer
 #' get_AuditYear(format = FALSE)
 #'
+#' # Customise Q1 start month
+#' get_AuditYear(start_month = 1)
+#'
 #' # Determine audit year for specific dates
-#' get_AuditYear(as.Date("2025-05-15"))  # Returns "2025/26"
-#' get_AuditYear(as.Date("2025-02-15"))  # Returns "2024/25" (Q4)
-#' get_AuditYear(as.Date("2025-04-01"))  # Returns "2025/26" (Q1 start)
-#' get_AuditYear(as.Date("2025-03-31"))  # Returns "2024/26" (Q4 end)
+#' get_AuditYear("2025-05-15")  # Returns "2025/26 Q1"
+#' get_AuditYear("2025-02-15")  # Returns "2024/25 Q4"
+#' get_AuditYear("2025-04-01")  # Returns "2025/26 Q1"
+#' get_AuditYear("2025-03-31")  # Returns "2024/26 Q4"
 #'
 #' # Use in data processing
 #' \dontrun{
@@ -96,9 +102,15 @@ NULL
 #'
 #' df |> mutate(audit_year = get_AuditYear(admission_date))
 #' }
-get_AuditYear <- function(date = Sys.Date(), format = TRUE) {
+get_AuditYear <- function(date = Sys.Date(), start_month = 4, format = TRUE) {
 
-  # 0. Preparation
+  # Step 0. Preparation
+  # Validate start_month
+  if (!is.numeric(start_month) || length(start_month) != 1 ||
+      start_month %% 1 != 0 || start_month < 1 || start_month > 12) {
+    stop("`start_month` must be a single integer between 1 and 12.", call. = FALSE)
+  }
+
   # Convert to Date if needed
   date <- as.Date(date)
 
@@ -106,24 +118,33 @@ get_AuditYear <- function(date = Sys.Date(), format = TRUE) {
   y <- as.integer(format(date, "%Y"))
   m <- as.integer(format(date, "%m"))
 
-  # 1. If month >= 4/April, current audit year starts this calendar year; else previous calendar year.
-  # result <- if (m >= 4) y else y - 1
+  # Step 1. Determine audit year
+  # If month >= start_month (4/April, NPDA default), current audit year starts this calendar year; else previous calendar year.
+  # audit_year <- if (m >= 4) y else y - 1
   # Vectorized properly with ifelse
-  result <- ifelse(m >= 4, y, y - 1)
+  audit_year <- ifelse(m >= start_month, y, y - 1)
 
-  # 2. If format==T, format as "YYYY/YY"
-  if (format==TRUE) .formatAuditYear(result) else as.integer(result)
+  # Step 2. If format==T, determine audit quarter & format as "YYYY/YY Qx"; else return integer year
+  if (format==TRUE) {
+    # Step 2a. Format year as "YYYY/YY"
+    audit_year <- .formatAuditYear(audit_year)
+    # Step 2b. Determine audit quarter
+    audit_quarter <- ceiling(((m - start_month + 12) %% 12 + 1) / 3)
+    result <- paste0(audit_year, " Q", audit_quarter)
+  } else {
+    result <- as.integer(audit_year)
+  }
 
-  # 3. Planned improvement: option to determine current audit quarter
+  result
 }
 
 # ========== 2. Generate Sequential List of Audit Years ==========
 #' Generate Sequential List of Audit Years
 #'
 #' @description
-#' Creates a sequential list of NPDA audit years between specified start and end years.
-#' Useful for generating axis labels, filtering data by multiple audit years, or
-#' creating comprehensive reports across multiple audit periods.
+#' Creates a sequential list of NPDA audit years between specified
+#' start and end years. Useful for generating axis labels, filtering data by
+#' multiple audit years, or creating comprehensive reports across multiple audit periods.
 #'
 #' @param startYear Integer. The first audit year to include in the sequence.
 #'   Default is 2010 (when NPDA began).

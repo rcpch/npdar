@@ -1,8 +1,8 @@
 #' Summarise categorical measure(s) by group(s)
 #'
-#' For each specified grouping variable, count the frequency of each response
-#' option of the given measure column(s), and compute the denominator (non-missing
-#' responses) and percentage. Results for the specified group(s) are combined into a single
+#' For each specified grouping variable, count the frequency of each unique category
+#' of the given measure column(s), and compute the denominator (non-missing
+#' categories) and percentage. Results for the specified group(s) are combined into a single
 #' long tibble for easy use in `ggplot` or `plotly`.
 #'
 #' @param data A data frame containing measure columns (and grouping columns), with one row per participant.
@@ -14,7 +14,7 @@
 #'   Rows where the grouping variable is \code{NA} are excluded
 #'   from that group's summary.
 #'
-#' @return A tibble in long format with one row per group level × measure × response combination.
+#' @return A tibble in long format with one row per group level × measure × category combination.
 #'
 #' @examples
 #' set.seed(1999)
@@ -47,7 +47,7 @@
 #' sum_categorical_measures |>
 #' dplyr::filter(!is.na(country)) |>
 #' dplyr::group_by(measure) |>
-#' dplyr::do(p=plotly::plot_ly(., x = ~country, y = ~percent, color = ~response, type = "bar")) |>
+#' dplyr::do(p=plotly::plot_ly(., x = ~country, y = ~percent, color = ~category, type = "bar")) |>
 #' plotly::subplot(nrows = 1, shareX = TRUE, shareY = TRUE)
 #'
 #' @importFrom dplyr group_by select across filter mutate summarise ungroup bind_rows n
@@ -57,7 +57,7 @@
 #' @export
 get_frequency <- function(data, measures, groups = "overall") {
 
-  # step 0a: Internal helper to define the full response set for each measure (even if unobserved)
+  # Step 0a: Internal helper to define the full category set for each measure (even if unobserved)
   .get_measure_levels <- function(x) {
     if (is.logical(x)) {
       # Preserve both logical levels (even if unobserved)
@@ -71,18 +71,18 @@ get_frequency <- function(data, measures, groups = "overall") {
     }
   }
 
-  # step 0b: Define the unique measure levels (even if unobserved)
+  # Step 0b: Define the unique measure levels (even if unobserved)
   measure_levels <- dplyr::bind_rows(
     lapply(measures, function(m) {
       lvls <- .get_measure_levels(data[[m]])
 
       if (length(lvls) == 0) {
         data.frame(measure = character(0),
-                   response = character(0),
+                   category = character(0),
                    stringsAsFactors = FALSE)
       } else {
         data.frame(measure = rep(m, length(lvls)),
-                   response = lvls,
+                   category = lvls,
                    stringsAsFactors = FALSE)
       }
     })
@@ -107,7 +107,7 @@ get_frequency <- function(data, measures, groups = "overall") {
       group_levels <- grp_data |> dplyr::distinct(!!rlang::sym(grp))
     }
 
-    # Step 2. Count observed responses
+    # Step 2. Count observed categories
     counts <- grp_data |>
       dplyr::mutate(dplyr::across(              # Coerce to character so logical, factor, and character cols are handled uniformly by pivot_longer
         dplyr::all_of(measures), as.character)
@@ -115,20 +115,20 @@ get_frequency <- function(data, measures, groups = "overall") {
       tidyr::pivot_longer(                      # Reshape: one row per respondent × measure
         cols = tidyselect::all_of(measures),
         names_to = "measure",
-        values_to = "response"
+        values_to = "category"
       ) |>
-      dplyr::filter(!is.na(.data$response)) |>  # Exclude NAs from denominator (i.e., treat as skipped)
-      dplyr::group_by(dplyr::across(            # Count occurrences of each response within group × measure
-        dplyr::all_of(c(grp, "measure", "response")))
+      dplyr::filter(!is.na(.data$category)) |>  # Exclude NAs from denominator (i.e., treat as skipped)
+      dplyr::group_by(dplyr::across(            # Count occurrences of each category within group × measure
+        dplyr::all_of(c(grp, "measure", "category")))
         ) |>
       dplyr::summarise(numerator = dplyr::n(), .groups = "drop")
 
-    # Step 3. Build full scaffold of group × measure × response
+    # Step 3. Build full scaffold of group × measure × category
     scaffold <- tidyr::crossing(group_levels, measure_levels)
 
-    # Step 4. Join counts onto scaffold and fill absent responses with 0
+    # Step 4. Join counts onto scaffold and fill absent categorys with 0
     results[[grp]] <- scaffold |>
-      dplyr::left_join(counts, by = c(grp, "measure", "response")) |>
+      dplyr::left_join(counts, by = c(grp, "measure", "category")) |>
       dplyr::mutate(
         numerator = ifelse(is.na(.data$numerator), 0, .data$numerator)
       ) |>
@@ -143,6 +143,6 @@ get_frequency <- function(data, measures, groups = "overall") {
   # Step 5. Combine all groups
   dplyr::bind_rows(results) |>
     dplyr::select(
-      dplyr::all_of(c(groups, "measure", "response", "numerator", "denominator", "percent"))
+      dplyr::all_of(c(groups, "measure", "category", "numerator", "denominator", "percent"))
     )
 }
