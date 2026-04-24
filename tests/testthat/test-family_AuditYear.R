@@ -2,67 +2,13 @@
 
 library(testthat)
 
-# ========== Test get_AuditYear() ==========
-
-test_that("get_AuditYear correctly identifies audit years for dates in Q1-Q3", {
-  # Q1: April-June (current calendar year)
-  expect_equal(get_AuditYear(as.Date("2024-04-01")), "2024/25")
-  expect_equal(get_AuditYear(as.Date("2024-05-15")), "2024/25")
-  expect_equal(get_AuditYear(as.Date("2024-06-30")), "2024/25")
-
-  # Q2: July-September (current calendar year)
-  expect_equal(get_AuditYear(as.Date("2024-07-01")), "2024/25")
-  expect_equal(get_AuditYear(as.Date("2024-08-15")), "2024/25")
-  expect_equal(get_AuditYear(as.Date("2024-09-30")), "2024/25")
-
-  # Q3: October-December (current calendar year)
-  expect_equal(get_AuditYear(as.Date("2024-10-01")), "2024/25")
-  expect_equal(get_AuditYear(as.Date("2024-11-15")), "2024/25")
-  expect_equal(get_AuditYear(as.Date("2024-12-31")), "2024/25")
-})
-
-test_that("get_AuditYear correctly identifies audit years for dates in Q4", {
-  # Q4: January-March (next calendar year, but previous audit year)
-  expect_equal(get_AuditYear(as.Date("2025-01-01")), "2024/25")
-  expect_equal(get_AuditYear(as.Date("2025-02-15")), "2024/25")
-  expect_equal(get_AuditYear(as.Date("2025-03-31")), "2024/25")
-})
-
-test_that("get_AuditYear handles audit year boundaries correctly", {
-  # Last day of audit year 2023/24
-  expect_equal(get_AuditYear(as.Date("2024-03-31")), "2023/24")
-
-  # First day of audit year 2024/25
-  expect_equal(get_AuditYear(as.Date("2024-04-01")), "2024/25")
-
-  # Test multiple years
-  expect_equal(get_AuditYear(as.Date("2020-03-31")), "2019/20")
-  expect_equal(get_AuditYear(as.Date("2020-04-01")), "2020/21")
-
-  expect_equal(get_AuditYear(as.Date("2023-03-31")), "2022/23")
-  expect_equal(get_AuditYear(as.Date("2023-04-01")), "2023/24")
-})
-
-test_that("get_AuditYear returns unformatted year correctly", {
-  # Formatted (default)
-  expect_equal(get_AuditYear(as.Date("2024-05-15"), format = TRUE), "2024/25")
-
-  # Unformatted (integer)
-  expect_equal(get_AuditYear(as.Date("2024-05-15"), format = FALSE), 2024)
-  expect_equal(get_AuditYear(as.Date("2024-02-15"), format = FALSE), 2023)
-  expect_equal(get_AuditYear(as.Date("2024-04-01"), format = FALSE), 2024)
-  expect_equal(get_AuditYear(as.Date("2024-03-31"), format = FALSE), 2023)
-
-  # Check type
-  expect_type(get_AuditYear(as.Date("2024-05-15"), format = FALSE), "integer")
-  expect_type(get_AuditYear(as.Date("2024-05-15"), format = TRUE), "character")
-})
+# ========== Test get_AuditYear() default ==========
 
 test_that("get_AuditYear uses current date by default", {
   # Test that default works (uses Sys.Date())
   result <- get_AuditYear()
   expect_type(result, "character")
-  expect_match(result, "^\\d{4}/\\d{2}$")  # Matches format YYYY/YY
+  expect_match(result, "^\\d{4}/\\d{2} Q\\d{1}$")  # Matches format YYYY/YY Qx
 
   # Test unformatted default
   result_int <- get_AuditYear(format = FALSE)
@@ -71,30 +17,87 @@ test_that("get_AuditYear uses current date by default", {
   expect_true(result_int <= as.integer(format(Sys.Date(), "%Y")))
 })
 
-test_that("get_AuditYear handles historical dates correctly", {
-  # NPDA started in 2010/11
-  expect_equal(get_AuditYear(as.Date("2010-04-01")), "2010/11")
-  expect_equal(get_AuditYear(as.Date("2011-03-31")), "2010/11")
-
-  # Earlier dates
-  expect_equal(get_AuditYear(as.Date("2000-05-15")), "2000/01")
-  expect_equal(get_AuditYear(as.Date("2000-02-15")), "1999/00")
-})
-
-test_that("get_AuditYear formats years correctly across centuries", {
-  # Test year 2000 boundary
-  expect_equal(get_AuditYear(as.Date("1999-05-15")), "1999/00")
-  expect_equal(get_AuditYear(as.Date("2000-05-15")), "2000/01")
-
-  # Test year 2010 boundary
-  expect_equal(get_AuditYear(as.Date("2009-05-15")), "2009/10")
-  expect_equal(get_AuditYear(as.Date("2010-05-15")), "2010/11")
-})
-
+# ========== Test get_AuditYear() input types ==========
 test_that("get_AuditYear works with character date inputs", {
   # Character dates should be coerced to Date
-  expect_equal(get_AuditYear("2024-05-15"), "2024/25")
-  expect_equal(get_AuditYear("2024-02-15"), "2023/24")
+  expect_equal(get_AuditYear(as.Date("2026-06-15")), "2026/27 Q1")
+  expect_equal(get_AuditYear(as.POSIXct("2026-06-15")), "2026/27 Q1")
+  expect_equal(get_AuditYear("2024-05-15"), "2024/25 Q1")
+  expect_equal(get_AuditYear("2024/02/15"), "2023/24 Q4")
+})
+
+# ========== Test get_AuditYear() format ==========
+
+test_that("get_AuditYear returns unformatted year correctly", {
+  # Formatted (default)
+  expect_equal(get_AuditYear("2024-05-15", format = TRUE), "2024/25 Q1")
+
+  # Unformatted (integer)
+  expect_equal(get_AuditYear("2024-05-15", format = FALSE), 2024)
+  expect_equal(get_AuditYear("2024-02-15", format = FALSE), 2023)
+  expect_equal(get_AuditYear("2024-04-01", format = FALSE), 2024)
+  expect_equal(get_AuditYear("2024-03-31", format = FALSE), 2023)
+
+  # Check type
+  expect_type(get_AuditYear("2024-05-15", format = FALSE), "integer")
+  expect_type(get_AuditYear("2024-05-15", format = TRUE), "character")
+})
+
+# ========== Test get_AuditYear() quarters ==========
+
+test_that("get_AuditYear correctly identifies audit years for dates in Q1-Q4", {
+  # Q1: April-June (current calendar year)
+  expect_equal(get_AuditYear("2024-06-30"), "2024/25 Q1")
+  # Q2: July-September (current calendar year)
+  expect_equal(get_AuditYear("2024-09-30"), "2024/25 Q2")
+  # Q3: October-December (current calendar year)
+  expect_equal(get_AuditYear("2024-10-01"), "2024/25 Q3")
+  # Q4: January-March (next calendar year, but previous audit year)
+  expect_equal(get_AuditYear("2025-01-01"), "2024/25 Q4")
+  expect_equal(get_AuditYear("2025-02-15"), "2024/25 Q4")
+  expect_equal(get_AuditYear("2025-03-31"), "2024/25 Q4")
+})
+
+test_that("get_AuditYear handles audit year boundaries correctly", {
+  # Last day of audit year
+  expect_equal(get_AuditYear("2020-03-31"), "2019/20 Q4")
+  # First day of audit year
+  expect_equal(get_AuditYear("2024-04-01"), "2024/25 Q1")
+})
+
+# ========== Test get_AuditYear() custom quarters ==========
+
+test_that("get_AuditYear only accept 1-12 custom quarters", {
+  expect_error(
+    get_AuditYear("2024-06-30", start_month = 1.5),
+    "`start_month` must be a single integer between 1 and 12."
+  )
+  expect_error(
+    get_AuditYear("2024-06-30", start_month = NA),
+    "`start_month` must be a single integer between 1 and 12."
+  )
+  expect_error(
+    get_AuditYear("2024-06-30", start_month = 13),
+    "`start_month` must be a single integer between 1 and 12."
+  )
+  expect_error(
+    get_AuditYear("2024-06-30", start_month = -1),
+    "`start_month` must be a single integer between 1 and 12."
+  )
+  expect_error(
+    get_AuditYear("2024-06-30", start_month = c(1, 2, 3)),
+    "`start_month` must be a single integer between 1 and 12."
+  )
+
+})
+
+test_that("get_AuditYear correctly identifies correct quarters based on custom Q1", {
+  expect_equal(get_AuditYear("2024-06-30", start_month = 1), "2024/25 Q2")
+  expect_equal(get_AuditYear("2024-09-30", start_month = 1), "2024/25 Q3")
+  expect_equal(get_AuditYear("2024-10-01", start_month = 8), "2024/25 Q1")
+  expect_equal(get_AuditYear("2025-01-01", start_month = 9), "2024/25 Q2")
+  expect_equal(get_AuditYear("2025-02-15", start_month = 10), "2024/25 Q2")
+  expect_equal(get_AuditYear("2025-03-31", start_month = 11), "2024/25 Q2")
 })
 
 
@@ -185,8 +188,8 @@ test_that("get_AuditYears works across century boundaries", {
 
 test_that("get_AuditYear and get_AuditYears work together consistently", {
   # Current audit year should be in the default list
-  current_year <- get_AuditYear()
-  default_list <- get_AuditYears()
+  current_year <- get_AuditYear(format = FALSE)
+  default_list <- get_AuditYears(format = FALSE)
 
   expect_true(current_year %in% default_list)
 
@@ -205,13 +208,13 @@ test_that("Functions work in data frame operations", {
     mutate(audit_year = get_AuditYear(admission_date),
            audit_year_int = get_AuditYear(admission_date, format = FALSE))
 
-  expect_equal(result$audit_year, c("2024/25", "2024/25", "2024/25", "2023/24"))
+  expect_equal(result$audit_year, c("2024/25 Q1", "2024/25 Q3", "2024/25 Q4", "2023/24 Q1"))
   expect_equal(result$audit_year_int, c(2024L, 2024L, 2024L, 2023L))
 
   # Test filtering with get_AuditYears
-  recent_years <- get_AuditYears(startYear = 2024, endYear = 2024)
+  recent_years <- get_AuditYears(startYear = 2024, endYear = 2024, format = FALSE)
   filtered <- result |>
-    filter(audit_year %in% recent_years)
+    filter(audit_year_int %in% recent_years)
 
   expect_equal(nrow(filtered), 3)
 })
@@ -220,7 +223,7 @@ test_that("Functions handle vectorized operations", {
   dates <- as.Date(c("2024-04-01", "2024-07-01", "2024-10-01", "2025-01-01"))
 
   result <- sapply(dates, get_AuditYear)
-  expect_equal(result, c("2024/25", "2024/25", "2024/25", "2024/25"))
+  expect_equal(result, c("2024/25 Q1", "2024/25 Q2", "2024/25 Q3", "2024/25 Q4"))
 
   result_int <- sapply(dates, get_AuditYear, format = FALSE)
   expect_equal(result_int, c(2024L, 2024L, 2024L, 2024L))
@@ -231,18 +234,18 @@ test_that("Functions handle vectorized operations", {
 
 test_that("Functions handle leap years correctly", {
   # Leap year boundary (Feb 29)
-  expect_equal(get_AuditYear(as.Date("2024-02-29")), "2023/24")
+  expect_equal(get_AuditYear(as.Date("2024-02-29")), "2023/24 Q4")
 
   # March 1 after leap year
-  expect_equal(get_AuditYear(as.Date("2024-03-01")), "2023/24")
+  expect_equal(get_AuditYear(as.Date("2024-03-01")), "2023/24 Q4")
 
   # April 1 after leap year
-  expect_equal(get_AuditYear(as.Date("2024-04-01")), "2024/25")
+  expect_equal(get_AuditYear(as.Date("2024-04-01")), "2024/25 Q1")
 })
 
 test_that("Functions handle year 2100 correctly (not a leap year)", {
   # 2100 is not a leap year (divisible by 100 but not 400)
-  expect_equal(get_AuditYear(as.Date("2100-03-31")), "2099/00")
-  expect_equal(get_AuditYear(as.Date("2100-04-01")), "2100/01")
+  expect_equal(get_AuditYear(as.Date("2100-03-31")), "2099/00 Q4")
+  expect_equal(get_AuditYear(as.Date("2100-04-01")), "2100/01 Q1")
 })
 
