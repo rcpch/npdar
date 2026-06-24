@@ -13,10 +13,17 @@
 #'   \code{"overall"}, which creates a single group containing all rows.
 #'   Rows where the grouping variable is \code{NA} are excluded
 #'   from that group's summary.
+#' @param nested Logical; if \code{FALSE} (default), each grouping variable in
+#'   \code{groups} is summarised separately. If \code{TRUE}, all variables in
+#'   \code{groups} are treated as a nested grouping set.
 #'
 #' @return A tibble in long format with one row per group level × measure × category combination.
 #'
 #' @examples
+#'
+#' library(dplyr)
+#' library(ggplot2)
+#'
 #' set.seed(1999)
 #' df <- data.frame(participant_id = 1:60,
 #'                  country        = c(rep("England", 30), rep("Wales", 30)),
@@ -24,38 +31,49 @@
 #'                    rep("East England", 10), rep("West England", 10), rep(NA, 10),
 #'                    rep("North Wales", 10), rep("South Wales", 10), rep(NA, 10)
 #'                  ),
-#'                  # Q3 categorical
-#'                  q3_catq        = sample(c("A", "B", "C", NA), 60, replace = TRUE),
-#'                  # Q4 categorical
-#'                  q4_catq        = sample(c("A", "B", "C", "D", "E", NA), 60, replace = TRUE)
+#'                  # Categorical Q1
+#'                  q1_catq        = sample(c("A", "B", "C", NA), 60, replace = TRUE),
+#'                  # Categorical Q2
+#'                  q2_catq        = sample(c("A", "B", "C", "D", "E", NA), 60, replace = TRUE)
 #' )
 #'
 #' group_cols <- c("overall", "country", "region")
 #'
 #' measure_cols <- df |>
-#'   dplyr::select(tidyselect::matches("q[0-9]+_catq")) |>
+#'   select(tidyselect::matches("q[0-9]+_catq")) |>
 #'   names()
 #'
-#' sum_categorical_measures <- get_frequency(
+#' sum <- get_frequency(
 #'   data     = df,
 #'   measures = measure_cols,
 #'   groups   = group_cols
 #' )
 #'
-#' head(sum_categorical_measures)
+#' head(sum)
 #'
-#' sum_categorical_measures |>
-#' dplyr::filter(!is.na(country)) |>
-#' dplyr::group_by(measure) |>
-#' dplyr::do(p=plotly::plot_ly(., x = ~country, y = ~percent, color = ~category, type = "bar")) |>
-#' plotly::subplot(nrows = 1, shareX = TRUE, shareY = TRUE)
+# sum |>
+#   filter(!is.na(country)) |>
+#   ggplot(aes(x = country, y = percent, fill = category)) +
+#   geom_col() +
+#   facet_wrap(~ measure, nrow = 1) +
+#   labs(x = "Country", y = "Percent", fill = "Category")
 #'
-#' @importFrom dplyr group_by select across filter mutate summarise ungroup bind_rows n
+#' # Nested grouping example (region is nested within country):
+#' sum_q1_nested <- get_frequency(
+#'   data = df,
+#'   measures = "q1_catq",
+#'   groups = c("country", "region"),
+#'   nested = TRUE
+#' )
+#'
+#' sum_q1_nested
+#'
+#' @importFrom dplyr group_by select across filter mutate summarise ungroup bind_rows n distinct left_join if_all
 #' @importFrom tidyr pivot_longer crossing
 #' @importFrom rlang .data sym
 #' @importFrom tidyselect all_of
 #' @export
-get_frequency <- function(data, measures, groups = "overall") {
+get_frequency <- function(data, measures, groups = "overall", nested = FALSE) {
 
   # Step 0a: Internal helper to define the full category set for each measure (even if unobserved)
   .get_measure_levels <- function(x) {
@@ -88,30 +106,56 @@ get_frequency <- function(data, measures, groups = "overall") {
     })
   )
 
+  # Step 0c: Define whether grouping variables are separate or nested
+  group_sets <- if (isTRUE(nested)) {
+    list(groups)
+  } else {
+    as.list(groups)
+  }
+
   results <- list()
 
-  for (grp in groups) {                 # Get summary by each group
+  for (group_set in group_sets) {                      # Get summary by each group
+
+    group_set <- unlist(group_set)
 
     # Step 1. Group data
-    if (grp == "overall") {             # If no group specified (i.e., Overall),
-      grp_data <- data |>               # create a constant grouping column so downstream code is uniform
+    if (identical(group_set, "overall")) {             # If no group specified (i.e., Overall),
+      grp_data <- data |>                              # create a constant grouping column so downstream code is uniform
         dplyr::mutate(overall = "overall")
 
       group_levels <- data.frame(overall = "overall", stringsAsFactors = FALSE)
 
-    } else {                            # If group specified
-      grp_data <- data |>               # exclude rows/participants with no group membership
-        dplyr::filter(!is.na(!!rlang::sym(grp))) |>   # and group data
-        dplyr::group_by(!!rlang::sym(grp))
+    } else {                                           # If group specified
 
-      group_levels <- grp_data |> dplyr::distinct(!!rlang::sym(grp))
+      if ("overall" %in% group_set) {
+        data_for_group <- data |>
+          dplyr::mutate(overall = "overall")
+      } else {
+        data_for_group <- data
+      }
+
+      non_overall_groups <- setdiff(group_set, "overall")
+
+      grp_data <- data_for_group                       # Exclude rows/participants with no group membership
+      if (length(non_overall_groups) > 0) {
+        grp_data <- grp_data |>
+          dplyr::filter(dplyr::if_all(
+            dplyr::all_of(non_overall_groups),
+            \(x) !is.na(x)
+          ))
+      }
+
+      group_levels <- grp_data |>
+        dplyr::select(dplyr::all_of(group_set)) |>
+        dplyr::distinct()
     }
 
     # Step 2. Count observed categories
     counts <- grp_data |>
       dplyr::mutate(dplyr::across(              # Coerce to character so logical, factor, and character cols are handled uniformly by pivot_longer
         dplyr::all_of(measures), as.character)
-        ) |>
+      ) |>
       tidyr::pivot_longer(                      # Reshape: one row per respondent × measure
         cols = tidyselect::all_of(measures),
         names_to = "measure",
@@ -119,20 +163,20 @@ get_frequency <- function(data, measures, groups = "overall") {
       ) |>
       dplyr::filter(!is.na(.data$category)) |>  # Exclude NAs from denominator (i.e., treat as skipped)
       dplyr::group_by(dplyr::across(            # Count occurrences of each category within group × measure
-        dplyr::all_of(c(grp, "measure", "category")))
-        ) |>
+        dplyr::all_of(c(group_set, "measure", "category")))
+      ) |>
       dplyr::summarise(numerator = dplyr::n(), .groups = "drop")
 
     # Step 3. Build full scaffold of group × measure × category
     scaffold <- tidyr::crossing(group_levels, measure_levels)
 
     # Step 4. Join counts onto scaffold and fill absent categorys with 0
-    results[[grp]] <- scaffold |>
-      dplyr::left_join(counts, by = c(grp, "measure", "category")) |>
+    results[[paste(group_set, collapse = "__")]] <- scaffold |>
+      dplyr::left_join(counts, by = c(group_set, "measure", "category")) |>
       dplyr::mutate(
         numerator = ifelse(is.na(.data$numerator), 0, .data$numerator)
       ) |>
-      dplyr::group_by(dplyr::across(dplyr::all_of(c(grp, "measure")))) |>
+      dplyr::group_by(dplyr::across(dplyr::all_of(c(group_set, "measure")))) |>
       dplyr::mutate(                            # Compute denominator and percentage within group × measure
         denominator = sum(.data$numerator),
         percent = ifelse(.data$denominator > 0, .data$numerator / .data$denominator, NA_real_)

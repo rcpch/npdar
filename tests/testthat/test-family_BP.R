@@ -18,19 +18,19 @@ df_hard <- data.frame(systolic_obs  = c(  118,  118,  134,  139,   NA,  139,  13
 
 
 
-# ========== Test get_BPExpected() ==========
+# ========== Test get_bpExpected() ==========
 
-test_that("get_BPExpected calculates expected BP correctly for easy data", {
+test_that("get_bpExpected calculates expected BP correctly for easy data", {
   result <- df_easy |>
     mutate(
-      sbp_expected = get_BPExpected(
+      sbp_expected = get_bpExpected(
         bp_type = "sys",
         sex = gender, male_code = 1, female_code = 2,
         height_z = height, height_limit = 5,
         age_years = age, ref = "Fourth Report",
         .quiet = TRUE
       ),
-      dbp_expected = get_BPExpected(
+      dbp_expected = get_bpExpected(
         bp_type = "diastolic",
         sex = gender, male_code = 1, female_code = 2,
         height_z = height, height_limit = 5,
@@ -52,10 +52,10 @@ test_that("get_BPExpected calculates expected BP correctly for easy data", {
   expect_equal(result$dbp_expected[4], 64.92422, tolerance = 0.001)
 })
 
-test_that("get_BPExpected handles edge cases in hard data", {
+test_that("get_bpExpected handles edge cases in hard data", {
   result <- df_hard |>
     mutate(
-      sbp_expected = get_BPExpected(
+      sbp_expected = get_bpExpected(
         bp_type = "sys",
         sex = gender, male_code = 1, female_code = 2,
         height_z = height, height_limit = 5,
@@ -88,10 +88,10 @@ test_that("get_BPExpected handles edge cases in hard data", {
   expect_true(is.na(result$sbp_expected[16]))
 })
 
-test_that("get_BPExpected returns NA for NICE/BHF reference", {
+test_that("get_bpExpected returns NA for NICE/BHF reference", {
   result <- df_easy |>
     mutate(
-      sbp_expected_NICE = get_BPExpected(
+      sbp_expected_NICE = get_bpExpected(
         bp_type = "sys",
         sex = gender, male_code = 1, female_code = 2,
         height_z = height, height_limit = 5,
@@ -104,15 +104,15 @@ test_that("get_BPExpected returns NA for NICE/BHF reference", {
   expect_true(all(is.na(result$sbp_expected_NICE)))
 })
 
-test_that("get_BPExpected works with partial matching", {
-  result1 <- get_BPExpected(
+test_that("get_bpExpected works with partial matching", {
+  result1 <- get_bpExpected(
     bp_type = "sys",  # Partial match: "sys" -> "systolic"
     sex = 1, male_code = 1, female_code = 2,
     height_z = 0, age_years = 10, ref = "Fourth",  # Partial: "Fourth" -> "Fourth Report"
     .quiet = TRUE
   )
 
-  result2 <- get_BPExpected(
+  result2 <- get_bpExpected(
     bp_type = "dia",  # Partial match: "dia" -> "diastolic"
     sex = 2, male_code = 1, female_code = 2,
     height_z = 0, age_years = 10, ref = "Fourth Report",
@@ -126,11 +126,11 @@ test_that("get_BPExpected works with partial matching", {
 })
 
 
-# ========== Test get_BPRelative() ==========
+# ========== Test get_bpRelative() ==========
 
-test_that("get_BPRelative calculates z-scores and percentiles correctly for easy data", {
+test_that("get_bpRelative calculates z-scores and percentiles correctly for easy data", {
   result <- df_easy |>
-    mutate(get_BPRelative(
+    mutate(get_bpRelative(
       bp_value = systolic_obs, bp_type = "sys",
       sex = gender, male_code = 1, female_code = 2,
       height_z = height, height_limit = 5,
@@ -139,7 +139,7 @@ test_that("get_BPRelative calculates z-scores and percentiles correctly for easy
     )) |>
     rename(sbp_z = zscore, sbp_centile = percentile) |>
     mutate(
-      dbp_centile = get_BPRelative(
+      dbp_centile = get_bpRelative(
         bp_value = diastolic_obs, bp_type = "diastolic",
         sex = gender, male_code = 1, female_code = 2,
         height_z = height, height_limit = 5,
@@ -167,9 +167,9 @@ test_that("get_BPRelative calculates z-scores and percentiles correctly for easy
   expect_equal(result$dbp_centile[4], 99.77165, tolerance = 0.01)
 })
 
-test_that("get_BPRelative handles edge cases in hard data", {
+test_that("get_bpRelative handles edge cases in hard data", {
   result <- df_hard |>
-    mutate(get_BPRelative(
+    mutate(get_bpRelative(
       bp_value = systolic_obs, bp_type = "sys",
       sex = gender, male_code = 1, female_code = 2,
       height_z = height, height_limit = 5,
@@ -195,10 +195,10 @@ test_that("get_BPRelative handles edge cases in hard data", {
   expect_true(all(is.na(result$sbp_z[12:16])))
 })
 
-test_that("get_BPRelative returns NA for NICE/BHF reference", {
+test_that("get_bpRelative returns NA for NICE/BHF reference", {
   result <- df_easy |>
     mutate(
-      dbp_centile_NICE = get_BPRelative(
+      dbp_centile_NICE = get_bpRelative(
         bp_value = diastolic_obs, bp_type = "diastolic",
         sex = gender, male_code = 1, female_code = 2,
         height_z = height, height_limit = 5,
@@ -211,8 +211,8 @@ test_that("get_BPRelative returns NA for NICE/BHF reference", {
   expect_true(all(is.na(result$dbp_centile_NICE)))
 })
 
-test_that("get_BPRelative returns tibble with correct structure", {
-  result <- get_BPRelative(
+test_that("get_bpRelative returns tibble with correct structure", {
+  result <- get_bpRelative(
     bp_value = c(120, 130),
     bp_type = "systolic",
     sex = c(1, 2), male_code = 1, female_code = 2,
@@ -227,15 +227,15 @@ test_that("get_BPRelative returns tibble with correct structure", {
 })
 
 
-# ========== Test get_BPCategory() ==========
+# ========== Test get_bpCategory() ==========
 
-test_that("get_BPCategory categorises children correctly with Fourth Report", {
+test_that("get_bpCategory categorises children correctly with Fourth Report", {
   result <- df_easy |>
-    mutate(sbp_cat_c = get_BPCategory(bp_value = systolic_obs, bp_type = "sys",
+    mutate(sbp_cat_c = get_bpCategory(bp_value = systolic_obs, bp_type = "sys",
                                       sex = gender, male_code = 1, female_code = 2,
                                       height_z = height, height_limit=5,
                                       age_years = age, ref = "Fourth"),
-           dbp_cat_c = get_BPCategory(bp_value = diastolic_obs, bp_type = "dia",
+           dbp_cat_c = get_bpCategory(bp_value = diastolic_obs, bp_type = "dia",
                                       sex = gender, male_code = 1, female_code = 2,
                                       height_z = height, height_limit=5,
                                       age_years = age, ref = "Fourth"),
@@ -254,13 +254,13 @@ test_that("get_BPCategory categorises children correctly with Fourth Report", {
   expect_equal(result$dbp_cat_c[4], "Stage 2 hypertension")
 })
 
-test_that("get_BPCategory categorises adults correctly with NICE/BHF", {
+test_that("get_bpCategory categorises adults correctly with NICE/BHF", {
   # Create adult-only data
   df_adults <- df_hard |>
     filter(age > 17)
 
   result <- df_adults |>
-    mutate(sbp_cat_yp = get_BPCategory(bp_value = systolic_obs, bp_type = "sys",
+    mutate(sbp_cat_yp = get_bpCategory(bp_value = systolic_obs, bp_type = "sys",
                                   sex = gender, male_code = 1, female_code = 2,
                                   height_z = height, height_limit=5,
                                   age_years = age, ref = "NICE"))
@@ -278,14 +278,14 @@ test_that("get_BPCategory categorises adults correctly with NICE/BHF", {
   expect_true(is.na(result$sbp_cat_yp[4]))
 })
 
-test_that("get_BPCategory handles newborns correctly", {
+test_that("get_bpCategory handles newborns correctly", {
   result <- df_hard |>
     filter(age == 0.5) |>
-    mutate(sbp_cat_c = get_BPCategory(bp_value = systolic_obs, bp_type = "sys",
+    mutate(sbp_cat_c = get_bpCategory(bp_value = systolic_obs, bp_type = "sys",
                                       sex = gender, male_code = 1, female_code = 2,
                                       height_z = height, height_limit=5,
                                       age_years = age, ref = "Fourth"),
-           dbp_cat_c = get_BPCategory(bp_value = diastolic_obs, bp_type = "dia",
+           dbp_cat_c = get_bpCategory(bp_value = diastolic_obs, bp_type = "dia",
                                       sex = gender, male_code = 1, female_code = 2,
                                       height_z = height, height_limit=5,
                                       age_years = age, ref = "Fourth"))
@@ -301,9 +301,9 @@ test_that("get_BPCategory handles newborns correctly", {
   expect_type(result$dbp_cat_c, "character")
 })
 
-test_that("get_BPCategory respects custom bp_limit", {
+test_that("get_bpCategory respects custom bp_limit", {
   result <- df_hard |>
-    mutate(dbp_cat_custom = get_BPCategory(bp_value = diastolic_obs, bp_type = "dia",
+    mutate(dbp_cat_custom = get_bpCategory(bp_value = diastolic_obs, bp_type = "dia",
                                            bp_limit = c(0, 151),  # Custom limit
                                            sex = gender, male_code = 1, female_code = 2,
                                            height_z = height, height_limit = 5,
@@ -313,9 +313,9 @@ test_that("get_BPCategory respects custom bp_limit", {
   expect_equal(result$dbp_cat_custom[15], "Stage 3 hypertension")
 })
 
-test_that("get_BPCategory handles invalid inputs", {
+test_that("get_bpCategory handles invalid inputs", {
   result <- df_hard |>
-    mutate(sbp_cat_c = get_BPCategory(bp_value = systolic_obs, bp_type = "sys",
+    mutate(sbp_cat_c = get_bpCategory(bp_value = systolic_obs, bp_type = "sys",
                                       sex = gender, male_code = 1, female_code = 2,
                                       height_z = height, height_limit = 5,
                                       age_years = age, ref = "Fourth"))
@@ -336,12 +336,12 @@ test_that("get_BPCategory handles invalid inputs", {
 })
 
 
-# ========== Test get_BP() Master Function ==========
+# ========== Test get_bp() Master Function ==========
 
-test_that("get_BP wrapper calls correct functions with 'expected' option", {
+test_that("get_bp wrapper calls correct functions with 'expected' option", {
   result <- df_easy |>
     mutate(
-      sbp_expected = get_BP(
+      sbp_expected = get_bp(
         option = "expected",
         bp_type = "sys",
         sex = gender, male_code = 1, female_code = 2,
@@ -355,10 +355,10 @@ test_that("get_BP wrapper calls correct functions with 'expected' option", {
   expect_equal(result$sbp_expected[2], 104.0445, tolerance = 0.001)
 })
 
-test_that("get_BP wrapper calls correct functions with 'percentile' option", {
+test_that("get_bp wrapper calls correct functions with 'percentile' option", {
   result <- df_easy |>
     mutate(
-      sbp_centile = get_BP(
+      sbp_centile = get_bp(
         option = "perc",  # Partial match: "perc" -> "percentile"
         bp_value = systolic_obs, bp_type = "sys",
         sex = gender, male_code = 1, female_code = 2,
@@ -372,8 +372,8 @@ test_that("get_BP wrapper calls correct functions with 'percentile' option", {
   expect_equal(result$sbp_centile[2], 90.36608, tolerance = 0.01)
 })
 
-test_that("get_BP wrapper calls correct functions with 'zscore' option", {
-  result <- get_BP(
+test_that("get_bp wrapper calls correct functions with 'zscore' option", {
+  result <- get_bp(
     option = "zscore",
     bp_value = c(118, 134),
     bp_type = "systolic",
@@ -388,10 +388,10 @@ test_that("get_BP wrapper calls correct functions with 'zscore' option", {
   expect_equal(result[2], 2.421401, tolerance = 0.001)
 })
 
-test_that("get_BP wrapper calls correct functions with 'category' option", {
+test_that("get_bp wrapper calls correct functions with 'category' option", {
   result <- df_easy |>
     mutate(
-      sbp_cat_c = get_BP(option = "cat",  # Partial match: "cat" -> "category"
+      sbp_cat_c = get_bp(option = "cat",  # Partial match: "cat" -> "category"
         bp_value = systolic_obs, bp_type = "sys",
         sex = gender, male_code = 1, female_code = 2,
         height_z = height, height_limit = 5,
@@ -403,25 +403,25 @@ test_that("get_BP wrapper calls correct functions with 'category' option", {
   expect_equal(result$sbp_cat_c[4], "Stage 2 hypertension")
 })
 
-test_that("get_BP works with both references in same pipeline", {
+test_that("get_bp works with both references in same pipeline", {
   result <- df_hard |>
     mutate(
-      sbp_expected = get_BP(option = "expected",
+      sbp_expected = get_bp(option = "expected",
                             bp_type = "sys",
                             sex = gender, male_code = 1, female_code = 2,
                             height_z = height, height_limit = 5,
                             age_years = age, ref = "Fourth"),
-      sbp_centile = get_BP(option = "perc",
+      sbp_centile = get_bp(option = "perc",
                            bp_value = systolic_obs, bp_type = "sys",
                            sex = gender, male_code = 1, female_code = 2,
                            height_z = height, height_limit = 5,
                            age_years = age, ref = "Fourth"),
-      sbp_cat_c = get_BP(option = "cat",
+      sbp_cat_c = get_bp(option = "cat",
                          bp_value = systolic_obs, bp_type = "sys",
                          sex = gender, male_code = 1, female_code = 2,
                          height_z = height, height_limit = 5,
                          age_years = age, ref = "Fourth"),
-      sbp_cat_yp = get_BP(option = "cat",
+      sbp_cat_yp = get_bp(option = "cat",
                           bp_value = systolic_obs, bp_type = "sys",
                           bp_limit = c(0, 301),
                           sex = gender, male_code = 1, female_code = 2,
@@ -445,7 +445,7 @@ test_that("get_BP works with both references in same pipeline", {
 test_that("Functions produce appropriate messages", {
   # Test age out of range messages
   expect_message(
-    get_BPExpected(
+    get_bpExpected(
       bp_type = "systolic", sex = 1, male_code = 1, female_code = 2,
       height_z = 0, age_years = 20, ref = "Fourth Report"
     ),
@@ -453,7 +453,7 @@ test_that("Functions produce appropriate messages", {
   )
 
   expect_message(
-    get_BPExpected(
+    get_bpExpected(
       bp_type = "systolic", sex = 1, male_code = 1, female_code = 2,
       height_z = 0, age_years = 10, ref = "NICE/BHF"
     ),
@@ -462,7 +462,7 @@ test_that("Functions produce appropriate messages", {
 
   # Test height out of range messages
   expect_message(
-    get_BPExpected(
+    get_bpExpected(
       bp_type = "systolic", sex = 1, male_code = 1, female_code = 2,
       height_z = 10, age_years = 12, ref = "Fourth Report"
     ),
@@ -471,7 +471,7 @@ test_that("Functions produce appropriate messages", {
 
   # Test NICE/BHF limitation messages
   expect_message(
-    get_BPExpected(
+    get_bpExpected(
       bp_type = "systolic", sex = 1, male_code = 1, female_code = 2,
       height_z = 0, age_years = 20, ref = "NICE/BHF"
     ),
@@ -482,7 +482,7 @@ test_that("Functions produce appropriate messages", {
 test_that(".quiet parameter suppresses messages", {
   # Should not produce messages when .quiet = TRUE
   expect_silent(
-    get_BPExpected(
+    get_bpExpected(
       bp_type = "systolic", sex = 1, male_code = 1, female_code = 2,
       height_z = 10, age_years = 20, ref = "Fourth Report",
       .quiet = TRUE
@@ -490,7 +490,7 @@ test_that(".quiet parameter suppresses messages", {
   )
 
   expect_silent(
-    get_BPRelative(
+    get_bpRelative(
       bp_value = 120, bp_type = "systolic", sex = 1, male_code = 1, female_code = 2,
       height_z = 10, age_years = 20, ref = "Fourth Report",
       .quiet = TRUE
@@ -503,7 +503,7 @@ test_that(".quiet parameter suppresses messages", {
 
 test_that("Functions require ref parameter", {
   expect_error(
-    get_BPExpected(
+    get_bpExpected(
       bp_type = "systolic", sex = 1, male_code = 1, female_code = 2,
       height_z = 0, age_years = 10
       # Missing ref parameter
@@ -514,7 +514,7 @@ test_that("Functions require ref parameter", {
 
 test_that("Functions require bp_type parameter", {
   expect_error(
-    get_BPExpected(
+    get_bpExpected(
       # Missing bp_type parameter
       sex = 1, male_code = 1, female_code = 2,
       height_z = 0, age_years = 10, ref = "Fourth Report"
@@ -525,23 +525,23 @@ test_that("Functions require bp_type parameter", {
 
 test_that("Functions accept partial matching for arguments", {
   # bp_type partial matching
-  result1 <- get_BPExpected(
+  result1 <- get_bpExpected(
     bp_type = "sys", sex = 1, male_code = 1, female_code = 2,
     height_z = 0, age_years = 10, ref = "Fourth", .quiet = TRUE
   )
 
-  result2 <- get_BPExpected(
+  result2 <- get_bpExpected(
     bp_type = "dia", sex = 1, male_code = 1, female_code = 2,
     height_z = 0, age_years = 10, ref = "Fourth", .quiet = TRUE
   )
 
   # ref partial matching
-  result3 <- get_BPExpected(
+  result3 <- get_bpExpected(
     bp_type = "systolic", sex = 1, male_code = 1, female_code = 2,
     height_z = 0, age_years = 10, ref = "Fourth", .quiet = TRUE
   )
 
-  result4 <- get_BPExpected(
+  result4 <- get_bpExpected(
     bp_type = "systolic", sex = 1, male_code = 1, female_code = 2,
     height_z = 0, age_years = 20, ref = "NICE", .quiet = TRUE
   )
@@ -559,17 +559,17 @@ test_that("Functions work in realistic dplyr pipeline", {
   result <- df_easy |>
     mutate(
       # Calculate all BP metrics in one pipeline
-      sbp_exp = get_BPExpected(
+      sbp_exp = get_bpExpected(
         bp_type = "systolic", sex = gender, male_code = 1, female_code = 2,
         height_z = height, age_years = age, ref = "Fourth Report", .quiet = TRUE
       ),
-      dbp_exp = get_BPExpected(
+      dbp_exp = get_bpExpected(
         bp_type = "diastolic", sex = gender, male_code = 1, female_code = 2,
         height_z = height, age_years = age, ref = "Fourth Report", .quiet = TRUE
       )
     ) |>
     mutate(
-      get_BPRelative(
+      get_bpRelative(
         bp_value = systolic_obs, bp_type = "systolic",
         sex = gender, male_code = 1, female_code = 2,
         height_z = height, age_years = age, ref = "Fourth Report", .quiet = TRUE
@@ -577,7 +577,7 @@ test_that("Functions work in realistic dplyr pipeline", {
     ) |>
     rename(sbp_z = zscore, sbp_pct = percentile) |>
     mutate(
-      sbp_cat = get_BPCategory(
+      sbp_cat = get_bpCategory(
         bp_value = systolic_obs, bp_type = "systolic",
         sex = gender, male_code = 1, female_code = 2,
         height_z = height, age_years = age, ref = "Fourth Report"
@@ -601,7 +601,7 @@ test_that("Functions handle grouped data correctly", {
   result <- df_easy |>
     group_by(gender) |>
     mutate(
-      sbp_cat = get_BPCategory(
+      sbp_cat = get_bpCategory(
         bp_value = systolic_obs, bp_type = "systolic",
         sex = gender, male_code = 1, female_code = 2,
         height_z = height, age_years = age, ref = "Fourth Report"
@@ -631,21 +631,21 @@ test_that("Functions handle grouped data correctly", {
 #                       height        = c(-1.64,-1.64,-1.64,-1.64,-1.64, 1.64, 1.64, 1.64, 1.64, 1.64, 1.64, 1.64, 1.64, 160, 160, 160))
 #
 #
-# # ========== test get_BPExpected() ==========
+# # ========== test get_bpExpected() ==========
 # df |>
 #   dplyr::mutate(
 #     # Get expected SBP
-#     sbp_expected = get_BPExpected(bp_type = "sys",
+#     sbp_expected = get_bpExpected(bp_type = "sys",
 #                                   sex = gender, male_code = 1, female_code = 2,
 #                                   height_z = height, height_limit=5,
 #                                   age_years = age, ref = "Fourth Report"),
 #     # Get expected DBP
-#     dbp_expected = get_BPExpected(bp_type = "diastolic",
+#     dbp_expected = get_bpExpected(bp_type = "diastolic",
 #                                   sex = gender, male_code = 1, female_code = 2,
 #                                   height_z = height, height_limit=5,
 #                                   age_years = age, ref = "Fourth Report"),
 #     # Return NA if reference doesn't provide guidelines
-#     sbp_expected_NICE = get_BPExpected(bp_type = "sys",
+#     sbp_expected_NICE = get_bpExpected(bp_type = "sys",
 #                                        sex = gender, male_code = 1, female_code = 2,
 #                                        height_z = height, height_limit=5,
 #                                        age_years = age, ref = "NICE")
@@ -678,22 +678,22 @@ test_that("Functions handle grouped data correctly", {
 # # 15          301           151      2 24.0 160.00           NA           NA                NA
 # # 16          139            96      2 17.0 160.00           NA           NA                NA
 #
-# # ========== test get_BPRelative() ==========
+# # ========== test get_bpRelative() ==========
 # df_easy |>
 #   # Get full output (zscore and percentile)
-#   dplyr::mutate(get_BPRelative(bp_value = systolic_obs, bp_type = "sys",
+#   dplyr::mutate(get_bpRelative(bp_value = systolic_obs, bp_type = "sys",
 #                                sex = gender, male_code = 1, female_code = 2,
 #                                height_z = height, height_limit=5,
 #                                age_years = age, ref = "Fourth Report")) |>
 #   dplyr::rename(sbp_z = zscore, sbp_centile = percentile) |>
 #   dplyr::mutate(
 #     # Get specific output (percentile)|
-#     dbp_centile = get_BPRelative(bp_value = diastolic_obs, bp_type = "diastolic",
+#     dbp_centile = get_bpRelative(bp_value = diastolic_obs, bp_type = "diastolic",
 #                                  sex = gender, male_code = 1, female_code = 2,
 #                                  height_z = height, height_limit=5,
 #                                  age_years = age, ref = "Fourth Report")$percentile,
 #     # Return NA if reference doesn't provide guidelines
-#     dbp_centile_NICE = get_BPRelative(bp_value = diastolic_obs, bp_type = "diastolic",
+#     dbp_centile_NICE = get_bpRelative(bp_value = diastolic_obs, bp_type = "diastolic",
 #                                       sex = gender, male_code = 1, female_code = 2,
 #                                       height_z = height, height_limit=5,
 #                                       age_years = age, ref = "NICE")$percentile,
@@ -725,24 +725,24 @@ test_that("Functions handle grouped data correctly", {
 # # 15          301           151      2 24.0 160.00       NA          NA          NA               NA
 # # 16          139            96      2 17.0 160.00       NA          NA          NA               NA
 #
-# # ========== test get_BPCategory() ==========
+# # ========== test get_bpCategory() ==========
 # df |>
 #   dplyr::mutate(
 #     # Young adults SBP/DBP category (NICE/BHF)
-#     sbp_cat_yp = get_BPCategory(bp_value = systolic_obs, bp_type = "sys",
+#     sbp_cat_yp = get_bpCategory(bp_value = systolic_obs, bp_type = "sys",
 #                                 sex = gender, male_code = 1, female_code = 2,
 #                                 height_z = height, height_limit=5,
 #                                 age_years = age, ref = "NICE"),
-#     dbp_cat_yp = get_BPCategory(bp_value = diastolic_obs, bp_type = "dia", bp_limit = c(0, 151), # Just to demonstrate that you can use other limit than NDA/NPDA's; In reality, this range isn't sensible
+#     dbp_cat_yp = get_bpCategory(bp_value = diastolic_obs, bp_type = "dia", bp_limit = c(0, 151), # Just to demonstrate that you can use other limit than NDA/NPDA's; In reality, this range isn't sensible
 #                                 sex = gender, male_code = 1, female_code = 2,
 #                                 height_z = height, height_limit=5,
 #                                 age_years = age, ref = "NICE"),
 #     # Children SBP/DBP category (Fourth report)
-#     sbp_cat_c = get_BPCategory(bp_value = systolic_obs, bp_type = "sys",
+#     sbp_cat_c = get_bpCategory(bp_value = systolic_obs, bp_type = "sys",
 #                                sex = gender, male_code = 1, female_code = 2,
 #                                height_z = height, height_limit=5,
 #                                age_years = age, ref = "Fourth"),
-#     dbp_cat_c = get_BPCategory(bp_value = diastolic_obs, bp_type = "dia",
+#     dbp_cat_c = get_bpCategory(bp_value = diastolic_obs, bp_type = "dia",
 #                                sex = gender, male_code = 1, female_code = 2,
 #                                height_z = height, height_limit=5,
 #                                age_years = age, ref = "Fourth"),
@@ -774,25 +774,25 @@ test_that("Functions handle grouped data correctly", {
 # # 15          301           151      2 24.0 160.00                 <NA> Stage 3 hypertension                 <NA>                 <NA>
 # # 16          139            96      2 17.0 160.00                 <NA>                 <NA>                 <NA>                 <NA>
 #
-# # ========== test get_BP() ==========
+# # ========== test get_bp() ==========
 # df |>
-#   dplyr::mutate(sbp_expected = get_BP(option = "expected",
+#   dplyr::mutate(sbp_expected = get_bp(option = "expected",
 #                                       # bp_value = systolic_obs,
 #                                       bp_type = "sys",
 #                                       sex = gender, male_code = 1, female_code = 2,
 #                                       height_z = height, height_limit=5,
 #                                       age_years = age, ref = "Fourth"),
-#                 sbp_centile = get_BP(option="perc",
+#                 sbp_centile = get_bp(option="perc",
 #                                      bp_value = systolic_obs, bp_type = "sys",
 #                                      sex = gender, male_code = 1, female_code = 2,
 #                                      height_z = height, height_limit=5,
 #                                      age_years = age, ref = "Fourth"),
-#                 sbp_cat_c = get_BP(option="cat",
+#                 sbp_cat_c = get_bp(option="cat",
 #                                    bp_value = systolic_obs, bp_type = "sys",
 #                                    sex = gender, male_code = 1, female_code = 2,
 #                                    height_z = height, height_limit=5,
 #                                    age_years = age, ref = "Fourth"),
-#                 sbp_cat_yp = get_BP(option="cat",
+#                 sbp_cat_yp = get_bp(option="cat",
 #                                     bp_value = systolic_obs, bp_type = "sys", bp_limit = c(0, 301), # Just to demonstrate that you can use other limit than NDA/NPDA's; In reality, this range isn't sensible
 #                                     sex = gender, male_code = 1, female_code = 2,
 #                                     height_z = height, height_limit=5,

@@ -75,10 +75,14 @@ library(npdar)
 ``` r
 library(npdar)
 
+library(dplyr)
+library(ggplot2)
+library(plotly)
+
 # --- Blood Pressure ---
 
 # Categorise BP for children (Fourth Report) and adults (NICE/BHF)
-get_BP(
+get_bp(
   option     = "category",
   bp_value   = c(95, 125, 155),
   bp_type    = "systolic",
@@ -99,9 +103,9 @@ get_BP(
 # --- Privacy masking ---
 
 # Mask numerator counts below 3 in audit outputs
-mask_numerators(c(4, 6, 2, 4, 0))
+get_masked(c(4, 6, 2, 4, 0))
 #> [1] "masked" "6"      "masked" "masked" "0"
-mask_numerators(c(4, 6, 2, 4, 0), maxNum = 3, maskMessage = "*")
+get_masked(c(4, 6, 2, 4, 0), maxNum = 3, maskMessage = "*")
 #> [1] "*" "6" "*" "*" "0"
 
 
@@ -123,6 +127,7 @@ get_ultimate(x, find = "last_mode", except = c("Unknown"))
 #> [1] "C"
 
 # --- Categorical frequency summarisation ---
+# 1. Unnested groups
 set.seed(1999)
 df <- data.frame(participant_id = 1:60,
                  country        = c(rep("England", 30), rep("Wales", 30)),
@@ -130,10 +135,10 @@ df <- data.frame(participant_id = 1:60,
                    rep("East England", 10), rep("West England", 10), rep(NA, 10),
                    rep("North Wales", 10), rep("South Wales", 10), rep(NA, 10)
                  ),
-                 # Q3 categorical
-                 q3_catq        = sample(c("A", "B", "C", NA), 60, replace = TRUE),
-                 # Q4 categorical
-                 q4_catq        = sample(c("A", "B", "C", "D", "E", NA), 60, replace = TRUE)
+                 # Categorical Q1
+                 q1_catq        = sample(c("A", "B", "C", NA), 60, replace = TRUE),
+                 # Categorical Q2 
+                 q2_catq        = sample(c("A", "B", "C", "D", "E", NA), 60, replace = TRUE)
 )
 
 group_cols <- c("overall", "country", "region")
@@ -142,42 +147,74 @@ measure_cols <- df |>
   select(matches("q[0-9]+_catq")) |>
   names()
 
-sum_categorical_measures <- get_frequency(
+sum <- get_frequency(
   data     = df,
   measures = measure_cols,
   groups   = group_cols
 )
 
-head(sum_categorical_measures)
+head(sum)
 #>   overall country region measure category numerator denominator percent
-#> 1 overall NA      NA     q3_catq A               10          41   0.244
-#> 2 overall NA      NA     q3_catq B               18          41   0.439
-#> 3 overall NA      NA     q3_catq C               13          41   0.317
-#> 4 overall NA      NA     q4_catq A                9          54   0.167
-#> 5 overall NA      NA     q4_catq B               16          54   0.296
-#> 6 overall NA      NA     q4_catq C               10          54   0.185
+#> 1 overall NA      NA     q1_catq A               10          41   0.244
+#> 2 overall NA      NA     q1_catq B               18          41   0.439
+#> 3 overall NA      NA     q1_catq C               13          41   0.317
+#> 4 overall NA      NA     q2_catq A                9          54   0.167
+#> 5 overall NA      NA     q2_catq B               16          54   0.296
+#> 6 overall NA      NA     q2_catq C               10          54   0.185
 
-sum_categorical_measures |>
+# plotly
+sum |>
   filter(!is.na(country)) |>
   group_by(measure) |>
   do(p=plot_ly(., x = ~country, y = ~percent, color = ~category, type = "bar")) |>
   subplot(nrows = 1, shareX = TRUE, shareY = TRUE)
 
-# --- Finding audit period(s) ---
-get_AuditYear() # Return current audit year & quarter (based on NPDA default Q1 start month)
+# ggplot
+sum |>
+  filter(!is.na(country)) |>
+  ggplot(aes(x = country, y = percent, fill = category)) +
+  geom_col() +
+  facet_wrap(~ measure, nrow = 1) +
+  labs(x = "Country", y = "Percent", fill = "Category")
 
-get_AuditYear("2025-03-31")  
+# 2. Nested groups
+set.seed(1999)
+df_nested <- data.frame(
+  auditYear = c(rep(2021, 3), rep(2022, 3), rep(2023, 6)),
+  sex = c("Female", "Female", "Male",
+          "Female", "Male", "Male",
+          rep("Female", 1), rep("Male", 3), rep(NA, 2)),
+  type = c("A", "B", "B",
+           "A", "B", NA,
+           sample(c("A", "B", NA), 6, replace = TRUE))
+)
+
+sum_nested <- get_frequency(data = df_nested, measures = "type", groups = c("auditYear", "sex"), nested = TRUE)
+
+head(sum_nested)
+#>   auditYear sex    measure category numerator denominator percent
+#> 1      2021 Female type    A                1           2     0.5
+#> 2      2021 Female type    B                1           2     0.5
+#> 3      2021 Male   type    A                0           1     0  
+#> 4      2021 Male   type    B                1           1     1  
+#> 5      2022 Female type    A                1           1     1  
+#> 6      2022 Female type    B                0           1     0  
+
+# --- Finding audit period(s) ---
+get_auditYear() # Return current audit year & quarter (based on NPDA default Q1 start month)
+
+get_auditYear("2025-03-31")  
 #> [1] "2024/25 Q4"
 
-get_AuditYear("2025-03-31", format = F)  
+get_auditYear("2025-03-31", format = F)  
 #> [1] 2024
 
-get_AuditYear("2025-03-31", start_month = 1)  
+get_auditYear("2025-03-31", start_month = 1)  
 #> [1] "2025/26 Q1"
 
 data.frame(
-  audit_year = get_AuditYears(2010, 2015),
-  audit_year_numeric = get_AuditYears(2010, 2015, format = FALSE)
+  audit_year = get_auditYears(2010, 2015),
+  audit_year_numeric = get_auditYears(2010, 2015, format = FALSE)
 )
 #>   audit_year audit_year_numeric
 #> 1    2010/11               2010

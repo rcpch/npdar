@@ -36,27 +36,27 @@
 #' @examples
 #' # Basic usage - mask values less than 3
 #' example_vec1 <- c(4, 6, 2, 4, 0)
-#' mask_numerators(example_vec1)  # Returns: "4" "6" "masked" "4" "0"
+#' get_masked(example_vec1)  # Returns: "4" "6" "masked" "4" "0"
 #'
 #' # With different threshold
 #' example_vec2 <- c(4, 6, 2, 4, 1)
-#' mask_numerators(example_vec2, maxNum = 3)  # Masks values 1 and 2, plus second smallest (4)
+#' get_masked(example_vec2, maxNum = 3)  # Masks values 1 and 2, plus second smallest (4)
 #'
 #' # Custom mask message
 #' example_vec3 <- c(4, 6, 2, 4, 3)
-#' mask_numerators(example_vec3, maxNum = 3, maskMessage = "*")
+#' get_masked(example_vec3, maxNum = 3, maskMessage = "*")
 #'
 #' # Demonstrating secondary masking rule
 #' example_vec4 <- c(4, 6, 3, 4, 3)
-#' mask_numerators(example_vec4, maxNum = 3)  # Only value 2 would be masked initially
+#' get_masked(example_vec4, maxNum = 3)  # Only value 2 would be masked initially
 #'
 #' # Higher threshold
 #' example_vec5 <- c(4, 6, 3, 4, 3)
-#' mask_numerators(example_vec5, maxNum = 5, maskMessage = "*")  # Masks 3s and 4s
+#' get_masked(example_vec5, maxNum = 5, maskMessage = "*")  # Masks 3s and 4s
 #'
 #' # No masking needed
 #' example_vec6 <- c(5, 6, 7, 8, 0)
-#' mask_numerators(example_vec6)  # Returns original as characters: "5" "6" "7" "8" "0"
+#' get_masked(example_vec6)  # Returns original as characters: "5" "6" "7" "8" "0"
 #'
 #' # Realistic workflow example
 #' \dontrun{
@@ -77,11 +77,11 @@
 #'   summarise(numerator = n(), .groups = "drop") |>
 #'   mutate(
 #'     proportion = sprintf("%.1f%%", 100 * numerator / sum(numerator)),
-#'     numerator_masked = mask_numerators(numerator, maxNum = 3),
+#'     numerator_masked = get_masked(numerator, maxNum = 3),
 #'     proportion_masked = ifelse(numerator_masked == 'masked', 'masked', proportion)
 #'   )
 #' }
-mask_numerators <- function(vec, maxNum = 3, maskMessage = 'masked') {
+get_masked <- function(vec, maxNum = 3, maskMessage = 'masked') {
   # Input validation
   if (!is.numeric(vec)) {
     stop("Input 'vec' must be a numeric vector")
