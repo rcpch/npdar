@@ -1,3 +1,5 @@
+# npdar 0.4.3
+
 # npdar 0.4.2
 
 * Renamed `get_frequency()` "response" as "category" (PR #20).
