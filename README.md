@@ -82,7 +82,7 @@ library(plotly)
 # --- Blood Pressure ---
 
 # Categorise BP for children (Fourth Report) and adults (NICE/BHF)
-get_BP(
+get_bp(
   option     = "category",
   bp_value   = c(95, 125, 155),
   bp_type    = "systolic",
@@ -103,9 +103,9 @@ get_BP(
 # --- Privacy masking ---
 
 # Mask numerator counts below 3 in audit outputs
-mask_numerators(c(4, 6, 2, 4, 0))
+get_masked(c(4, 6, 2, 4, 0))
 #> [1] "masked" "6"      "masked" "masked" "0"
-mask_numerators(c(4, 6, 2, 4, 0), maxNum = 3, maskMessage = "*")
+get_masked(c(4, 6, 2, 4, 0), maxNum = 3, maskMessage = "*")
 #> [1] "*" "6" "*" "*" "0"
 
 
@@ -201,20 +201,20 @@ head(sum_nested)
 #> 6      2022 Female type    B                0           1     0  
 
 # --- Finding audit period(s) ---
-get_AuditYear() # Return current audit year & quarter (based on NPDA default Q1 start month)
+get_auditYear() # Return current audit year & quarter (based on NPDA default Q1 start month)
 
-get_AuditYear("2025-03-31")  
+get_auditYear("2025-03-31")  
 #> [1] "2024/25 Q4"
 
-get_AuditYear("2025-03-31", format = F)  
+get_auditYear("2025-03-31", format = F)  
 #> [1] 2024
 
-get_AuditYear("2025-03-31", start_month = 1)  
+get_auditYear("2025-03-31", start_month = 1)  
 #> [1] "2025/26 Q1"
 
 data.frame(
-  audit_year = get_AuditYears(2010, 2015),
-  audit_year_numeric = get_AuditYears(2010, 2015, format = FALSE)
+  audit_year = get_auditYears(2010, 2015),
+  audit_year_numeric = get_auditYears(2010, 2015, format = FALSE)
 )
 #>   audit_year audit_year_numeric
 #> 1    2010/11               2010

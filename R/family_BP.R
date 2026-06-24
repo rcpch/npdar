@@ -25,7 +25,7 @@
 #'
 #' @template bp_refs
 #' @family BP functions
-#' @name family_BP
+#' @name family_bp
 #' @aliases BloodPressure
 NULL
 
@@ -37,8 +37,8 @@ NULL
 #' stratified by sex, as described in the NHBPEP Fourth Report.
 #'
 #' @details
-#' These coefficients are used by \code{get_BPExpected()}, \code{get_BPRelative()},
-#' and \code{get_BPCategory()} when \code{ref = "Fourth Report"}.
+#' These coefficients are used by \code{get_bpExpected()}, \code{get_bpRelative()},
+#' and \code{get_bpCategory()} when \code{ref = "Fourth Report"}.
 #' The Fourth Report uses regression models with age (centred at 10 years) and
 #' height z-score polynomial terms (up to 4th degree) to calculate expected BP:
 #' \deqn{\mu = \alpha + \sum_{i=1}^{4} \beta_i (Age-10)^i + \sum_{i=1}^{4} \gamma_i (Zht)^i}
@@ -94,7 +94,7 @@ NULL
 #' @keywords internal
 #'
 #' @family BP functions
-.valid_BPDemoInput <- function(bp_type = c("systolic", "diastolic"),
+.valid_bpDemoInput <- function(bp_type = c("systolic", "diastolic"),
                                sex, male_code, female_code,
                                height_z, height_limit=5,
                                age_years, ref = c("Fourth Report", "NICE/BHF"),
@@ -151,7 +151,7 @@ NULL
 #' For \code{ref = "NICE/BHF"} or people >17 years old, expected BP is not defined and \code{NA} is returned.
 #'
 #' @param .quiet Logical; suppress validation messages (default \code{FALSE}).
-#' @inheritDotParams .valid_BPDemoInput
+#' @inheritDotParams .valid_bpDemoInput
 #'
 #' @template bp_fourth
 #'
@@ -167,7 +167,7 @@ NULL
 #'
 #' @examples
 #' # Expected systolic BP for a 10-year-old boy at median height, and other some other children:
-#' get_BPExpected(
+#' get_bpExpected(
 #'   bp_type = "systolic",
 #'   sex = c(1, 2, 1),
 #'   male_code = 1, female_code = 2,
@@ -177,7 +177,7 @@ NULL
 #' )
 #'
 #' # Adults: returns NA with an informative message
-#' get_BPExpected(
+#' get_bpExpected(
 #'   bp_type = "diastolic",
 #'   sex = "M", male_code = "M", female_code = "F",
 #'   height_z = 0, age_years = 25, ref = "NICE/BHF"
@@ -187,9 +187,9 @@ NULL
 #'
 #' @export
 #' @importFrom purrr pmap_dbl map_lgl
-get_BPExpected <- function(..., .quiet = FALSE){                                # Quiet validation message unless being called directly
+get_bpExpected <- function(..., .quiet = FALSE){                                # Quiet validation message unless being called directly
   # 1. Input validation
-  valid <- .valid_BPDemoInput(..., .quiet=.quiet)
+  valid <- .valid_bpDemoInput(..., .quiet=.quiet)
 
   # 2. Calculate expected BP (mu)
   if (valid$ref == "NICE/BHF") {
@@ -228,7 +228,7 @@ get_BPExpected <- function(..., .quiet = FALSE){                                
 #'
 #' @param .quiet Logical; suppress validation messages (default \code{FALSE}).
 #' @param bp_value Numeric vector of observed BP values (mmHg).
-#' @inheritDotParams get_BPExpected
+#' @inheritDotParams .valid_bpDemoInput
 #'
 #' @return A tibble with two columns: \code{zscore} and \code{percentile} (0-100).
 #'   \code{NA} where expected BP could not be computed (e.g., invalid inputs or adult reference).
@@ -237,7 +237,7 @@ get_BPExpected <- function(..., .quiet = FALSE){                                
 #'
 #' @examples
 #' # Z-score and percentile for systolic BP in children using Fourth Report:
-#' get_BPRelative(
+#' get_bpRelative(
 #'   bp_value = c(95, 110, 130),
 #'   bp_type = "systolic",
 #'   sex = c("M","F","M"),
@@ -253,11 +253,11 @@ get_BPExpected <- function(..., .quiet = FALSE){                                
 #' @importFrom purrr pmap_dbl pmap_chr map_lgl
 #' @importFrom tibble tibble
 #' @importFrom stats pnorm
-get_BPRelative <- function(bp_value, ..., .quiet=FALSE) {                       # Extra argument: bp_value. Quiet validation message unless being called directly
+get_bpRelative <- function(bp_value, ..., .quiet=FALSE) {                       # Extra argument: bp_value. Quiet validation message unless being called directly
   # 1. Input validation
-  valid <- .valid_BPDemoInput(..., .quiet=TRUE)
+  valid <- .valid_bpDemoInput(..., .quiet=TRUE)
   # 2. Calculate expected BP (mu)
-  bp_expected <- get_BPExpected(..., .quiet=.quiet)
+  bp_expected <- get_bpExpected(..., .quiet=.quiet)
 
   # 3. Calculate z-score and percentile
   ## 3.1 Calculate z-score
@@ -299,7 +299,8 @@ get_BPRelative <- function(bp_value, ..., .quiet=FALSE) {                       
 #' @param bp_value Numeric vector of observed BP values (mmHg).
 #' @param bp_limit Length-2 numeric vector \code{c(min, max)} giving acceptable range.
 #'   Defaults to \code{c(-Inf, Inf)}; if left as-is, NPDA/NDA defaults are applied based on \code{ref}.
-#' @inheritDotParams get_BPExpected
+#' @inheritDotParams .valid_bpDemoInput
+#' @inheritDotParams get_bpExpected
 #'
 #' @return Character vector of BP categories:
 #'   \emph{"Normotension"}, \emph{"Prehypertension"}, \emph{"Stage 1 hypertension"},
@@ -312,7 +313,7 @@ get_BPRelative <- function(bp_value, ..., .quiet=FALSE) {                       
 #'
 #' @examples
 #' # Child/adolescent categorisation (Fourth Report):
-#' get_BPCategory(
+#' get_bpCategory(
 #'   bp_value = c(95, 118, 130, 150),
 #'   bp_type = "systolic",
 #'   sex = c(1, 2, 1, 2),
@@ -323,7 +324,7 @@ get_BPRelative <- function(bp_value, ..., .quiet=FALSE) {                       
 #' )
 #'
 #' # Adult categorisation (NICE/BHF; uses NDA limits if bp_limit not provided):
-#' get_BPCategory(
+#' get_bpCategory(
 #'   bp_value = c(118, 135, 162, 185),
 #'   bp_type = "diastolic",
 #'   sex = "M", male_code = "M", female_code = "F",
@@ -337,9 +338,9 @@ get_BPRelative <- function(bp_value, ..., .quiet=FALSE) {                       
 #' @export
 #' @importFrom purrr pmap_chr pmap_dbl map_lgl
 #' @importFrom stats qnorm
-get_BPCategory <- function(bp_value, bp_limit = c(-Inf, Inf), ...) {            # Extra argument: bp_value, bp_limit. Quiet validation message unless being called directly
+get_bpCategory <- function(bp_value, bp_limit = c(-Inf, Inf), ...) {            # Extra argument: bp_value, bp_limit. Quiet validation message unless being called directly
   # 1. Input validation
-  valid <- .valid_BPDemoInput(..., .quiet=FALSE)
+  valid <- .valid_bpDemoInput(..., .quiet=FALSE)
 
   # 4. Categorise BP
   if (valid$ref == "NICE/BHF") {
@@ -387,7 +388,7 @@ get_BPCategory <- function(bp_value, bp_limit = c(-Inf, Inf), ...) {            
       }
     }
     # 4.2 Calculate expected BP (mu)
-    bp_expected <- get_BPExpected(..., .quiet=TRUE)                             # Calculate 50th/mean/mu
+    bp_expected <- get_bpExpected(..., .quiet=TRUE)                             # Calculate 50th/mean/mu
     # 4.3 categorisation
     category <- purrr::pmap_chr(list(bp_value, bp_expected, valid$age_years, valid$sex), function(bpObserved, bpExpected, ageY, sexBinary) {
       if (is.na(bpExpected) | is.na(bpObserved)) return(NA)                   # This exclude anyone with invalid age/sex/height/bp_value
@@ -419,9 +420,11 @@ get_BPCategory <- function(bp_value, bp_limit = c(-Inf, Inf), ...) {            
 #'
 #' @param option Character; one of \code{"expected"}, \code{"zscore"},
 #'   \code{"percentile"}, \code{"category"} (partial matching enabled).
-#' @inheritDotParams get_BPExpected
-#' @inheritDotParams get_BPRelative
-#' @inheritDotParams get_BPCategory
+#'
+#' @inheritDotParams .valid_bpDemoInput
+#' @inheritDotParams get_bpExpected
+#' @inheritDotParams get_bpRelative
+#' @inheritDotParams get_bpCategory
 #'
 #' @return Depending on \code{option}:
 #'   \itemize{
@@ -433,7 +436,7 @@ get_BPCategory <- function(bp_value, bp_limit = c(-Inf, Inf), ...) {            
 #'
 #' @examples
 #' # One-stop interface:
-#' get_BP(
+#' get_bp(
 #'   option = "category",
 #'   bp_value = c(115, 142),
 #'   bp_type = "systolic",
@@ -445,14 +448,14 @@ get_BPCategory <- function(bp_value, bp_limit = c(-Inf, Inf), ...) {            
 #'
 #' @family BP functions
 #' @export
-get_BP <- function(option = c("expected", "zscore", "percentile", "category"), ...) {
+get_bp <- function(option = c("expected", "zscore", "percentile", "category"), ...) {
   option <- match.arg(option)                                                   # Partial match (e.g. "centile" -> "percentile")
 
   switch(option,
-         expected   = get_BPExpected(...),
-         zscore     = get_BPRelative(...)$zscore,
-         percentile = get_BPRelative(...)$percentile,
-         category   = get_BPCategory(...)
+         expected   = get_bpExpected(...),
+         zscore     = get_bpRelative(...)$zscore,
+         percentile = get_bpRelative(...)$percentile,
+         category   = get_bpCategory(...)
   )
 }
 
