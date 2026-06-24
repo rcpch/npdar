@@ -1,8 +1,15 @@
 # npdar 0.4.3
 
-* Updated to roxygen2 8.0.0 and improved documentation consistency (#11).
+* **Breaking:** Renamed exported functions for consistent naming (#11):
+    - `mask_numerators()` → `get_masked()`
+    - `get_BP()` → `get_bp()`
+    - `get_BPCategory()` → `get_bpCategory()`
+    - `get_BPExpected()` → `get_bpExpected()`
+    - `get_BPRelative()` → `get_bpRelative()`
+    - `get_AuditYear()` → `get_auditYear()`
+    - `get_AuditYears()` → `get_auditYears()`
+* Updated to roxygen2 8.0.0 and improved documentation (#11).
 * Revised `get_frequency()` with new nested grouping option.
-* Renamed `mask_numerators()` to `get_masked()` for consistent naming (#11).
 * Updated README to reflect "response" → "category" renaming (#19).
 
 # npdar 0.4.2
