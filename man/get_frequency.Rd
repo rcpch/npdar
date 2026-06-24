@@ -4,7 +4,7 @@
 \alias{get_frequency}
 \title{Summarise categorical measure(s) by group(s)}
 \usage{
-get_frequency(data, measures, groups = "overall")
+get_frequency(data, measures, groups = "overall", nested = FALSE)
 }
 \arguments{
 \item{data}{A data frame containing measure columns (and grouping columns), with one row per participant.}
@@ -17,6 +17,10 @@ character columns alike.}
 \code{"overall"}, which creates a single group containing all rows.
 Rows where the grouping variable is \code{NA} are excluded
 from that group's summary.}
+
+\item{nested}{Logical; if \code{FALSE} (default), each grouping variable in
+\code{groups} is summarised separately. If \code{TRUE}, all variables in
+\code{groups} are treated as a nested grouping set.}
 }
 \value{
 A tibble in long format with one row per group level × measure × category combination.
@@ -28,6 +32,10 @@ categories) and percentage. Results for the specified group(s) are combined into
 long tibble for easy use in `ggplot` or `plotly`.
 }
 \examples{
+
+library(dplyr)
+library(ggplot2)
+
 set.seed(1999)
 df <- data.frame(participant_id = 1:60,
                  country        = c(rep("England", 30), rep("Wales", 30)),
@@ -35,30 +43,35 @@ df <- data.frame(participant_id = 1:60,
                    rep("East England", 10), rep("West England", 10), rep(NA, 10),
                    rep("North Wales", 10), rep("South Wales", 10), rep(NA, 10)
                  ),
-                 # Q3 categorical
-                 q3_catq        = sample(c("A", "B", "C", NA), 60, replace = TRUE),
-                 # Q4 categorical
-                 q4_catq        = sample(c("A", "B", "C", "D", "E", NA), 60, replace = TRUE)
+                 # Categorical Q1
+                 q1_catq        = sample(c("A", "B", "C", NA), 60, replace = TRUE),
+                 # Categorical Q2
+                 q2_catq        = sample(c("A", "B", "C", "D", "E", NA), 60, replace = TRUE)
 )
 
 group_cols <- c("overall", "country", "region")
 
 measure_cols <- df |>
-  dplyr::select(tidyselect::matches("q[0-9]+_catq")) |>
+  select(tidyselect::matches("q[0-9]+_catq")) |>
   names()
 
-sum_categorical_measures <- get_frequency(
+sum <- get_frequency(
   data     = df,
   measures = measure_cols,
   groups   = group_cols
 )
 
-head(sum_categorical_measures)
+head(sum)
 
-sum_categorical_measures |>
-dplyr::filter(!is.na(country)) |>
-dplyr::group_by(measure) |>
-dplyr::do(p=plotly::plot_ly(., x = ~country, y = ~percent, color = ~category, type = "bar")) |>
-plotly::subplot(nrows = 1, shareX = TRUE, shareY = TRUE)
+
+# Nested grouping example (region is nested within country):
+sum_q1_nested <- get_frequency(
+  data = df,
+  measures = "q1_catq",
+  groups = c("country", "region"),
+  nested = TRUE
+)
+
+sum_q1_nested
 
 }
