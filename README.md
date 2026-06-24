@@ -223,6 +223,22 @@ data.frame(
 #> 4    2013/14               2013
 #> 5    2014/15               2014
 #> 6    2015/16               2015
+
+# --- Correlation matrix with Plotly---
+# Basic correlation matrix
+get_corrMat(mtcars)
+
+# Spearman correlation without tile labels, with additional plotly arguments
+get_corrMat(mtcars,
+            method = "spearman",
+            show_values = FALSE,
+            show_stars = TRUE,
+            colorbar = list(title = "Correlation")) |>
+plotly::layout(annotations = list(
+  text = paste0("<i><b>Note:</b> *: p<0.05, **: p<0.01, ***: p<0.001.</i>"),
+  x = 1, y = 1, xref = "paper", yref = "paper",
+  xanchor = "right", yanchor = "top",
+  showarrow = FALSE))
 ```
 
 --------------------------------------------------------------------------------

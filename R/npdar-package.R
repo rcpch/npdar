@@ -45,6 +45,16 @@
 #'     \item Generate sequential lists of audit years.
 #' }}
 #'
+#' \strong{Correlation Matrix with Plotly:}
+#' \itemize{
+#'   \item \code{\link{get_corrMat}}:
+#'   \itemize{
+#'     \item Compute Pearson or Spearman correlation matrices for numeric variables.
+#'     \item Display the lower triangle as an interactive \pkg{plotly} heatmap.
+#'     \item Optionally show correlation values and statistical significance stars.
+#'     \item Supports missing-data handling via \code{stats::cor()} options.
+#' }}
+#'
 #' @author
 #' \itemize{
 #'   \item Zhaonan Fang (Author, Maintainer) \email{Zhaonan.Fang@rcpch.ac.uk}
