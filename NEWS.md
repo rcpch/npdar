@@ -1,5 +1,16 @@
 # npdar 0.4.3
 
+* Added new feature for `get_frequency()` to summarise measures by nested groups. 
+* Consistent get_ + camelCase naming convention:
+    - `mask_numerators()` → `get_masked()`
+    - `get_BP()` → `get_bp()`
+    - `get_BPCategory()` → `get_bpCategory()`
+    - `get_BPExpected()` → `get_bpExpected()`
+    - `get_BPRelative()` → `get_bpRelative()`
+    - `get_AuditYear()` → `get_auditYear()`
+    - `get_AuditYears()` → `get_auditYears()`
+* Updated to roxygen2 8.0.0 and improved documentation.
+
 # npdar 0.4.2
 
 * Renamed `get_frequency()` "response" as "category" (PR #20).
