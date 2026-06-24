@@ -59,7 +59,7 @@ get_auditYear(format = FALSE)
 get_auditYear(start_month = 1)
 
 # Customise Q1 start month
-get_AuditYear(start_month = 1)
+get_auditYear(start_month = 1)
 
 # Determine audit year for specific dates
 get_auditYear("2025-05-15")  # Returns "2025/26 Q1"
@@ -79,6 +79,7 @@ df |> mutate(audit_year = get_auditYear(admission_date))
 }
 \seealso{
 Other auditYear functions:
-\code{\link{family_auditYear}}
+\code{\link{family_auditYear}},
+\code{\link[=get_auditYears]{get_auditYears()}}
 }
 \concept{auditYear functions}

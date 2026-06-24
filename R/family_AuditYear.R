@@ -88,7 +88,7 @@ NULL
 #' get_auditYear(start_month = 1)
 #'
 #' # Customise Q1 start month
-#' get_AuditYear(start_month = 1)
+#' get_auditYear(start_month = 1)
 #'
 #' # Determine audit year for specific dates
 #' get_auditYear("2025-05-15")  # Returns "2025/26 Q1"
@@ -176,7 +176,7 @@ get_auditYear <- function(date = Sys.Date(), start_month = 4, format = TRUE) {
 #'
 #' @seealso \code{\link{get_auditYear}} for determining a single audit year from a date.
 #'
-#' @family AuditYear functions
+#' @family auditYear functions
 #' @export
 #'
 #' @examples

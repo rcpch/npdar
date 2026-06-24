@@ -49,6 +49,7 @@ For example:
 
 \seealso{
 Other auditYear functions:
-\code{\link[=get_auditYear]{get_auditYear()}}
+\code{\link[=get_auditYear]{get_auditYear()}},
+\code{\link[=get_auditYears]{get_auditYears()}}
 }
 \concept{auditYear functions}
