@@ -1,3 +1,10 @@
+# npdar 0.4.3
+
+* Updated to roxygen2 8.0.0 and improved documentation consistency (#11).
+* Revised `get_frequency()` with new nested grouping option.
+* Renamed `mask_numerators()` to `get_masked()` for consistent naming (#11).
+* Updated README to reflect "response" → "category" renaming (#19).
+
 # npdar 0.4.2
 
 * Renamed `get_frequency()` "response" as "category" (PR #20).
