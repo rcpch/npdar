@@ -1,5 +1,5 @@
 # npdar 0.4.3
-
+* Added `get_corrMat()` function to create interactive correlation matrix with `plotly` (#23).
 * Added new feature for `get_frequency()` to summarise measures by nested groups. 
 * Consistent get_ + camelCase naming convention:
     - `mask_numerators()` → `get_masked()`
