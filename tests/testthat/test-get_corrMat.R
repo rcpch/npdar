@@ -1,4 +1,3 @@
-
 # ========== Test df requirements ==========
 test_that("get_corrMat requires numeric columns only", {
   expect_error(
@@ -36,10 +35,20 @@ test_that("get_corrMat handles constant columns without error", {
     "standard deviation is zero"
   )
 
-  expect_s3_class(
-    get_corrMat(df),
-    "plotly"
-  )
+  expect_s3_class(p, "plotly")
+})
+
+# ========== Test heatmap content ==========
+test_that("get_corrMat shows lower-triangle correlations only", {
+  p <- get_corrMat(mtcars[, 1:3])   # x axis: mpg, cyl; y axis: cyl, disp
+  z <- unname(p$x$attrs[[1]]$z)
+  r <- cor(mtcars[, 1:3])
+
+  expect_equal(p$x$attrs[[1]]$x, c("mpg", "cyl"))
+  expect_equal(p$x$attrs[[1]]$y, c("cyl", "disp"))
+  expect_equal(z, matrix(c(r["cyl", "mpg"],  NA,
+                           r["disp", "mpg"], r["disp", "cyl"]),
+                         nrow = 2, byrow = TRUE))
 })
 
 # ========== Test digits handling ==========
@@ -70,7 +79,7 @@ test_that("get_corrMat validates digits argument", {
   )
 })
 
-# ========== Test show_stars & show_labels validation ==========
+# ========== Test show_stars & show_values ==========
 test_that("get_corrMat works when values and stars are hidden", {
   expect_s3_class(
     get_corrMat(
@@ -148,7 +157,7 @@ test_that("get_corrMat errors with all.obs and missing values", {
     "does not allow NA values")
 })
 
-test_that("get_corrMat warns when na.or.complete or complete.obs leaves no complete observations", {
+test_that("get_corrMat errors when na.or.complete or complete.obs leaves no complete observations", {
   df <- data.frame(x = c(1, NA, NA),
                    y = c(NA, 2, NA),
                    z = c(NA, NA, 3))
@@ -178,9 +187,6 @@ test_that("get_corrMat validates method argument", {
     "'arg' should be one of"
   )
 })
-
-
-
 
 # ========== Test additional plotly arguments ==========
 test_that("get_corrMat allows additional plotly arguments through dots", {

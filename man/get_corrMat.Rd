@@ -28,7 +28,8 @@ One of \code{"pairwise.complete.obs"}, \code{"complete.obs"},
 
 \item{digits}{Number of decimal places for correlation labels.}
 
-\item{show_stars}{Logical; display significance stars (*, **, ***) based on p-values.}
+\item{show_stars}{Logical; display significance stars (*, **, ***)
+based on p-values.}
 
 \item{show_values}{Logical; display correlation values inside tiles.}
 
@@ -44,8 +45,8 @@ A \pkg{plotly} heatmap object.
 }
 \description{
 Computes a correlation matrix and corresponding p-values, and visualises the
-lower triangle as an interactive heatmap using \pkg{plotly}. Correlation values
-and significance stars can be displayed inside each tile.
+lower triangle as an interactive heatmap using \pkg{plotly}. Correlation
+values and significance stars can be displayed inside each tile.
 }
 \examples{
 # Basic correlation matrix

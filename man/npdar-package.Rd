@@ -51,7 +51,7 @@ National Paediatric Diabetes Audit (NPDA) data.
     \item Generate sequential lists of audit years.
 }}
 
-\strong{Correlation Matrix Visualisation:}
+\strong{Correlation Matrix with Plotly:}
 \itemize{
   \item \code{\link{get_corrMat}}:
   \itemize{
