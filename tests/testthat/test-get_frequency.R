@@ -1,5 +1,4 @@
 library(dplyr)
-library(tidyr)
 
 # ========== Test Data Setup ==========
 set.seed(1999)
@@ -8,9 +7,9 @@ df <- data.frame(
   country             = c(rep("England", 30), rep("Wales", 30)),
   region              = c(rep("East England", 10), rep("West England", 10), rep(NA, 10),
                           rep("North Wales", 10), rep("South Wales", 10), rep(NA, 10)),
-  # Categorical Q1 (character A–E, with some NAs)
+  # Categorical Q1 (character A–C, with some NAs)
   q1_catq = sample(c("A", "B", "C", NA), 60, replace = TRUE),
-  # Categorical Q2 (character A–E, with some NAs)
+  # Categorical Q4 (character A–E, with some NAs)
   q4_catq = sample(c("A", "B", "C", "D", "E", NA), 60, replace = TRUE),
   # MCQ Q3 (logical T/F)
   q3_mcq_optionA         = c(rep(TRUE, 30), rep(FALSE, 30)),
@@ -47,49 +46,57 @@ measure_cols <- df |>
            matches("q[0-9]+_catq")) |> # categorical columns
   names()
 
-sum <- get_frequency(data = df, measures = measure_cols, groups = group_cols)
-sum_nested <- get_frequency(data = df_nested, measures = "type", groups = c("auditYear", "sex"), nested = TRUE)
+freq <- get_frequency(data = df,
+                      measures = measure_cols,
+                      groups = group_cols)
+freq_nested <- get_frequency(data = df_nested,
+                             measures = "type",
+                             groups = c("auditYear", "sex"),
+                             nested = TRUE)
+freq_na <- get_frequency(data = df,
+                         measures = c("q1_catq", "q3_mcq_optionA"),
+                         groups = c("overall", "country"),
+                         count_na = TRUE)
 
 # ========== Tests ==========
 
 ##### Test NA/single value #####
 test_that("NAs are excluded from numerator and denominator", {
-  expect_equal(sum(is.na(sum$category)), 0)
-  expect_false("NA" %in% unique(sum$category))
-  expect_false(any(is.na(sum$category)))
+  expect_false("NA" %in% unique(freq$category))
+  expect_false(any(is.na(freq$category)))
 })
 
 test_that("Unobserved logical level should still be preserved", {
-  q1B_distinct <- sum |>
+  optionB_distinct <- freq |>
     filter(measure == "q3_mcq_optionB") |>
     distinct(category) |>
     pull(category)
 
-  q1C_distinct <- sum |>
+  optionC_distinct <- freq |>
     filter(measure == "q3_mcq_optionC") |>
     distinct(category) |>
     pull(category)
 
-  expect_setequal(q1B_distinct, c("TRUE", "FALSE"))
-  expect_setequal(q1C_distinct, c("TRUE", "FALSE"))
+  expect_setequal(optionB_distinct, c("TRUE", "FALSE"))
+  expect_setequal(optionC_distinct, c("TRUE", "FALSE"))
 })
 
 test_that("Unobserved logical level gets numerator 0", {
-  q1B_true <- sum |>
+  optionB_true <- freq |>
     filter(measure == "q3_mcq_optionB" & category == "TRUE" & overall == "overall")
 
-  expect_equal(nrow(q1B_true), 1)
-  expect_equal(q1B_true$numerator, 0)
-  expect_equal(q1B_true$denominator, 60)
-  expect_equal(q1B_true$percent, 0)
+  expect_equal(nrow(optionB_true), 1)
+  expect_equal(optionB_true$numerator, 0)
+  expect_equal(optionB_true$denominator, 60)
+  expect_equal(optionB_true$percent, 0)
 })
 
 test_that("get_frequency() handles a measure with all NA values", {
   df_allna <- df |> mutate(q1_catq = NA_character_)
-  sum_test <- get_frequency(data = df_allna,
-                            measures = "q1_catq")
+  result <- get_frequency(data = df_allna,
+                          measures = "q1_catq")
   # All NA means no rows survive the filter(!is.na(category)) step
-  expect_equal(nrow(sum_test |> filter(measure == "q1_catq")), 0)
+  expect_equal(nrow(result |> filter(measure == "q1_catq")), 0)
 })
 
 test_that("get_frequency() handles a measure that is all one value", {
@@ -99,6 +106,60 @@ test_that("get_frequency() handles a measure that is all one value", {
                           groups   = "overall")
   expect_equal(nrow(result |> filter(measure == "q4_catq")), 1)
   expect_equal(result$percent[result$measure == "q4_catq"], 1)
+})
+
+
+##### Test count_na #####
+test_that("count_na = FALSE (default) excludes NA categories", {
+  expect_false(any(is.na(freq$category)))
+})
+
+test_that("count_na = TRUE adds an NA category that counts missing values", {
+  q1_na <- freq_na |>
+    filter(measure == "q1_catq" & is.na(category))
+
+  expect_equal(q1_na |> filter(overall == "overall") |> pull(numerator),
+               sum(is.na(df$q1_catq)))
+
+  england_na <- q1_na |> filter(country == "England") |> pull(numerator)
+  expect_equal(england_na, sum(is.na(df$q1_catq[df$country == "England"])))
+})
+
+test_that("count_na = TRUE includes NAs in the denominator and percent sums to 1", {
+  q1_overall <- freq_na |>
+    filter(measure == "q1_catq" & overall == "overall")
+
+  expect_equal(unique(q1_overall$denominator), nrow(df))
+  expect_equal(sum(q1_overall$percent), 1)
+})
+
+test_that("count_na = TRUE does not change non-NA numerators", {
+  non_na <- \(x) {
+    x |>
+      filter(measure == "q1_catq" & overall == "overall" & !is.na(category)) |>
+      pull(numerator)}
+  expect_equal(non_na(freq_na), non_na(freq))
+})
+
+test_that("count_na = TRUE adds no NA category to a measure without missing values", {
+  expect_false(any(is.na(freq_na$category[freq_na$measure == "q3_mcq_optionA"])))
+})
+
+test_that("count_na = TRUE keeps an all-NA measure as a single NA category", {
+  df_allna <- df |> mutate(q1_catq = NA_character_)
+  result <- get_frequency(data = df_allna, measures = "q1_catq", count_na = TRUE)
+
+  expect_equal(nrow(result), 1)
+  expect_true(is.na(result$category))
+  expect_equal(result$numerator, nrow(df))
+  expect_equal(result$percent, 1)
+})
+
+test_that("count_na = TRUE places the NA category last within each measure", {
+  q1_overall <- freq_na |>
+    filter(measure == "q1_catq" & overall == "overall")
+
+  expect_true(is.na(q1_overall$category[nrow(q1_overall)]))
 })
 
 
@@ -119,23 +180,23 @@ test_that("measures are ordered as specified by the user", {
 
 ##### Test denominator #####
 test_that("Overall denominator equals total participants for a logical measure without NA", {
-  overall_q1A_denominator <- sum |>
+  overall_denominator <- freq |>
     filter(overall == "overall" & measure == "q3_mcq_optionA") |>
     distinct(denominator) |>
     pull()
-  expect_equal(overall_q1A_denominator, nrow(df))
+  expect_equal(overall_denominator, nrow(df))
 })
 
 test_that("Region denominators equal all participants in the region for a logical measure without NA", {
-  region_q1A_denominator <- sum |>
+  region_denominator <- freq |>
     filter(!is.na(region) & measure == "q3_mcq_optionA") |>
     distinct(region, denominator)
 
-  region_q1A_denominator <- setNames(region_q1A_denominator$denominator,
-                                     region_q1A_denominator$region)
+  region_denominator <- setNames(region_denominator$denominator,
+                                 region_denominator$region)
 
   expect_equal(
-    region_q1A_denominator,
+    region_denominator,
     c(table(df$region))
   )
 })
@@ -143,19 +204,19 @@ test_that("Region denominators equal all participants in the region for a logica
 
 ##### Test numerator/percent #####
 test_that("q3_mcq_optionA is exactly 50/50 T/F overall", {
-  expect_equal(sum |> filter(measure == "q3_mcq_optionA" & overall == "overall" & category == "TRUE") |> pull(percent), 0.5)
-  expect_equal(sum |> filter(measure == "q3_mcq_optionA" & overall == "overall" & category == "FALSE") |> pull(percent), 0.5)
+  expect_equal(freq |> filter(measure == "q3_mcq_optionA" & overall == "overall" & category == "TRUE") |> pull(percent), 0.5)
+  expect_equal(freq |> filter(measure == "q3_mcq_optionA" & overall == "overall" & category == "FALSE") |> pull(percent), 0.5)
 })
 
 test_that("q3_mcq_optionA is exactly 100/0 T/F for England and 0/100 for Wales", {
-  expect_equal(sum |> filter(measure == "q3_mcq_optionA" & country == "England" & category == "TRUE") |> pull(percent), 1)
-  expect_equal(sum |> filter(measure == "q3_mcq_optionA" & country == "England" & category == "FALSE") |> pull(percent), 0)
-  expect_equal(sum |> filter(measure == "q3_mcq_optionA" & country == "Wales" & category == "TRUE") |> pull(percent), 0)
-  expect_equal(sum |> filter(measure == "q3_mcq_optionA" & country == "Wales" & category == "FALSE") |> pull(percent), 1)
+  expect_equal(freq |> filter(measure == "q3_mcq_optionA" & country == "England" & category == "TRUE") |> pull(percent), 1)
+  expect_equal(freq |> filter(measure == "q3_mcq_optionA" & country == "England" & category == "FALSE") |> pull(percent), 0)
+  expect_equal(freq |> filter(measure == "q3_mcq_optionA" & country == "Wales" & category == "TRUE") |> pull(percent), 0)
+  expect_equal(freq |> filter(measure == "q3_mcq_optionA" & country == "Wales" & category == "FALSE") |> pull(percent), 1)
 })
 
 test_that("percent sums to 1 within each group x measure", {
-  sum |>
+  freq |>
     group_by(overall, country, region, measure) |>
     summarise(total_perc = sum(percent), .groups = "drop") |>
     pull(total_perc) |>
@@ -163,7 +224,7 @@ test_that("percent sums to 1 within each group x measure", {
 })
 
 test_that("numerator sums to denominator within each group x measure", {
-  sum |>
+  freq |>
     group_by(overall, country, region, measure) |>
     summarise(sum_num = sum(numerator),
               denom   = unique(denominator),
@@ -175,29 +236,29 @@ test_that("numerator sums to denominator within each group x measure", {
 ##### Test (nested) group #####
 
 test_that("get_frequency() works without specifying group (default overall)", {
-  sum_test <- get_frequency(data = df, measures = measure_cols)
-  expect_true("overall" %in% names(sum_test))
-  expect_false("country" %in% names(sum_test))
+  result <- get_frequency(data = df, measures = measure_cols)
+  expect_true("overall" %in% names(result))
+  expect_false("country" %in% names(result))
 })
 
 test_that("get_frequency() keeps separate grouping by default", {
   # Separate summaries should include rows where one grouping column is NA
-  expect_true(any(!is.na(sum$overall) & is.na(sum$country) & is.na(sum$region)))
-  expect_true(any(is.na(sum$overall) & !is.na(sum$country) & is.na(sum$region)))
-  expect_true(any(is.na(sum$overall) & is.na(sum$country) & !is.na(sum$region)))
+  expect_true(any(!is.na(freq$overall) & is.na(freq$country) & is.na(freq$region)))
+  expect_true(any(is.na(freq$overall) & !is.na(freq$country) & is.na(freq$region)))
+  expect_true(any(is.na(freq$overall) & is.na(freq$country) & !is.na(freq$region)))
 })
 
 test_that("get_frequency() supports nested grouping", {
   # Nested output should not have NA grouping columns, because rows with missing group membership are excluded
-  expect_false(any(is.na(sum_nested$auditYear)))
-  expect_false(any(is.na(sum_nested$sex)))
+  expect_false(any(is.na(freq_nested$auditYear)))
+  expect_false(any(is.na(freq_nested$sex)))
 })
 
 test_that("get_frequency() nested grouping results are correct", {
   # Easy one
-  expect_equal(sum_nested |> filter(auditYear == 2021 & sex == "Female") |> pull(percent), c(0.5, 0.5))
+  expect_equal(freq_nested |> filter(auditYear == 2021 & sex == "Female") |> pull(percent), c(0.5, 0.5))
   # NA in measure is excluded
-  expect_equal(sum_nested |> filter(auditYear == 2022 & sex == "Male") |> pull(percent), c(0, 1))
+  expect_equal(freq_nested |> filter(auditYear == 2022 & sex == "Male") |> pull(percent), c(0, 1))
   # NA in group is excluded
-  expect_equal(sum_nested |> filter(auditYear == 2023) |> pull(percent), c(1, 0, 0, 1))
+  expect_equal(freq_nested |> filter(auditYear == 2023) |> pull(percent), c(1, 0, 0, 1))
 })

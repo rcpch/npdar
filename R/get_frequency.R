@@ -1,14 +1,15 @@
 #' Summarise categorical measure(s) by group(s)
 #'
-#' For each specified grouping variable, count the frequency of each unique category
-#' of the given measure column(s), and compute the denominator (non-missing
-#' categories) and percentage. Results for the specified group(s) are combined into a single
-#' long tibble for easy use in `ggplot` or `plotly`.
+#' For each specified grouping variable, count the frequency of each
+#' unique category of the given measure column(s), and compute the denominator
+#' (non-missing categories by default) and percentage. Results for the specified group(s)
+#' are combined into a single long tibble for easy use in `ggplot` or `plotly`.
 #'
-#' @param data A data frame containing measure columns (and grouping columns), with one row per participant.
+#' @param data A data frame containing measure columns (and grouping columns),
+#' with one row per participant.
 #' @param measures A character vector of column names to summarise. All columns
 #'   will be coerced to character, so this works for logical, factor, and
-#'   character columns alike.
+#'   character columns alike. Measures appear in the output in this order.
 #' @param groups A character vector of grouping column names. Defaults to
 #'   \code{"overall"}, which creates a single group containing all rows.
 #'   Rows where the grouping variable is \code{NA} are excluded
@@ -16,25 +17,33 @@
 #' @param nested Logical; if \code{FALSE} (default), each grouping variable in
 #'   \code{groups} is summarised separately. If \code{TRUE}, all variables in
 #'   \code{groups} are treated as a nested grouping set.
+#' @param count_na Logical; if \code{FALSE} (default), missing values in
+#'   \code{measures} are excluded from the numerator and denominator. If
+#'   \code{TRUE}, missing values are counted as their own category
+#'   (\code{category = NA}) and included in the denominator, but only for
+#'   measures that contain at least one missing value (like
+#'   \code{table(useNA = "ifany")}). Missing values in \code{groups} are
+#'   always excluded.
 #'
-#' @return A tibble in long format with one row per group level × measure × category combination.
+#' @return A tibble in long format with one row per group level ×
+#' measure × category combination.
 #'
 #' @examples
 #'
 #' library(dplyr)
-#' library(ggplot2)
 #'
 #' set.seed(1999)
-#' df <- data.frame(participant_id = 1:60,
-#'                  country        = c(rep("England", 30), rep("Wales", 30)),
-#'                  region         = c(
-#'                    rep("East England", 10), rep("West England", 10), rep(NA, 10),
-#'                    rep("North Wales", 10), rep("South Wales", 10), rep(NA, 10)
-#'                  ),
-#'                  # Categorical Q1
-#'                  q1_catq        = sample(c("A", "B", "C", NA), 60, replace = TRUE),
-#'                  # Categorical Q2
-#'                  q2_catq        = sample(c("A", "B", "C", "D", "E", NA), 60, replace = TRUE)
+#' df <- data.frame(
+#'   participant_id = 1:60,
+#'   country        = c(rep("England", 30), rep("Wales", 30)),
+#'   region         = c(
+#'     rep("East England", 10), rep("West England", 10), rep(NA, 10),
+#'     rep("North Wales", 10), rep("South Wales", 10), rep(NA, 10)
+#'   ),
+#'   # Categorical Q1
+#'   q1_catq        = sample(c("A", "B", "C", NA), 60, replace = TRUE),
+#'   # Categorical Q2
+#'   q2_catq        = sample(c("A", "B", "C", "D", "E", NA), 60, replace = TRUE)
 #' )
 #'
 #' group_cols <- c("overall", "country", "region")
@@ -43,20 +52,13 @@
 #'   select(tidyselect::matches("q[0-9]+_catq")) |>
 #'   names()
 #'
-#' sum <- get_frequency(
+#' freq <- get_frequency(
 #'   data     = df,
 #'   measures = measure_cols,
 #'   groups   = group_cols
 #' )
 #'
-#' head(sum)
-#'
-# sum |>
-#   filter(!is.na(country)) |>
-#   ggplot(aes(x = country, y = percent, fill = category)) +
-#   geom_col() +
-#   facet_wrap(~ measure, nrow = 1) +
-#   labs(x = "Country", y = "Percent", fill = "Category")
+#' head(freq)
 #'
 #' # Nested grouping example (region is nested within country):
 #' sum_q1_nested <- get_frequency(
@@ -68,16 +70,24 @@
 #'
 #' sum_q1_nested
 #'
+#' # Count missing values as a category
+#' get_frequency(
+#'   data = df,
+#'   measures = "q1_catq",
+#'   groups = "country",
+#'   count_na = TRUE
+#' )
+#'
 #' @importFrom dplyr group_by select across filter mutate summarise ungroup bind_rows n distinct left_join if_all
 #' @importFrom tidyr pivot_longer crossing
-#' @importFrom rlang .data sym
+#' @importFrom rlang .data
 #' @importFrom tidyselect all_of
 #' @export
-get_frequency <- function(data, measures, groups = "overall", nested = FALSE) {
+get_frequency <- function(data, measures, groups = "overall", nested = FALSE, count_na = FALSE) {
 
   # Step 0a: Internal helper to define the full category set for each measure (even if unobserved)
   .get_measure_levels <- function(x) {
-    if (is.logical(x)) {
+    lvls <- if (is.logical(x)) {
       # Preserve both logical levels (even if unobserved)
       c("FALSE", "TRUE")
     } else if (is.factor(x)) {
@@ -87,6 +97,8 @@ get_frequency <- function(data, measures, groups = "overall", nested = FALSE) {
       # Character / other categorical values: preserve observed non-missing values
       unique(as.character(stats::na.omit(x)))
     }
+
+    if (isTRUE(count_na) && anyNA(x)) c(lvls, NA_character_) else lvls
   }
 
   # Step 0b: Define the unique measure levels (even if unobserved)
@@ -94,17 +106,10 @@ get_frequency <- function(data, measures, groups = "overall", nested = FALSE) {
     lapply(measures, function(m) {
       lvls <- .get_measure_levels(data[[m]])
 
-      if (length(lvls) == 0) {
-        data.frame(measure_order = integer(0),
-                   measure = character(0),
-                   category = character(0),
-                   stringsAsFactors = FALSE)
-      } else {
-        data.frame(measure_order = rep(match(m, measures), length(lvls)),  # First column so crossing() sorts by user-specified order
-                   measure = rep(m, length(lvls)),
-                   category = lvls,
-                   stringsAsFactors = FALSE)
-      }
+      data.frame(measure_order = rep(match(m, measures), length(lvls)),  # First column so crossing() sorts by user-specified order
+                 measure = rep(m, length(lvls)),
+                 category = lvls,
+                 stringsAsFactors = FALSE)
     })
   )
 
@@ -122,36 +127,20 @@ get_frequency <- function(data, measures, groups = "overall", nested = FALSE) {
     group_set <- unlist(group_set)
 
     # Step 1. Group data
-    if (identical(group_set, "overall")) {             # If no group specified (i.e., Overall),
-      grp_data <- data |>                              # create a constant grouping column so downstream code is uniform
-        dplyr::mutate(overall = "overall")
-
-      group_levels <- data.frame(overall = "overall", stringsAsFactors = FALSE)
-
-    } else {                                           # If group specified
-
-      if ("overall" %in% group_set) {
-        data_for_group <- data |>
-          dplyr::mutate(overall = "overall")
-      } else {
-        data_for_group <- data
-      }
-
-      non_overall_groups <- setdiff(group_set, "overall")
-
-      grp_data <- data_for_group                       # Exclude rows/participants with no group membership
-      if (length(non_overall_groups) > 0) {
-        grp_data <- grp_data |>
-          dplyr::filter(dplyr::if_all(
-            dplyr::all_of(non_overall_groups),
-            \(x) !is.na(x)
-          ))
-      }
-
-      group_levels <- grp_data |>
-        dplyr::select(dplyr::all_of(group_set)) |>
-        dplyr::distinct()
+    grp_data <- data
+    if ("overall" %in% group_set) {                    # "overall" is a constant grouping column so downstream code is uniform
+      grp_data <- dplyr::mutate(grp_data, overall = "overall")
     }
+
+    grp_data <- grp_data |>                            # Exclude rows/participants with no group membership
+      dplyr::filter(dplyr::if_all(
+        dplyr::all_of(setdiff(group_set, "overall")),
+        \(x) !is.na(x)
+      ))
+
+    group_levels <- grp_data |>
+      dplyr::select(dplyr::all_of(group_set)) |>
+      dplyr::distinct()
 
     # Step 2. Count observed categories
     counts <- grp_data |>
@@ -163,7 +152,7 @@ get_frequency <- function(data, measures, groups = "overall", nested = FALSE) {
         names_to = "measure",
         values_to = "category"
       ) |>
-      dplyr::filter(!is.na(.data$category)) |>  # Exclude NAs from denominator (i.e., treat as skipped)
+      dplyr::filter(isTRUE(count_na) | !is.na(.data$category)) |>  # Unless count_na, exclude NAs from denominator (i.e., treat as skipped)
       dplyr::group_by(dplyr::across(            # Count occurrences of each category within group × measure
         dplyr::all_of(c(group_set, "measure", "category")))
       ) |>

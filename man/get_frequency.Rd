@@ -4,14 +4,21 @@
 \alias{get_frequency}
 \title{Summarise categorical measure(s) by group(s)}
 \usage{
-get_frequency(data, measures, groups = "overall", nested = FALSE)
+get_frequency(
+  data,
+  measures,
+  groups = "overall",
+  nested = FALSE,
+  count_na = FALSE
+)
 }
 \arguments{
-\item{data}{A data frame containing measure columns (and grouping columns), with one row per participant.}
+\item{data}{A data frame containing measure columns (and grouping columns),
+with one row per participant.}
 
 \item{measures}{A character vector of column names to summarise. All columns
 will be coerced to character, so this works for logical, factor, and
-character columns alike.}
+character columns alike. Measures appear in the output in this order.}
 
 \item{groups}{A character vector of grouping column names. Defaults to
 \code{"overall"}, which creates a single group containing all rows.
@@ -21,32 +28,41 @@ from that group's summary.}
 \item{nested}{Logical; if \code{FALSE} (default), each grouping variable in
 \code{groups} is summarised separately. If \code{TRUE}, all variables in
 \code{groups} are treated as a nested grouping set.}
+
+\item{count_na}{Logical; if \code{FALSE} (default), missing values in
+\code{measures} are excluded from the numerator and denominator. If
+\code{TRUE}, missing values are counted as their own category
+(\code{category = NA}) and included in the denominator, but only for
+measures that contain at least one missing value (like
+\code{table(useNA = "ifany")}). Missing values in \code{groups} are
+always excluded.}
 }
 \value{
-A tibble in long format with one row per group level × measure × category combination.
+A tibble in long format with one row per group level ×
+measure × category combination.
 }
 \description{
-For each specified grouping variable, count the frequency of each unique category
-of the given measure column(s), and compute the denominator (non-missing
-categories) and percentage. Results for the specified group(s) are combined into a single
-long tibble for easy use in `ggplot` or `plotly`.
+For each specified grouping variable, count the frequency of each
+unique category of the given measure column(s), and compute the denominator
+(non-missing categories by default) and percentage. Results for the specified group(s)
+are combined into a single long tibble for easy use in `ggplot` or `plotly`.
 }
 \examples{
 
 library(dplyr)
-library(ggplot2)
 
 set.seed(1999)
-df <- data.frame(participant_id = 1:60,
-                 country        = c(rep("England", 30), rep("Wales", 30)),
-                 region         = c(
-                   rep("East England", 10), rep("West England", 10), rep(NA, 10),
-                   rep("North Wales", 10), rep("South Wales", 10), rep(NA, 10)
-                 ),
-                 # Categorical Q1
-                 q1_catq        = sample(c("A", "B", "C", NA), 60, replace = TRUE),
-                 # Categorical Q2
-                 q2_catq        = sample(c("A", "B", "C", "D", "E", NA), 60, replace = TRUE)
+df <- data.frame(
+  participant_id = 1:60,
+  country        = c(rep("England", 30), rep("Wales", 30)),
+  region         = c(
+    rep("East England", 10), rep("West England", 10), rep(NA, 10),
+    rep("North Wales", 10), rep("South Wales", 10), rep(NA, 10)
+  ),
+  # Categorical Q1
+  q1_catq        = sample(c("A", "B", "C", NA), 60, replace = TRUE),
+  # Categorical Q2
+  q2_catq        = sample(c("A", "B", "C", "D", "E", NA), 60, replace = TRUE)
 )
 
 group_cols <- c("overall", "country", "region")
@@ -55,14 +71,13 @@ measure_cols <- df |>
   select(tidyselect::matches("q[0-9]+_catq")) |>
   names()
 
-sum <- get_frequency(
+freq <- get_frequency(
   data     = df,
   measures = measure_cols,
   groups   = group_cols
 )
 
-head(sum)
-
+head(freq)
 
 # Nested grouping example (region is nested within country):
 sum_q1_nested <- get_frequency(
@@ -73,5 +88,13 @@ sum_q1_nested <- get_frequency(
 )
 
 sum_q1_nested
+
+# Count missing values as a category
+get_frequency(
+  data = df,
+  measures = "q1_catq",
+  groups = "country",
+  count_na = TRUE
+)
 
 }
