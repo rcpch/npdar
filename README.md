@@ -2,6 +2,7 @@
 [![R Package](https://img.shields.io/badge/R-package-blue)](https://github.com/rcpch/npdar)
 [![GPLv3 license](https://img.shields.io/badge/License-GPLv3-blue.svg)](http://perso.crans.org/besson/LICENSE.html)
 [![R-CMD-check](https://github.com/rcpch/npdar/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/rcpch/npdar/actions/workflows/R-CMD-check.yaml)
+[![pkgdown](https://img.shields.io/badge/docs-pkgdown-blue)](https://rcpch.github.io/npdar/)
 <!-- badges: end -->
 
 ## Overview
@@ -9,6 +10,8 @@
 **npdar** is an R package that provides utility functions to support the 
 [National Paediatric Diabetes Audit (NPDA)](https://www.rcpch.ac.uk/work-we-do/clinical-audits/npda) programme,
 developed and maintained by the [Royal College of Paediatrics and Child Health (RCPCH)](https://www.rcpch.ac.uk/).
+
+View package site here: <https://rcpch.github.io/npdar/>
 
 The package currently includes functions for:
 

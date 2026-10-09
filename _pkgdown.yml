@@ -1,0 +1,28 @@
+url: https://rcpch.github.io/npdar/
+template:
+  bootstrap: 5
+
+reference:
+  - title: Blood pressure assessment
+    contents:
+      - family_bp
+      - get_bp
+      - get_bpExpected
+      - get_bpRelative
+      - get_bpCategory
+  - title: Statistical utilities
+    contents:
+      - get_ultimate
+      - get_frequency
+  - title: Data privacy suppression
+    contents:
+      - get_masked
+  - title: Finding audit year(s)
+    contents:
+      - family_auditYear
+      - get_auditYear
+      - get_auditYears
+  - title: Correlation matrix with plotly
+    contents:
+      - get_corrMat
+
