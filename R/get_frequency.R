@@ -95,11 +95,13 @@ get_frequency <- function(data, measures, groups = "overall", nested = FALSE) {
       lvls <- .get_measure_levels(data[[m]])
 
       if (length(lvls) == 0) {
-        data.frame(measure = character(0),
+        data.frame(measure_order = integer(0),
+                   measure = character(0),
                    category = character(0),
                    stringsAsFactors = FALSE)
       } else {
-        data.frame(measure = rep(m, length(lvls)),
+        data.frame(measure_order = rep(match(m, measures), length(lvls)),  # First column so crossing() sorts by user-specified order
+                   measure = rep(m, length(lvls)),
                    category = lvls,
                    stringsAsFactors = FALSE)
       }
@@ -173,6 +175,7 @@ get_frequency <- function(data, measures, groups = "overall", nested = FALSE) {
     # Step 4. Join counts onto scaffold and fill absent categorys with 0
     results[[paste(group_set, collapse = "__")]] <- scaffold |>
       dplyr::left_join(counts, by = c(group_set, "measure", "category")) |>
+      dplyr::select(-"measure_order") |>
       dplyr::mutate(
         numerator = ifelse(is.na(.data$numerator), 0, .data$numerator)
       ) |>

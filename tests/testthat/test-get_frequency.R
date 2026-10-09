@@ -102,6 +102,21 @@ test_that("get_frequency() handles a measure that is all one value", {
 })
 
 
+##### Test user-specified order #####
+test_that("measures are ordered as specified by the user", {
+  measures_rev <- c("q4_catq", "q1_catq")
+  result <- get_frequency(data = df, measures = measures_rev, groups = "country")
+
+  # Order follows the argument, not alphabetical order
+  expect_equal(unique(result$measure), measures_rev)
+
+  # Measure order holds within each group, not just overall
+  for (ctry in unique(result$country)) {
+    expect_equal(unique(result$measure[result$country == ctry]), measures_rev)
+  }
+})
+
+
 ##### Test denominator #####
 test_that("Overall denominator equals total participants for a logical measure without NA", {
   overall_q1A_denominator <- sum |>
