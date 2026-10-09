@@ -1,3 +1,10 @@
+# npdar 0.5.0
+
+* Added `count_na` argument to `get_frequency()` to allow user to count missing values in `measures` as their own category (`category = NA`) and include them in the denominator. It is backward-compatible as default is `FALSE` (exclude NAs) (#28).
+* `get_frequency()` now returns measures in the order specified in `measures` instead of alphabetical/numerical order. (#29).
+* Simplified `get_frequency()` and `get_corrMat()` internals and tidied the unit tests.
+* Added a pkgdown website, <https://rcpch.github.io/npdar/>, with a grouped function reference (#11).
+
 # npdar 0.4.3
 * Added `get_corrMat()` function to create interactive correlation matrix with `plotly` (#23).
 * Added new feature for `get_frequency()` to summarise measures by nested groups. 

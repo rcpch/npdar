@@ -357,7 +357,7 @@ get_bpCategory <- function(bp_value, bp_limit = c(-Inf, Inf), ...) {            
     }
     # 4.2 categorisation
     category <- purrr::pmap_chr(list(bp_value, valid$age_years), function(bpObserved, ageY) {
-      if (is.na(ageY)| is.na(bpObserved)) return(NA)                            # This exclude anyone with invalid age//bp_value
+      if (is.na(ageY) || is.na(bpObserved)) return(NA)                            # This exclude anyone with invalid age//bp_value
 
       if (valid$bp_type == "systolic") {
         if (bpObserved >= bp_limit[1] && bpObserved < 120) return("Normotension")
@@ -391,7 +391,7 @@ get_bpCategory <- function(bp_value, bp_limit = c(-Inf, Inf), ...) {            
     bp_expected <- get_bpExpected(..., .quiet=TRUE)                             # Calculate 50th/mean/mu
     # 4.3 categorisation
     category <- purrr::pmap_chr(list(bp_value, bp_expected, valid$age_years, valid$sex), function(bpObserved, bpExpected, ageY, sexBinary) {
-      if (is.na(bpExpected) | is.na(bpObserved)) return(NA)                   # This exclude anyone with invalid age/sex/height/bp_value
+      if (is.na(bpExpected) || is.na(bpObserved)) return(NA)                   # This exclude anyone with invalid age/sex/height/bp_value
 
       coefs <- .coefs_BPFourth[[valid$bp_type]][[sexBinary]]                  # Get coefs from NHBPEP Fourth refs according to bp_type and sex
       bp90Centile <- stats::qnorm(0.90, mean = bpExpected, sd = coefs$std)           # Calculate values based on percentiles
