@@ -1,7 +1,9 @@
 ---
 format: gfm
+editor: 
+  markdown: 
+    wrap: 72
 ---
-
 
 ```{r}
 #| label: setup
@@ -15,33 +17,46 @@ knitr::opts_chunk$set(
 # npdar
 
 <!-- badges: start -->
-[![R Package](https://img.shields.io/badge/R-package-blue)](https://github.com/rcpch/npdar)
+
+[![R
+Package](https://img.shields.io/badge/R-package-blue)](https://github.com/rcpch/npdar)
 [![pkgdown](https://img.shields.io/badge/docs-pkgdown-blue)](https://rcpch.github.io/npdar/)
-[![GPLv3 license](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0.html)
+[![GPLv3
+license](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0.html)
 [![R-CMD-check](https://github.com/rcpch/npdar/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/rcpch/npdar/actions/workflows/R-CMD-check.yaml)
+
 <!-- badges: end -->
 
 ## Overview
 
-**npdar** provides R utilities for the
-[National Paediatric Diabetes Audit (NPDA)](https://www.rcpch.ac.uk/work-we-do/clinical-audits/npda),
-developed and maintained by the
-[Royal College of Paediatrics and Child Health (RCPCH)](https://www.rcpch.ac.uk/).
+**npdar** provides R utilities for the [National Paediatric Diabetes
+Audit (NPDA)](https://www.rcpch.ac.uk/work-we-do/clinical-audits/npda),
+developed and maintained by the [Royal College of Paediatrics and Child
+Health (RCPCH)](https://www.rcpch.ac.uk/).
 
 The package supports:
 
-- **Blood pressure assessment:** calculate expected values, z-scores and
-  percentiles, and categorise blood pressure using paediatric or adult references.
-- **Statistical summaries:** 1) identify first/last/most recent modal values or 
-  first/last entry in a longitudinal record with options to ignore specific values;
-  2) summarise categorical measure(s) by group(s) with counts, denominators and percentages
-  in long format for easy use in `ggplot2` and `plotly`.
-- **Data privacy suppression:** mask small counts and apply secondary suppression
-  to reduce the risk of back-calculation.
-- **Audit period identification:** identify audit/fiscal years and quarters using 
-  a configurable first-quarter start month.
-- **Correlation visualisation:** create interactive correlation matrix with 
-  `plotly` and `stats::cor()`.
+-   **Blood pressure assessment:** calculate expected values, z-scores
+    and percentiles, and categorise blood pressure using paediatric or
+    adult references.
+
+-   **Statistical utilities:**
+
+    1.  mask small counts and apply secondary suppression to reduce the
+        risk of back-calculation for data privacy;
+
+    2.  identify first/last/most recent modal values or first/last entry
+        in a longitudinal record with options to ignore specific values;
+
+    3.  summarise categorical measure(s) by group(s) with counts,
+        denominators and percentages in long format for easy use in
+        `ggplot2` and `plotly`.
+
+-   **Audit period identification:** identify audit/fiscal years and
+    quarters using a configurable first-quarter start month.
+
+-   **Correlation visualisation:** create interactive correlation matrix
+    with `plotly` and `stats::cor()`.
 
 See the [package documentation](https://rcpch.github.io/npdar/) for full
 function references and examples.
@@ -60,15 +75,15 @@ function references and examples.
 -   Approved for use in clinical care pathways.
 
 Healthcare professionals must use validated clinical tools and their
-professional judgement when making patient care decisions. The blood pressure
-categorisation functions implement published research guidelines (NHBPEP Fourth
-Report, NICE/BHF guidances) 
-**for audit analysis purposes only, not for clinical use**.
+professional judgement when making patient care decisions. The blood
+pressure categorisation functions implement published research
+guidelines (NHBPEP Fourth Report, NICE/BHF guidances) **for audit
+analysis purposes only, not for clinical use**.
 
 ## Installation
 
-**npdar** is not currently available on CRAN. Install the development version
-from GitHub using [pak](https://pak.r-lib.org/):
+**npdar** is not currently available on CRAN. Install the development
+version from GitHub using [pak](https://pak.r-lib.org/):
 
 ```{r}
 #| label: install-pak
@@ -100,14 +115,14 @@ library(npdar)
 
 ### Blood Pressure
 
-It's recommended to use the NHBPEP Fourth Report reference for 
-children and adolescents aged 0-17 years.
-Height must already be expressed as a z-score, not in centimetres.
-The 25-year-old below is outside this reference's age range, so returns `NA`.
+It's recommended to use the NHBPEP Fourth Report reference for children
+and adolescents aged 0-17 years. Height must already be expressed as a
+z-score, not in centimetres. The 25-year-old below is outside this
+reference's age range, so returns `NA`.
 
 ```{r}
 #| label: bp-category-children
-get_bp(
+bp_assess(
   option = "category",
   bp_value = c(95, 125, 155),
   bp_type = "systolic",
@@ -119,12 +134,13 @@ get_bp(
 )
 ```
 
-For adults older than 17 years, it's recommended to select the NICE/BHF reference 
-explicitly. Ages outside the selected reference range return `NA`.
+For adults older than 17 years, it's recommended to select the NICE/BHF
+reference explicitly. Ages outside the selected reference range return
+`NA`.
 
 ```{r}
 #| label: bp-category-adults
-get_bp(
+bp_assess(
   option = "category",
   bp_value = c(155, 155),
   bp_type = "systolic",
@@ -138,10 +154,11 @@ get_bp(
 
 ### Privacy Masking
 
-By default, `get_masked()` masks positive counts below 3 and leaves zeros
-unchanged. If only one count is masked, all occurrences of the next smallest
-positive value are also masked to prevent back-calculation. The result is a
-character vector. Here only `2` is below 3, so the `4`s are masked as well.
+By default, `get_masked()` masks positive counts below 3 and leaves
+zeros unchanged. If only one count is masked, all occurrences of the
+next smallest positive value are also masked to prevent
+back-calculation. The result is a character vector. Here only `2` is
+below 3, so the `4`s are masked as well.
 
 ```{r}
 #| label: mask-default
@@ -152,16 +169,16 @@ Customise the threshold and the suppression label:
 
 ```{r}
 #| label: mask-custom
-get_masked(c(4, 6, 2, 4, 0, 5, 5), maxNum = 5, maskMessage = "*")
-get_masked(c(4, 6, 2, 4, 0, 5, 5), maxNum = 6, maskMessage = "*")
+get_masked(c(4, 6, 2, 4, 0, 5, 5), threshold = 5, mask_label = "*")
+get_masked(c(4, 6, 2, 4, 0, 5, 5), threshold = 6, mask_label = "*")
 ```
 
 ### Longitudinal Summaries
 
-`get_ultimate()` uses vector order, so sort longitudinal records chronologically
-before selecting a most recent value. These examples exclude unknown and missing
-values and deliberately include tied modes; warnings explain which modes were
-not selected.
+`get_ultimate()` uses vector order, so sort longitudinal records
+chronologically before selecting a most recent value. These examples
+exclude unknown and missing values and deliberately include tied modes;
+warnings explain which modes were not selected.
 
 ```{r}
 #| label: data-longitudinal
@@ -173,22 +190,22 @@ Select the tied mode that occurs most recently:
 
 ```{r}
 #| label: ultimate-recent-mode
-get_ultimate(dat_long, find = "uptodate_mode", except = c("Unknown", NA))
+get_ultimate(dat_long, find = "uptodate_mode", exclude = c("Unknown", NA))
 ```
 
 Use the package's `last_mode` rule instead:
 
 ```{r}
 #| label: ultimate-last-mode
-get_ultimate(dat_long, find = "last_mode", except = c("Unknown", NA))
+get_ultimate(dat_long, find = "last_mode", exclude = c("Unknown", NA))
 ```
 
 ### Categorical Frequencies
 
-The following examples use synthetic data. `get_frequency()` returns a long
-table with a numerator, denominator and proportion (`percent`, on a 0-1 scale)
-for each category. Missing measure values are excluded by default; use
-`count_na = TRUE` to include them.
+The following examples use synthetic data. `get_frequency()` returns a
+long table with a numerator, denominator and proportion (`percent`, on a
+0-1 scale) for each category. Missing measure values are excluded by
+default; use `count_na = TRUE` to include them.
 
 ```{r}
 #| label: data-frequency
@@ -217,8 +234,9 @@ dat_survey2 <- data.frame(
 
 #### Separate Group Summary
 
-With `nested = FALSE` (the default), each grouping variable is summarised
-separately. The special group name `"overall"` adds an overall summary.
+With `nested = FALSE` (the default), each grouping variable is
+summarised separately. The special group name `"overall"` adds an
+overall summary.
 
 ```{r}
 #| label: frequency-example1
@@ -234,8 +252,8 @@ sum_freq_eg1 |>
 
 #### Nested Group Summary
 
-Use `nested = TRUE` to summarise combinations of grouping variables, such as
-sex within each audit year:
+Use `nested = TRUE` to summarise combinations of grouping variables,
+such as sex within each audit year:
 
 ```{r}
 #| label: frequency-example2
@@ -250,7 +268,8 @@ get_frequency(
 #### Count NAs
 
 Use `count_na = TRUE` to include missing values in the denominator and
-report them as a separate `NA` category (only for measures that contain missing values).
+report them as a separate `NA` category (only for measures that contain
+missing values).
 
 ```{r}
 #| label: frequency-example3
@@ -304,26 +323,26 @@ sum_freq_eg1 |>
 ### Audit Periods
 
 The default audit year starts in April. With no date supplied,
-`get_auditYear()` uses today's date:
+`audit_year()` uses today's date:
 
 ```{r}
 #| label: audit-current
-get_auditYear()
+audit_year()
 ```
 
 Fixed dates keep the rendered examples reproducible:
 
 ```{r}
 #| label: audit-fixed-date
-get_auditYear("2025-03-31")
-get_auditYear("2025-03-31", format = FALSE)
+audit_year("2025-03-31")
+audit_year("2025-03-31", format = FALSE)
 ```
 
 Change the first-quarter start month for a different audit calendar:
 
 ```{r}
 #| label: audit-custom-start
-get_auditYear("2025-03-31", start_month = 1)
+audit_year("2025-03-31", start_month = 1)
 ```
 
 Generate an inclusive sequence of audit years:
@@ -331,20 +350,20 @@ Generate an inclusive sequence of audit years:
 ```{r}
 #| label: audit-sequence
 data.frame(
-  audit_year = get_auditYears(2010, 2015),
-  audit_year_numeric = get_auditYears(2010, 2015, format = FALSE)
+  audit_year = audit_year_range(2010, 2015),
+  audit_year_numeric = audit_year_range(2010, 2015, format = FALSE)
 )
 ```
 
 ### Correlation Matrix with `plotly`
 
-`get_corrMat()` creates an interactive lower-triangle correlation heatmap.
-Supply a data frame containing only numeric variables:
+`plot_corr_matrix()` creates an interactive lower-triangle correlation
+heatmap. Supply a data frame containing only numeric variables:
 
 ```{r}
 #| label: correlation-basic
 #| eval: FALSE
-get_corrMat(mtcars)
+plot_corr_matrix(mtcars)
 ```
 
 Customise the plot, for example by selecting Spearman correlations,
@@ -353,7 +372,7 @@ hiding the values and customising the colour bar:
 ```{r}
 #| label: correlation-custom
 #| eval: FALSE
-get_corrMat(
+plot_corr_matrix(
   mtcars,
   method = "spearman",
   show_values = FALSE,
@@ -373,4 +392,5 @@ get_corrMat(
 
 ## License
 
-This package is licensed under the [GNU General Public License v3.0 or later](LICENSE.md).
+This package is licensed under the [GNU General Public License v3.0 or
+later](LICENSE.md).

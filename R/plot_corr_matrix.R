@@ -25,10 +25,10 @@
 #'
 #' @examples
 #' # Basic correlation matrix
-#' get_corrMat(mtcars)
+#' plot_corr_matrix(mtcars)
 #'
 #' # Spearman correlation without tile labels, with additional plotly arguments
-#' get_corrMat(mtcars,
+#' plot_corr_matrix(mtcars,
 #'             method = "spearman",
 #'             show_values = FALSE,
 #'             show_stars = TRUE,
@@ -45,7 +45,7 @@
 #' @importFrom tibble tibble
 #' @importFrom rlang .data
 #' @export
-get_corrMat <- function(data,
+plot_corr_matrix <- function(data,
                         method = c("pearson", "spearman"), # mimic stats::cor() options
                         use = c("pairwise.complete.obs",
                                 "complete.obs",

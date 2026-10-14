@@ -5,24 +5,22 @@ template:
 reference:
   - title: Blood pressure assessment
     contents:
-      - family_bp
-      - get_bp
-      - get_bpExpected
-      - get_bpRelative
-      - get_bpCategory
+      - bp_family
+      - bp_assess
+      - bp_expected
+      - bp_relative
+      - bp_category
   - title: Statistical utilities
     contents:
+      - get_masked
       - get_ultimate
       - get_frequency
-  - title: Data privacy suppression
-    contents:
-      - get_masked
   - title: Finding audit year(s)
     contents:
-      - family_auditYear
-      - get_auditYear
-      - get_auditYears
+      - audit_year_family
+      - audit_year
+      - audit_year_range
   - title: Correlation matrix with plotly
     contents:
-      - get_corrMat
+      - plot_corr_matrix
 

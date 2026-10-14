@@ -1,29 +1,29 @@
 # ========== Test df requirements ==========
-test_that("get_corrMat requires numeric columns only", {
+test_that("plot_corr_matrix requires numeric columns only", {
   expect_error(
-    get_corrMat(data.frame(x = 1:5,
+    plot_corr_matrix(data.frame(x = 1:5,
                            y = letters[1:5])),
     "All columns in `data` must be numeric"
   )
 })
 
-test_that("get_corrMat requires at least two columns", {
+test_that("plot_corr_matrix requires at least two columns", {
   expect_error(
-    get_corrMat(mtcars["mpg"]),
+    plot_corr_matrix(mtcars["mpg"]),
     "`data` must contain at least two numeric columns"
   )
 })
 
-test_that("get_corrMat accepts numeric matrix input", {
+test_that("plot_corr_matrix accepts numeric matrix input", {
   mat <- as.matrix(mtcars[, 1:4])
 
   expect_s3_class(
-    get_corrMat(mat),
+    plot_corr_matrix(mat),
     "plotly"
   )
 })
 
-test_that("get_corrMat handles constant columns without error", {
+test_that("plot_corr_matrix handles constant columns without error", {
   df <- data.frame(
     x = 1:10,
     y = rep(1, 10),
@@ -31,7 +31,7 @@ test_that("get_corrMat handles constant columns without error", {
   )
 
   expect_warning(
-    p <- get_corrMat(df),
+    p <- plot_corr_matrix(df),
     "standard deviation is zero"
   )
 
@@ -39,8 +39,8 @@ test_that("get_corrMat handles constant columns without error", {
 })
 
 # ========== Test heatmap content ==========
-test_that("get_corrMat shows lower-triangle correlations only", {
-  p <- get_corrMat(mtcars[, 1:3])   # x axis: mpg, cyl; y axis: cyl, disp
+test_that("plot_corr_matrix shows lower-triangle correlations only", {
+  p <- plot_corr_matrix(mtcars[, 1:3])   # x axis: mpg, cyl; y axis: cyl, disp
   z <- unname(p$x$attrs[[1]]$z)
   r <- cor(mtcars[, 1:3])
 
@@ -52,37 +52,37 @@ test_that("get_corrMat shows lower-triangle correlations only", {
 })
 
 # ========== Test digits handling ==========
-test_that("get_corrMat validates digits argument", {
+test_that("plot_corr_matrix validates digits argument", {
   expect_error(
-    get_corrMat(mtcars[, 1:4], digits = -1),
+    plot_corr_matrix(mtcars[, 1:4], digits = -1),
     "`digits` must be a single non-negative whole number"
   )
 
   expect_error(
-    get_corrMat(mtcars[, 1:4], digits = 1.5),
+    plot_corr_matrix(mtcars[, 1:4], digits = 1.5),
     "`digits` must be a single non-negative whole number"
   )
 
   expect_error(
-    get_corrMat(mtcars[, 1:4], digits = c(1, 2)),
+    plot_corr_matrix(mtcars[, 1:4], digits = c(1, 2)),
     "`digits` must be a single non-negative whole number"
   )
 
   expect_error(
-    get_corrMat(mtcars[, 1:4], digits = NA),
+    plot_corr_matrix(mtcars[, 1:4], digits = NA),
     "`digits` must be a single non-negative whole number"
   )
 
   expect_error(
-    get_corrMat(mtcars[, 1:4], digits = NA_real_),
+    plot_corr_matrix(mtcars[, 1:4], digits = NA_real_),
     "`digits` must be a single non-negative whole number"
   )
 })
 
 # ========== Test show_stars & show_values ==========
-test_that("get_corrMat works when values and stars are hidden", {
+test_that("plot_corr_matrix works when values and stars are hidden", {
   expect_s3_class(
-    get_corrMat(
+    plot_corr_matrix(
       mtcars[, 1:4],
       show_values = FALSE,
       show_stars = FALSE
@@ -91,107 +91,107 @@ test_that("get_corrMat works when values and stars are hidden", {
   )
 })
 
-test_that("get_corrMat validates show_stars argument", {
+test_that("plot_corr_matrix validates show_stars argument", {
   expect_error(
-    get_corrMat(mtcars[, 1:4], show_stars = "yes"),
+    plot_corr_matrix(mtcars[, 1:4], show_stars = "yes"),
     "`show_stars` must be TRUE or FALSE"
   )
 
   expect_error(
-    get_corrMat(mtcars[, 1:4], show_stars = c(TRUE, FALSE)),
+    plot_corr_matrix(mtcars[, 1:4], show_stars = c(TRUE, FALSE)),
     "`show_stars` must be TRUE or FALSE"
   )
 
   expect_error(
-    get_corrMat(mtcars[, 1:4], show_stars = NA),
+    plot_corr_matrix(mtcars[, 1:4], show_stars = NA),
     "`show_stars` must be TRUE or FALSE"
   )
 })
 
-test_that("get_corrMat validates show_values argument", {
+test_that("plot_corr_matrix validates show_values argument", {
   expect_error(
-    get_corrMat(mtcars[, 1:4], show_values = "no"),
+    plot_corr_matrix(mtcars[, 1:4], show_values = "no"),
     "`show_values` must be TRUE or FALSE"
   )
 
   expect_error(
-    get_corrMat(mtcars[, 1:4], show_values = c(TRUE, FALSE)),
+    plot_corr_matrix(mtcars[, 1:4], show_values = c(TRUE, FALSE)),
     "`show_values` must be TRUE or FALSE"
   )
 
   expect_error(
-    get_corrMat(mtcars[, 1:4], show_values = NA),
+    plot_corr_matrix(mtcars[, 1:4], show_values = NA),
     "`show_values` must be TRUE or FALSE"
   )
 })
 
 # ========== Test colors validation ==========
-test_that("get_corrMat validates colors argument", {
+test_that("plot_corr_matrix validates colors argument", {
   expect_error(
-    get_corrMat(mtcars[, 1:4], colors = "#FFFFFF"),
+    plot_corr_matrix(mtcars[, 1:4], colors = "#FFFFFF"),
     "`colors` must contain at least two colours"
   )
 
   expect_error(
-    get_corrMat(mtcars[, 1:4], colors = NA),
+    plot_corr_matrix(mtcars[, 1:4], colors = NA),
     "`colors` must contain at least two colours"
   )
 })
 
 # ========== Test NAs handling ==========
-test_that("get_corrMat handles pairwise missing data", {
+test_that("plot_corr_matrix handles pairwise missing data", {
   df <- mtcars[, 1:4]
   df[1:3, "mpg"] <- NA
 
   expect_s3_class(
-    get_corrMat(df, use = "pairwise.complete.obs"),
+    plot_corr_matrix(df, use = "pairwise.complete.obs"),
     "plotly")
 })
 
-test_that("get_corrMat errors with all.obs and missing values", {
+test_that("plot_corr_matrix errors with all.obs and missing values", {
   df <- mtcars[, 1:4]
   df[1, "mpg"] <- NA
 
   expect_error(
-    get_corrMat(df, use = "all.obs"),
+    plot_corr_matrix(df, use = "all.obs"),
     "does not allow NA values")
 })
 
-test_that("get_corrMat errors when na.or.complete or complete.obs leaves no complete observations", {
+test_that("plot_corr_matrix errors when na.or.complete or complete.obs leaves no complete observations", {
   df <- data.frame(x = c(1, NA, NA),
                    y = c(NA, 2, NA),
                    z = c(NA, NA, 3))
 
   expect_error(
-    get_corrMat(df, use = "na.or.complete"),
+    plot_corr_matrix(df, use = "na.or.complete"),
     "No complete observations available"
   )
 
   expect_error(
-    get_corrMat(df, use = "complete.obs"),
+    plot_corr_matrix(df, use = "complete.obs"),
     "No complete observations available"
   )
 })
 
 # ========== Test argument mismatch ==========
-test_that("get_corrMat validates use argument", {
+test_that("plot_corr_matrix validates use argument", {
   expect_error(
-    get_corrMat(mtcars[, 1:4], use = "something.random"),
+    plot_corr_matrix(mtcars[, 1:4], use = "something.random"),
     "'arg' should be one of"
   )
 })
 
-test_that("get_corrMat validates method argument", {
+test_that("plot_corr_matrix validates method argument", {
   expect_error(
-    get_corrMat(mtcars, method = "kendall"),
+    plot_corr_matrix(mtcars, method = "kendall"),
     "'arg' should be one of"
   )
 })
 
 # ========== Test additional plotly arguments ==========
-test_that("get_corrMat allows additional plotly arguments through dots", {
+test_that("plot_corr_matrix allows additional plotly arguments through dots", {
   expect_s3_class(
-    get_corrMat(mtcars,
+    plot_corr_matrix(mtcars,
                 showscale = FALSE,
                 zmin = -0.5,
                 zmax = 0.5),
@@ -199,8 +199,8 @@ test_that("get_corrMat allows additional plotly arguments through dots", {
     )
 })
 
-test_that("get_corrMat plotly dots can override heatmap arguments", {
-  p <- get_corrMat(mtcars[, 1:4],
+test_that("plot_corr_matrix plotly dots can override heatmap arguments", {
+  p <- plot_corr_matrix(mtcars[, 1:4],
                    showscale = FALSE,
                    zmin = -0.5,
                    zmax = 0.5)

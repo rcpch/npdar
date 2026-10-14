@@ -10,6 +10,7 @@ Package](https://img.shields.io/badge/R-package-blue.png)](https://github.com/rc
 [![GPLv3
 license](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0.html)
 [![R-CMD-check](https://github.com/rcpch/npdar/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/rcpch/npdar/actions/workflows/R-CMD-check.yaml)
+
 <!-- badges: end -->
 
 ## Overview
@@ -24,16 +25,22 @@ The package supports:
 - **Blood pressure assessment:** calculate expected values, z-scores and
   percentiles, and categorise blood pressure using paediatric or adult
   references.
-- **Statistical summaries:** 1) identify first/last/most recent modal
-  values or first/last entry in a longitudinal record with options to
-  ignore specific values;
-  2)  summarise categorical measure(s) by group(s) with counts,
+
+- **Statistical utilities:**
+
+  1.  mask small counts and apply secondary suppression to reduce the
+      risk of back-calculation for data privacy;
+
+  2.  identify first/last/most recent modal values or first/last entry
+      in a longitudinal record with options to ignore specific values;
+
+  3.  summarise categorical measure(s) by group(s) with counts,
       denominators and percentages in long format for easy use in
       `ggplot2` and `plotly`.
-- **Data privacy suppression:** mask small counts and apply secondary
-  suppression to reduce the risk of back-calculation.
+
 - **Audit period identification:** identify audit/fiscal years and
   quarters using a configurable first-quarter start month.
+
 - **Correlation visualisation:** create interactive correlation matrix
   with `plotly` and `stats::cor()`.
 
@@ -95,7 +102,7 @@ z-score, not in centimetres. The 25-year-old below is outside this
 reference’s age range, so returns `NA`.
 
 ``` r
-get_bp(
+bp_assess(
   option = "category",
   bp_value = c(95, 125, 155),
   bp_type = "systolic",
@@ -116,7 +123,7 @@ reference explicitly. Ages outside the selected reference range return
 `NA`.
 
 ``` r
-get_bp(
+bp_assess(
   option = "category",
   bp_value = c(155, 155),
   bp_type = "systolic",
@@ -148,9 +155,9 @@ get_masked(c(4, 6, 2, 4, 0, 5, 5))
 Customise the threshold and the suppression label:
 
 ``` r
-get_masked(c(4, 6, 2, 4, 0, 5, 5), maxNum = 5, maskMessage = "*")
+get_masked(c(4, 6, 2, 4, 0, 5, 5), threshold = 5, mask_label = "*")
 #> [1] "*" "6" "*" "*" "0" "5" "5"
-get_masked(c(4, 6, 2, 4, 0, 5, 5), maxNum = 6, maskMessage = "*")
+get_masked(c(4, 6, 2, 4, 0, 5, 5), threshold = 6, mask_label = "*")
 #> [1] "*" "6" "*" "*" "0" "*" "*"
 ```
 
@@ -169,8 +176,8 @@ dat_long <- c("A", "B", "C", "A", "A", "Unknown", "Unknown",
 Select the tied mode that occurs most recently:
 
 ``` r
-get_ultimate(dat_long, find = "uptodate_mode", except = c("Unknown", NA))
-#> Warning in get_ultimate(dat_long, find = "uptodate_mode", except = c("Unknown",
+get_ultimate(dat_long, find = "uptodate_mode", exclude = c("Unknown", NA))
+#> Warning in get_ultimate(dat_long, find = "uptodate_mode", exclude = c("Unknown",
 #> : There are multiple modes, the remaining modes are: A, C
 #> [1] "B"
 ```
@@ -178,8 +185,8 @@ get_ultimate(dat_long, find = "uptodate_mode", except = c("Unknown", NA))
 Use the package’s `last_mode` rule instead:
 
 ``` r
-get_ultimate(dat_long, find = "last_mode", except = c("Unknown", NA))
-#> Warning in get_ultimate(dat_long, find = "last_mode", except = c("Unknown", :
+get_ultimate(dat_long, find = "last_mode", exclude = c("Unknown", NA))
+#> Warning in get_ultimate(dat_long, find = "last_mode", exclude = c("Unknown", :
 #> There are multiple modes, the remaining modes are: A, B
 #> [1] "C"
 ```
@@ -340,26 +347,26 @@ sum_freq_eg1 |>
 ### Audit Periods
 
 The default audit year starts in April. With no date supplied,
-`get_auditYear()` uses today’s date:
+`audit_year()` uses today’s date:
 
 ``` r
-get_auditYear()
+audit_year()
 #> [1] "2026/27 Q3"
 ```
 
 Fixed dates keep the rendered examples reproducible:
 
 ``` r
-get_auditYear("2025-03-31")
+audit_year("2025-03-31")
 #> [1] "2024/25 Q4"
-get_auditYear("2025-03-31", format = FALSE)
+audit_year("2025-03-31", format = FALSE)
 #> [1] 2024
 ```
 
 Change the first-quarter start month for a different audit calendar:
 
 ``` r
-get_auditYear("2025-03-31", start_month = 1)
+audit_year("2025-03-31", start_month = 1)
 #> [1] "2025/26 Q1"
 ```
 
@@ -367,8 +374,8 @@ Generate an inclusive sequence of audit years:
 
 ``` r
 data.frame(
-  audit_year = get_auditYears(2010, 2015),
-  audit_year_numeric = get_auditYears(2010, 2015, format = FALSE)
+  audit_year = audit_year_range(2010, 2015),
+  audit_year_numeric = audit_year_range(2010, 2015, format = FALSE)
 )
 #>   audit_year audit_year_numeric
 #> 1    2010/11               2010
@@ -381,18 +388,18 @@ data.frame(
 
 ### Correlation Matrix with `plotly`
 
-`get_corrMat()` creates an interactive lower-triangle correlation
+`plot_corr_matrix()` creates an interactive lower-triangle correlation
 heatmap. Supply a data frame containing only numeric variables:
 
 ``` r
-get_corrMat(mtcars)
+plot_corr_matrix(mtcars)
 ```
 
 Customise the plot, for example by selecting Spearman correlations,
 hiding the values and customising the colour bar:
 
 ``` r
-get_corrMat(
+plot_corr_matrix(
   mtcars,
   method = "spearman",
   show_values = FALSE,

@@ -8,8 +8,8 @@
 #'
 #' \strong{Available Functions:}
 #' \itemize{
-#'   \item \code{\link{get_auditYear}}: Determine audit year & quarter from date(s)
-#'   \item \code{\link{get_auditYears}}: Generate sequence of audit years
+#'   \item \code{\link{audit_year}}: Determine audit year & quarter from date(s)
+#'   \item \code{\link{audit_year_range}}: Generate sequence of audit years
 #' }
 #'
 #' @template auditYear_quarters
@@ -23,7 +23,7 @@
 #' }
 #'
 #' @family auditYear functions
-#' @name family_auditYear
+#' @name audit_year_family
 #' @aliases auditYear auditYears
 NULL
 
@@ -79,22 +79,22 @@ NULL
 #'
 #' @examples
 #' # Get current audit year (based on today's date)
-#' get_auditYear()
+#' audit_year()
 #'
 #' # Get current audit year as integer
-#' get_auditYear(format = FALSE)
+#' audit_year(format = FALSE)
 #'
 #' # Customise Q1 start month
-#' get_auditYear(start_month = 1)
+#' audit_year(start_month = 1)
 #'
 #' # Customise Q1 start month
-#' get_auditYear(start_month = 1)
+#' audit_year(start_month = 1)
 #'
 #' # Determine audit year for specific dates
-#' get_auditYear("2025-05-15")  # Returns "2025/26 Q1"
-#' get_auditYear("2025-02-15")  # Returns "2024/25 Q4"
-#' get_auditYear("2025-04-01")  # Returns "2025/26 Q1"
-#' get_auditYear("2025-03-31")  # Returns "2024/26 Q4"
+#' audit_year("2025-05-15")  # Returns "2025/26 Q1"
+#' audit_year("2025-02-15")  # Returns "2024/25 Q4"
+#' audit_year("2025-04-01")  # Returns "2025/26 Q1"
+#' audit_year("2025-03-31")  # Returns "2024/26 Q4"
 #'
 #' # Use in data processing
 #' \dontrun{
@@ -103,9 +103,9 @@ NULL
 #'   admission_date = as.Date(c("2024-05-01", "2024-12-01", "2025-02-01"))
 #' )
 #'
-#' df |> mutate(audit_year = get_auditYear(admission_date))
+#' df |> mutate(audit_year = audit_year(admission_date))
 #' }
-get_auditYear <- function(date = Sys.Date(), start_month = 4, format = TRUE) {
+audit_year <- function(date = Sys.Date(), start_month = 4, format = TRUE) {
 
   # Step 0. Preparation
   # Validate start_month
@@ -149,10 +149,10 @@ get_auditYear <- function(date = Sys.Date(), start_month = 4, format = TRUE) {
 #' start and end years. Useful for generating axis labels, filtering data by
 #' multiple audit years, or creating comprehensive reports across multiple audit periods.
 #'
-#' @param startYear Integer. The first audit year to include in the sequence.
+#' @param start_year Integer. The first audit year to include in the sequence.
 #'   Default is 2010 (when NPDA began).
-#' @param endYear Integer. The last audit year to include in the sequence.
-#'   Default is the current audit year (determined by \code{get_auditYear(format = FALSE)}).
+#' @param end_year Integer. The last audit year to include in the sequence.
+#'   Default is the current audit year (determined by \code{audit_year(format = FALSE)}).
 #' @param format Logical. If \code{TRUE} (default), returns audit years as formatted
 #'   strings "YYYY/YY" (e.g., "2024/25"). If \code{FALSE}, returns integers
 #'   representing each audit year's start year.
@@ -162,7 +162,7 @@ get_auditYear <- function(date = Sys.Date(), start_month = 4, format = TRUE) {
 #'   audit year start years.
 #'
 #' @details
-#' This function generates all audit years from \code{startYear} to \code{endYear}
+#' This function generates all audit years from \code{start_year} to \code{end_year}
 #' inclusive. It's particularly useful for:
 #' \itemize{
 #'   \item Creating dropdown menus or filters in Shiny applications
@@ -174,27 +174,27 @@ get_auditYear <- function(date = Sys.Date(), start_month = 4, format = TRUE) {
 #' The NPDA began in the 2010/11 audit year,
 #' hence the default start year of 2010.
 #'
-#' @seealso \code{\link{get_auditYear}} for determining a single audit year from a date.
+#' @seealso \code{\link{audit_year}} for determining a single audit year from a date.
 #'
 #' @family auditYear functions
 #' @export
 #'
 #' @examples
 #' # Get all audit years from 2010 to current (formatted)
-#' get_auditYears()
+#' audit_year_range()
 #'
 #' # Get specific range of audit years
-#' get_auditYears(startYear = 2015, endYear = 2020)
+#' audit_year_range(start_year = 2015, end_year = 2020)
 #' # Returns: "2015/16" "2016/17" "2017/18" "2018/19" "2019/20" "2020/21"
 #'
 #' # Get unformatted (integer) audit years
-#' get_auditYears(startYear = 2018, endYear = 2020, format = FALSE)
+#' audit_year_range(start_year = 2018, end_year = 2020, format = FALSE)
 #' # Returns: 2018 2019 2020
 #'
 #' # Use in plotting
 #' \dontrun{
 #' library(ggplot2)
-#' audit_years <- get_auditYears(2015, 2020)
+#' audit_years <- audit_year_range(2015, 2020)
 #' ggplot(data.frame(year = audit_years, value = rnorm(6))) +
 #'   aes(x = year, y = value) +
 #'   geom_col() +
@@ -202,13 +202,13 @@ get_auditYear <- function(date = Sys.Date(), start_month = 4, format = TRUE) {
 #'
 #' # Use in data filtering
 #' library(dplyr)
-#' recent_years <- get_auditYears(startYear = 2020)
+#' recent_years <- audit_year_range(start_year = 2020)
 #' df |> filter(audit_year %in% recent_years)
 #'
 #' # Create lookup table
 #' data.frame(
-#'   audit_year = get_auditYears(2010, 2015),
-#'   audit_year_numeric = get_auditYears(2010, 2015, format = FALSE)
+#'   audit_year = audit_year_range(2010, 2015),
+#'   audit_year_numeric = audit_year_range(2010, 2015, format = FALSE)
 #' )
 #' #   audit_year audit_year_numeric
 #' # 1    2010/11               2010
@@ -218,22 +218,22 @@ get_auditYear <- function(date = Sys.Date(), start_month = 4, format = TRUE) {
 #' # 5    2014/15               2014
 #' # 6    2015/16               2015
 #' }
-get_auditYears <- function(startYear = 2010, endYear = get_auditYear(format = FALSE), format = TRUE) {
+audit_year_range <- function(start_year = 2010, end_year = audit_year(format = FALSE), format = TRUE) {
   # 0. Input validation
-  if (!is.numeric(startYear) || !is.numeric(endYear)) {
-    stop("'startYear' and 'endYear' must be numeric values.")
+  if (!is.numeric(start_year) || !is.numeric(end_year)) {
+    stop("'start_year' and 'end_year' must be numeric values.")
   }
 
-  if (startYear > endYear) {
-    stop("'startYear' (", startYear, ") must be less than or equal to 'endYear' (", endYear, ").")
+  if (start_year > end_year) {
+    stop("'start_year' (", start_year, ") must be less than or equal to 'end_year' (", end_year, ").")
   }
 
-  if (length(startYear) != 1 || length(endYear) != 1) {
-    stop("'startYear' and 'endYear' must be single values, not vectors.")
+  if (length(start_year) != 1 || length(end_year) != 1) {
+    stop("'start_year' and 'end_year' must be single values, not vectors.")
   }
 
   # 1. Generate sequential list of audit year start years
-  resultList <- seq.int(startYear, endYear)
+  resultList <- seq.int(start_year, end_year)
 
   # 2. If format==T, format as "YYYY/YY"
   if (format == TRUE) {

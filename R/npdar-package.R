@@ -8,13 +8,19 @@
 #'
 #' \strong{Blood Pressure Assessment:}
 #' \itemize{
-#'   \item \code{\link{family_bp}}:
+#'   \item \code{\link{bp_family}}:
 #'   \itemize{
 #'     \item Calculate expected blood pressure, z-scores and centiles based on given reference.
 #'     \item Categorise blood pressure into clinical stages (e.g., Hypertension).
 #' }}
 #'
 #' \strong{Statistical Utilities:}
+#' \itemize{
+#'   \item \code{\link{get_masked}}:
+#'   \itemize{
+#'     \item Mask small numerators to protect patient data privacy.
+#' }}
+#'
 #' \itemize{
 #'   \item \code{\link{get_ultimate}}:
 #'   \itemize{
@@ -29,16 +35,9 @@
 #'     denominator, and percentage in long format for easy use in `ggplot2` or `plotly`.
 #' }}
 #'
-#' \strong{Data Privacy Suppression:}
-#' \itemize{
-#'   \item \code{\link{get_masked}}:
-#'   \itemize{
-#'     \item Mask small numerators to protect patient privacy.
-#' }}
-#'
 #' #' \strong{Finding Audit Year(s):}
 #' \itemize{
-#'   \item \code{\link{family_auditYear}}:
+#'   \item \code{\link{audit_year_family}}:
 #'   \itemize{
 #'     \item Determine current audit year from (specified) dates,
 #'     based on custom fiscal year structure.
@@ -47,7 +46,7 @@
 #'
 #' \strong{Correlation Matrix with Plotly:}
 #' \itemize{
-#'   \item \code{\link{get_corrMat}}:
+#'   \item \code{\link{plot_corr_matrix}}:
 #'   \itemize{
 #'     \item Compute Pearson or Spearman correlation matrices for numeric variables.
 #'     \item Display the lower triangle as an interactive \pkg{plotly} heatmap.

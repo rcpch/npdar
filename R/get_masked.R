@@ -2,13 +2,13 @@
 #'
 #' @description This function masks small numerator values in sensitive data to protect privacy
 #' by preventing potential identification of individuals. It applies two key rules:
-#' (1) mask any numerators in the range (0, maxNum), and (2) if only one numerator is masked,
+#' (1) mask any numerators in the range (0, threshold), and (2) if only one numerator is masked,
 #' also mask all occurrences of the second smallest value to prevent back-calculation.
 #'
 #' @param vec A numeric vector of count data (numerators) to be masked.
-#' @param maxNum Numeric. The threshold value for masking. Values greater than 0
-#'   and less than \code{maxNum} will be masked. Default is 3.
-#' @param maskMessage Character string. The message to replace masked values with.
+#' @param threshold Numeric. The threshold value for masking. Values greater than 0
+#'   and less than \code{threshold} will be masked. Default is 3.
+#' @param mask_label Character string. The message to replace masked values with.
 #'   Default is "masked".
 #'
 #' @return A character vector with small values replaced by the mask message.
@@ -17,7 +17,7 @@
 #' @details
 #' The function implements a two-step masking process:
 #' \enumerate{
-#'   \item \strong{Initial masking}: Any values in the range (0, maxNum) are masked
+#'   \item \strong{Initial masking}: Any values in the range (0, threshold) are masked
 #'   \item \strong{Secondary masking}: If only one value was masked in step 1,
 #'         all occurrences of the second smallest value (excluding 0) are also masked
 #'         to prevent back-calculation of the original masked value
@@ -40,19 +40,19 @@
 #'
 #' # With different threshold
 #' example_vec2 <- c(4, 6, 2, 4, 1)
-#' get_masked(example_vec2, maxNum = 3)  # Masks values 1 and 2, plus second smallest (4)
+#' get_masked(example_vec2, threshold = 3)  # Masks values 1 and 2, plus second smallest (4)
 #'
 #' # Custom mask message
 #' example_vec3 <- c(4, 6, 2, 4, 3)
-#' get_masked(example_vec3, maxNum = 3, maskMessage = "*")
+#' get_masked(example_vec3, threshold = 3, mask_label = "*")
 #'
 #' # Demonstrating secondary masking rule
 #' example_vec4 <- c(4, 6, 3, 4, 3)
-#' get_masked(example_vec4, maxNum = 3)  # Only value 2 would be masked initially
+#' get_masked(example_vec4, threshold = 3)  # Only value 2 would be masked initially
 #'
 #' # Higher threshold
 #' example_vec5 <- c(4, 6, 3, 4, 3)
-#' get_masked(example_vec5, maxNum = 5, maskMessage = "*")  # Masks 3s and 4s
+#' get_masked(example_vec5, threshold = 5, mask_label = "*")  # Masks 3s and 4s
 #'
 #' # No masking needed
 #' example_vec6 <- c(5, 6, 7, 8, 0)
@@ -77,29 +77,29 @@
 #'   summarise(numerator = n(), .groups = "drop") |>
 #'   mutate(
 #'     proportion = sprintf("%.1f%%", 100 * numerator / sum(numerator)),
-#'     numerator_masked = get_masked(numerator, maxNum = 3),
+#'     numerator_masked = get_masked(numerator, threshold = 3),
 #'     proportion_masked = ifelse(numerator_masked == 'masked', 'masked', proportion)
 #'   )
 #' }
-get_masked <- function(vec, maxNum = 3, maskMessage = 'masked') {
+get_masked <- function(vec, threshold = 3, mask_label = 'masked') {
   # Input validation
   if (!is.numeric(vec)) {
     stop("Input 'vec' must be a numeric vector")
   }
-  if (!is.numeric(maxNum) || length(maxNum) != 1 || maxNum <= 0) {
-    stop("'maxNum' must be a single positive numeric value")
+  if (!is.numeric(threshold) || length(threshold) != 1 || threshold <= 0) {
+    stop("'threshold' must be a single positive numeric value")
   }
-  if (!is.character(maskMessage) || length(maskMessage) != 1) {
-    stop("'maskMessage' must be a single character string")
+  if (!is.character(mask_label) || length(mask_label) != 1) {
+    stop("'mask_label' must be a single character string")
   }
 
-  # Step 1: Mask any values within the range (0, maxNum)
-  vec_masked <- ifelse(vec > 0 & vec < maxNum, maskMessage, vec)
+  # Step 1: Mask any values within the range (0, threshold)
+  vec_masked <- ifelse(vec > 0 & vec < threshold, mask_label, vec)
 
   # Count how many values were masked currently
-  num_masked <- sum(vec_masked == maskMessage)
+  num_masked <- sum(vec_masked == mask_label)
 
-  # Step 2: If no values within range (0, maxNum), return the original vector
+  # Step 2: If no values within range (0, threshold), return the original vector
   if (num_masked == 0) {
     return(as.character(vec)) # Convert to character for consistency
   }
@@ -115,7 +115,7 @@ get_masked <- function(vec, maxNum = 3, maskMessage = 'masked') {
       # Get the second smallest value (excluding 0)
       second_smallest <- unique_sorted[2]
       # Mask all occurrences (use original vec, not vec_masked which is now character)
-      vec_masked[vec == second_smallest] <- maskMessage
+      vec_masked[vec == second_smallest] <- mask_label
     }
   }
 
