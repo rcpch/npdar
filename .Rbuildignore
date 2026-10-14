@@ -3,6 +3,9 @@
 ^LICENSE\.md$
 ^man-roxygen$
 ^\.github$
+^README\.qmd$
+^README_files$
+^\.quarto$
 ^_pkgdown\.yml$
 ^docs$
 ^pkgdown$
