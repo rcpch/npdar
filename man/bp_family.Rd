@@ -2,7 +2,7 @@
 % Please edit documentation in R/bp_family.R
 \name{bp_family}
 \alias{bp_family}
-\alias{BloodPressure}
+\alias{bp}
 \title{Blood Pressure Assessment Functions for Paediatric and Adult Populations}
 \description{
 This module provides functions to assess blood pressure (BP) in children,

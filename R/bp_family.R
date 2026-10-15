@@ -26,7 +26,7 @@
 #' @template bp_refs
 #' @family BP functions
 #' @name bp_family
-#' @aliases BloodPressure
+#' @aliases bp
 NULL
 
 # ========== 0. Blood Pressure Regression Coefficients from the NHBPEP Fourth Report (Appendix Table B-1) ==========
