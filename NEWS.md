@@ -1,3 +1,26 @@
+# npdar 0.6.0
+* Rewrite `README.md` with `README.qmd` and update `.Rbuildignore`.
+* Add light switch and MathJax for math notations in pkgdown site.
+* Breaking: renamed functions to snake_case; the domain families drop `get_`, the utilities keep it:
+    - `get_bp()` → `bp_assess()`
+    - `get_bpExpected()` → `bp_expected()`
+    - `get_bpRelative()` → `bp_relative()`
+    - `get_bpCategory()` → `bp_category()`
+    - `get_auditYear()` → `audit_year()`
+    - `get_auditYears()` → `audit_year_range()`
+    - `get_corrMat()` → `plot_corr_matrix()`
+    - Help topics `family_bp` → `bp_family` and `family_auditYear` → `audit_year_family`.
+    - `get_frequency()`, `get_masked()` and `get_ultimate()` are unchanged.
+* Breaking: renamed arguments to snake_case with clearer names:
+    - `audit_year_range()`: `startYear` → `start_year`, `endYear` → `end_year`.
+    - `get_masked()`: `maxNum` → `threshold`, `maskMessage` → `mask_label`.
+    - `get_ultimate()`: `except` → `exclude`, `warning` → `warn`.
+* Edit help aliases `bp` (for `bp_family`) and `fiscal_year` (for `audit_year_family`).
+* Breaking: In `bp_family`, `bp_assess()` no longer takes `option`; it validates inputs once and returns a tibble with `expected`, `zscore`, `percentile` and `category`.
+* In `bp_family`, functions now error if `sex`, `age_years`, `height_z` and `bp_value` differ in length (no recycling), and `bp_relative()` returns one row per input for NICE/BHF.
+* In `bp_family`, `bp_category()` gains `.quiet`, and `.quiet = TRUE` now also silences the NICE/BHF notices in `bp_expected()` and `bp_relative()`.
+* In `bp_family`, fixed `bp_category()` and `bp_assess()` returning "Prehypertension" for BP below the lower `bp_limit`; these now return `NA`.
+
 # npdar 0.5.0
 
 * Added `count_na` argument to `get_frequency()` to allow user to count missing values in `measures` as their own category (`category = NA`) and include them in the denominator. It is backward-compatible as default is `FALSE` (exclude NAs) (#28).

@@ -25,8 +25,8 @@
 #'
 #' @template bp_refs
 #' @family BP functions
-#' @name family_bp
-#' @aliases BloodPressure
+#' @name bp_family
+#' @aliases bp
 NULL
 
 # ========== 0. Blood Pressure Regression Coefficients from the NHBPEP Fourth Report (Appendix Table B-1) ==========
@@ -37,8 +37,8 @@ NULL
 #' stratified by sex, as described in the NHBPEP Fourth Report.
 #'
 #' @details
-#' These coefficients are used by \code{get_bpExpected()}, \code{get_bpRelative()},
-#' and \code{get_bpCategory()} when \code{ref = "Fourth Report"}.
+#' These coefficients are used by \code{bp_expected()}, \code{bp_relative()},
+#' and \code{bp_category()} when \code{ref = "Fourth Report"}.
 #' The Fourth Report uses regression models with age (centred at 10 years) and
 #' height z-score polynomial terms (up to 4th degree) to calculate expected BP:
 #' \deqn{\mu = \alpha + \sum_{i=1}^{4} \beta_i (Age-10)^i + \sum_{i=1}^{4} \gamma_i (Zht)^i}
@@ -69,7 +69,7 @@ NULL
   )
 )
 
-# ========== 1. (Internal Helper) Function to Validate Demographic Inputs for BP Functions ==========
+# ========== 1a. (Internal Helper) Function to Validate Demographic Inputs for BP Functions ==========
 #' Validate Demographic Inputs for BP Functions (Internal)
 #'
 #' @description Internal helper function to validate and standardize demographic inputs
@@ -87,18 +87,22 @@ NULL
 #'   and set to \code{NA}. Default \code{5}.
 #' @param age_years Numeric vector of ages in years.
 #' @param ref Reference: \code{"Fourth Report"} (children/adolescents, 0-17) or \code{"NICE/BHF"} (adults, >17).
+#' @param bp_value Optional numeric vector of observed BP (mmHg); only used here to check that its length matches the other inputs.
 #'
 #' @return A list with normalized elements: \code{bp_type}, \code{sex} (\code{"male"} or \code{"female"} or \code{NA}),
-#'   \code{age_years} (invalid ages set to \code{NA} given \code{ref}), \code{height_z} (out-of-bound z set to \code{NA}), and \code{ref}.
+#'   \code{age_years} (invalid ages set to \code{NA} given \code{ref}), \code{height_z} (out-of-bound z set to \code{NA}),
+#'   \code{ref}, and \code{bp_value} (\code{NULL} if not supplied). It is an error if \code{sex}, \code{age_years},
+#'   \code{height_z} and \code{bp_value} (when supplied) differ in length.
 #'
 #' @keywords internal
 #'
 #' @family BP functions
-.valid_bpDemoInput <- function(bp_type = c("systolic", "diastolic"),
-                               sex, male_code, female_code,
-                               height_z, height_limit=5,
-                               age_years, ref = c("Fourth Report", "NICE/BHF"),
-                               .quiet = FALSE) {                                # Quiet validation message when being called multiple times (i.e. aim to print message only once)
+.bp_validate_demo_input <- function(bp_type = c("systolic", "diastolic"),
+                                    sex, male_code, female_code,
+                                    height_z, height_limit=5,
+                                    age_years, ref = c("Fourth Report", "NICE/BHF"),
+                                    bp_value = NULL,
+                                    .quiet = FALSE) {                           # Quiet validation message when being called multiple times (i.e. aim to print message only once)
   # 1. Input validation
   ## 1.1 Reference
   if (missing(ref)) {                                                           # Reminder to specify as match.arg() use first option as default
@@ -140,7 +144,76 @@ NULL
 
   height_z <- ifelse(!height_invalid, height_z, NA)                             # Keep height only if within a certain SD (default is +-5)
 
-  return(mget(c("bp_type", "sex", "age_years", "height_z", "ref")))
+  ## 1.6 Lengths
+  inputs <- list(sex = sex, age_years = age_years, height_z = height_z)
+  if (!is.null(bp_value)) inputs$bp_value <- bp_value
+  lens <- lengths(inputs)
+  if (length(unique(lens)) > 1) {
+    stop("Inputs must all have the same length. Length of ", paste0(names(inputs), ": ", lens, collapse = ", "), ".")
+  }
+
+  return(mget(c("bp_type", "sex", "age_years", "height_z", "ref", "bp_value")))
+}
+
+# ========== 1b. (Internal Helper) Messages ==========
+#' Print BP Messages (Internal)
+#'
+#' @description Internal helper function to print informative BP messages
+#' based on the reference and inputs.
+#'
+#' @param valid List returned by \code{.bp_validate_demo_input()}.
+#' @param what Any of \code{"expected"}, \code{"relative"}, \code{"category"}: the outputs requested.
+#' @param bp_limit The \code{bp_limit} supplied by the user; the default value triggers the limit message.
+#' @param .quiet Logical; suppress all messages.
+#'
+#' @keywords internal
+#'
+#' @family BP functions
+.bp_message <- function(valid, what, bp_limit = c(-Inf, Inf), .quiet = FALSE) {
+  if (.quiet) return(invisible(NULL))
+  ref_nice <- valid$ref == "NICE/BHF"
+
+  skipped <- c(if ("expected" %in% what) "expected BP",
+               if ("relative" %in% what) "zscore/percentile BP")
+  if (ref_nice && length(skipped) > 0) {
+    message("NICE/BHF only provides category guidelines, ", paste(skipped, collapse = " and "), " not calculated.")
+  }
+
+  if ("category" %in% what) {
+    if (ref_nice) {
+      message("NICE/BHF categorise 'Normotension' to 'Stage 3 hypertension'.")
+    } else {
+      message("NHBPEP Fourth Report categorise 'Normotension' to 'Stage 2 hypertension'; Special rules for newborns (<1), children (0-12), adolescents (12-17).")
+    } # (FUTURE ADD NEW REF IF AVAILABLE)
+
+    if (identical(bp_limit, c(-Inf, Inf))) {
+      if (ref_nice) { # (FUTURE ADD NEW ADULT REF IF AVAILABLE)
+        message("BP outside National Diabetes Audit (NDA) limit removed unless acceptable range is explicitly specified by 'bp_limit'.")
+      } else {
+        message("BP outside National Paediatric Diabetes Audit (NPDA) limit removed unless acceptable range is explicitly specified by 'bp_limit'.")
+      }
+    }
+  }
+  invisible(NULL)
+}
+
+# ========== 1c. (Internal Helper) Default BP Limits ==========
+#' Resolve BP Limit (Internal)
+#'
+#' @description Internal helper function to returns \code{bp_limit} unless
+#' it is the default \code{c(-Inf, Inf)}, in which case the NPDA (Fourth Report)
+#' or NDA (NICE/BHF) range for \code{valid$bp_type} is used.
+#'
+#' @keywords internal
+#'
+#' @family BP functions
+.bp_resolve_limit <- function(valid, bp_limit) {
+  if (!identical(bp_limit, c(-Inf, Inf))) return(bp_limit)
+  defaults <- list(
+    "NICE/BHF"      = list(systolic = c(70, 300), diastolic = c(20, 150)),
+    "Fourth Report" = list(systolic = c(50, 200), diastolic = c(15, 150))
+  )
+  defaults[[valid$ref]][[valid$bp_type]]
 }
 
 # ========== 2. Compute Expected Blood Pressure (mu) ==========
@@ -151,7 +224,7 @@ NULL
 #' For \code{ref = "NICE/BHF"} or people >17 years old, expected BP is not defined and \code{NA} is returned.
 #'
 #' @param .quiet Logical; suppress validation messages (default \code{FALSE}).
-#' @inheritDotParams .valid_bpDemoInput
+#' @inheritDotParams .bp_validate_demo_input
 #'
 #' @template bp_fourth
 #'
@@ -167,7 +240,7 @@ NULL
 #'
 #' @examples
 #' # Expected systolic BP for a 10-year-old boy at median height, and other some other children:
-#' get_bpExpected(
+#' bp_expected(
 #'   bp_type = "systolic",
 #'   sex = c(1, 2, 1),
 #'   male_code = 1, female_code = 2,
@@ -177,7 +250,7 @@ NULL
 #' )
 #'
 #' # Adults: returns NA with an informative message
-#' get_bpExpected(
+#' bp_expected(
 #'   bp_type = "diastolic",
 #'   sex = "M", male_code = "M", female_code = "F",
 #'   height_z = 0, age_years = 25, ref = "NICE/BHF"
@@ -187,14 +260,20 @@ NULL
 #'
 #' @export
 #' @importFrom purrr pmap_dbl map_lgl
-get_bpExpected <- function(..., .quiet = FALSE){                                # Quiet validation message unless being called directly
-  # 1. Input validation
-  valid <- .valid_bpDemoInput(..., .quiet=.quiet)
+bp_expected <- function(..., .quiet = FALSE){
+  valid <- .bp_validate_demo_input(..., .quiet = .quiet)
+  .bp_message(valid, "expected", .quiet = .quiet)
+  return(.calc_expected(valid))
+}
 
+#' Expected BP from validated inputs (Internal)
+#' @param valid List returned by \code{.bp_validate_demo_input()}.
+#' @keywords internal
+#' @noRd
+#' @importFrom purrr pmap_dbl
+.calc_expected <- function(valid) {
   # 2. Calculate expected BP (mu)
   if (valid$ref == "NICE/BHF") {
-    message("NICE/BHF only provides category guidelines, expected BP not calculated.")
-    # mu <- NA
     mu <- rep(NA_real_, length(valid$age_years))
 
   } else if (valid$ref == "Fourth Report") {
@@ -228,7 +307,7 @@ get_bpExpected <- function(..., .quiet = FALSE){                                
 #'
 #' @param .quiet Logical; suppress validation messages (default \code{FALSE}).
 #' @param bp_value Numeric vector of observed BP values (mmHg).
-#' @inheritDotParams .valid_bpDemoInput
+#' @inheritDotParams .bp_validate_demo_input
 #'
 #' @return A tibble with two columns: \code{zscore} and \code{percentile} (0-100).
 #'   \code{NA} where expected BP could not be computed (e.g., invalid inputs or adult reference).
@@ -237,7 +316,7 @@ get_bpExpected <- function(..., .quiet = FALSE){                                
 #'
 #' @examples
 #' # Z-score and percentile for systolic BP in children using Fourth Report:
-#' get_bpRelative(
+#' bp_relative(
 #'   bp_value = c(95, 110, 130),
 #'   bp_type = "systolic",
 #'   sex = c("M","F","M"),
@@ -253,19 +332,27 @@ get_bpExpected <- function(..., .quiet = FALSE){                                
 #' @importFrom purrr pmap_dbl pmap_chr map_lgl
 #' @importFrom tibble tibble
 #' @importFrom stats pnorm
-get_bpRelative <- function(bp_value, ..., .quiet=FALSE) {                       # Extra argument: bp_value. Quiet validation message unless being called directly
-  # 1. Input validation
-  valid <- .valid_bpDemoInput(..., .quiet=TRUE)
-  # 2. Calculate expected BP (mu)
-  bp_expected <- get_bpExpected(..., .quiet=.quiet)
+bp_relative <- function(bp_value, ..., .quiet=FALSE) {
+  valid <- .bp_validate_demo_input(bp_value = bp_value, ..., .quiet = .quiet)
+  .bp_message(valid, "relative", .quiet = .quiet)
+  return(.calc_relative(valid, .calc_expected(valid)))
+}
 
+#' Z-score and percentile from validated inputs (Internal)
+#' @param valid List returned by \code{.bp_validate_demo_input()} with \code{bp_value}.
+#' @param mu Expected BP from \code{.calc_expected()}.
+#' @keywords internal
+#' @noRd
+#' @importFrom purrr pmap_dbl
+#' @importFrom tibble tibble
+#' @importFrom stats pnorm
+.calc_relative <- function(valid, mu) {
   # 3. Calculate z-score and percentile
   ## 3.1 Calculate z-score
   if (valid$ref == "NICE/BHF") {
-    message("NICE/BHF only provides category guidelines, zscore/percentile BP not calculated.")
-    zscore <- NA
+    zscore <- rep(NA_real_, length(mu))
   } else if (valid$ref == "Fourth Report") {
-    zscore <- purrr::pmap_dbl(list(bp_value, bp_expected, valid$sex), function(bpObserved, bpExpected, sexBinary) {
+    zscore <- purrr::pmap_dbl(list(valid$bp_value, mu, valid$sex), function(bpObserved, bpExpected, sexBinary) {
       if (is.na(bpExpected)) {                                                  # If expected BP wasn't calculated
         NA                                                                      # Don't calculate z-score, return NA
       } else {
@@ -299,8 +386,9 @@ get_bpRelative <- function(bp_value, ..., .quiet=FALSE) {                       
 #' @param bp_value Numeric vector of observed BP values (mmHg).
 #' @param bp_limit Length-2 numeric vector \code{c(min, max)} giving acceptable range.
 #'   Defaults to \code{c(-Inf, Inf)}; if left as-is, NPDA/NDA defaults are applied based on \code{ref}.
-#' @inheritDotParams .valid_bpDemoInput
-#' @inheritDotParams get_bpExpected
+#' @param .quiet Logical; suppress messages (default \code{FALSE}).
+#' @inheritDotParams .bp_validate_demo_input
+#' @inheritDotParams bp_expected
 #'
 #' @return Character vector of BP categories:
 #'   \emph{"Normotension"}, \emph{"Prehypertension"}, \emph{"Stage 1 hypertension"},
@@ -313,7 +401,7 @@ get_bpRelative <- function(bp_value, ..., .quiet=FALSE) {                       
 #'
 #' @examples
 #' # Child/adolescent categorisation (Fourth Report):
-#' get_bpCategory(
+#' bp_category(
 #'   bp_value = c(95, 118, 130, 150),
 #'   bp_type = "systolic",
 #'   sex = c(1, 2, 1, 2),
@@ -324,11 +412,11 @@ get_bpRelative <- function(bp_value, ..., .quiet=FALSE) {                       
 #' )
 #'
 #' # Adult categorisation (NICE/BHF; uses NDA limits if bp_limit not provided):
-#' get_bpCategory(
+#' bp_category(
 #'   bp_value = c(118, 135, 162, 185),
 #'   bp_type = "diastolic",
-#'   sex = "M", male_code = "M", female_code = "F",
-#'   height_z = 0,
+#'   sex = rep("M", 4), male_code = "M", female_code = "F",
+#'   height_z = rep(0, 4),
 #'   age_years = c(22, 30, 45, 67),
 #'   ref = "NICE/BHF"
 #' )
@@ -338,36 +426,39 @@ get_bpRelative <- function(bp_value, ..., .quiet=FALSE) {                       
 #' @export
 #' @importFrom purrr pmap_chr pmap_dbl map_lgl
 #' @importFrom stats qnorm
-get_bpCategory <- function(bp_value, bp_limit = c(-Inf, Inf), ...) {            # Extra argument: bp_value, bp_limit. Quiet validation message unless being called directly
-  # 1. Input validation
-  valid <- .valid_bpDemoInput(..., .quiet=FALSE)
+bp_category <- function(bp_value, bp_limit = c(-Inf, Inf), ..., .quiet = FALSE) {
+  valid <- .bp_validate_demo_input(bp_value = bp_value, ..., .quiet = .quiet)
+  .bp_message(valid, "category", bp_limit, .quiet = .quiet)
+  return(.calc_category(valid, .calc_expected(valid), .bp_resolve_limit(valid, bp_limit)))
+}
+
+#' Categorise BP from validated inputs (Internal)
+#' @param valid List returned by \code{.bp_validate_demo_input()} with \code{bp_value}.
+#' @param mu Expected BP from \code{.calc_expected()}.
+#' @param bp_limit Resolved acceptable range from \code{.bp_resolve_limit()}.
+#' @keywords internal
+#' @noRd
+#' @importFrom purrr pmap_chr
+#' @importFrom stats qnorm
+.calc_category <- function(valid, mu, bp_limit) {
+  bp_value <- valid$bp_value
 
   # 4. Categorise BP
   if (valid$ref == "NICE/BHF") {
-    # 4.0 Message about categories
-    message("NICE/BHF categorise 'Normotension' to 'Stage 3 hypertension'.")
-    # 4.1 Input validation (bp_limit)
-    if (identical(bp_limit, c(-Inf, Inf))) {                                    # If currently using adult reference & limit not specified, use NDA's limit
-      message("BP outside National Diabetes Audit (NDA) limit removed unless acceptable range is explicitly specified by 'bp_limit'.")
-      if (valid$bp_type == "systolic") {
-        bp_limit = c(70, 300)
-      } else if (valid$bp_type == "diastolic") {
-        bp_limit = c(20, 150)
-      }
-    }
-    # 4.2 categorisation
+    # 4.1 categorisation
     category <- purrr::pmap_chr(list(bp_value, valid$age_years), function(bpObserved, ageY) {
       if (is.na(ageY) || is.na(bpObserved)) return(NA)                            # This exclude anyone with invalid age//bp_value
+      if (bpObserved < bp_limit[1]) return(NA)                                    # Below the plausible range
 
       if (valid$bp_type == "systolic") {
-        if (bpObserved >= bp_limit[1] && bpObserved < 120) return("Normotension")
+        if (bpObserved < 120) return("Normotension")
         else if (bpObserved < 140) return("Prehypertension")
         else if (bpObserved < 160) return("Stage 1 hypertension")
         else if (bpObserved < 180) return("Stage 2 hypertension")
         else if (bpObserved <= bp_limit[2]) return("Stage 3 hypertension")
         else {NA}
       } else if (valid$bp_type == "diastolic") {
-        if (bpObserved >= bp_limit[1] && bpObserved < 80) return("Normotension")
+        if (bpObserved < 80) return("Normotension")
         else if (bpObserved < 90) return("Prehypertension")
         else if (bpObserved < 100) return("Stage 1 hypertension")
         else if (bpObserved < 120) return("Stage 2 hypertension")
@@ -376,31 +467,19 @@ get_bpCategory <- function(bp_value, bp_limit = c(-Inf, Inf), ...) {            
       }
     })
   } else if (valid$ref == "Fourth Report") {
-    # 4.0 Message about categories
-    message("NHBPEP Fourth Report categorise 'Normotension' to 'Stage 2 hypertension'; Special rules for newborns (<1), children (0-12), adolescents (12-17).")
-    # 4.1 Input validation (bp_limit)
-    if (identical(bp_limit, c(-Inf, Inf))) {                                    # If currently using cyp reference & limit not specified, use NPDA's limit
-      message("BP outside National Paediatric Diabetes Audit (NPDA) limit removed unless acceptable range is explicitly specified by 'bp_limit'.")
-      if (valid$bp_type == "systolic") {
-        bp_limit = c(50, 200)
-      } else if (valid$bp_type == "diastolic") {
-        bp_limit = c(15, 150)
-      }
-    }
-    # 4.2 Calculate expected BP (mu)
-    bp_expected <- get_bpExpected(..., .quiet=TRUE)                             # Calculate 50th/mean/mu
-    # 4.3 categorisation
-    category <- purrr::pmap_chr(list(bp_value, bp_expected, valid$age_years, valid$sex), function(bpObserved, bpExpected, ageY, sexBinary) {
+    # 4.2 categorisation
+    category <- purrr::pmap_chr(list(bp_value, mu, valid$age_years, valid$sex), function(bpObserved, bpExpected, ageY, sexBinary) {
       if (is.na(bpExpected) || is.na(bpObserved)) return(NA)                   # This exclude anyone with invalid age/sex/height/bp_value
+      if (bpObserved < bp_limit[1]) return(NA)                                 # Below the plausible range
 
       coefs <- .coefs_BPFourth[[valid$bp_type]][[sexBinary]]                  # Get coefs from NHBPEP Fourth refs according to bp_type and sex
       bp90Centile <- stats::qnorm(0.90, mean = bpExpected, sd = coefs$std)           # Calculate values based on percentiles
       bp95Centile <- stats::qnorm(0.95, mean = bpExpected, sd = coefs$std)
       bp99Centile_plus5 <- stats::qnorm(0.99, mean = bpExpected, sd = coefs$std) + 5
 
-      if (ageY <= 12 && bpObserved >= bp_limit[1] && bpObserved < bp90Centile) return("Normotension")
-      else if (ageY > 12 && bpObserved >= bp_limit[1] && bpObserved < 120 && valid$bp_type == "systolic") return("Normotension")
-      else if (ageY > 12 && bpObserved >= bp_limit[1] && bpObserved < 80 && valid$bp_type == "diastolic") return("Normotension")
+      if (ageY <= 12 && bpObserved < bp90Centile) return("Normotension")
+      else if (ageY > 12 && bpObserved < 120 && valid$bp_type == "systolic") return("Normotension")
+      else if (ageY > 12 && bpObserved < 80 && valid$bp_type == "diastolic") return("Normotension")
       else if (bpObserved < bp95Centile) return("Prehypertension")
       else if (ageY < 1 && bpObserved < bp99Centile_plus5 && valid$bp_type == "systolic") return("Stage 1 hypertension")
       else if (ageY >= 1 && bpObserved < bp99Centile_plus5) return("Stage 1 hypertension")
@@ -415,29 +494,23 @@ get_bpCategory <- function(bp_value, bp_limit = c(-Inf, Inf), ...) {            
 # ========== 5. Master Wrapper for Blood Pressure Utilities ==========
 #' Master Wrapper for Blood Pressure Utilities
 #'
-#' @description Convenience wrapper to access expected values, z-scores, percentiles,
-#' or guideline categories with a single function call.
+#' @description Runs \code{\link{bp_expected}}, \code{\link{bp_relative}} and \code{\link{bp_category}}
+#' in one call. Inputs are validated once and the expected BP is computed once, so messages
+#' are printed once and the results are consistent with each other.
 #'
-#' @param option Character; one of \code{"expected"}, \code{"zscore"},
-#'   \code{"percentile"}, \code{"category"} (partial matching enabled).
+#' @param bp_value Numeric vector of observed BP values (mmHg).
+#' @param bp_limit Length-2 numeric vector \code{c(min, max)} giving acceptable range used for
+#'   categorisation. See \code{\link{bp_category}}.
+#' @param .quiet Logical; suppress messages (default \code{FALSE}).
+#' @inheritDotParams .bp_validate_demo_input -bp_value
 #'
-#' @inheritDotParams .valid_bpDemoInput
-#' @inheritDotParams get_bpExpected
-#' @inheritDotParams get_bpRelative
-#' @inheritDotParams get_bpCategory
-#'
-#' @return Depending on \code{option}:
-#'   \itemize{
-#'     \item \code{"expected"}: numeric vector of \eqn{\mu}
-#'     \item \code{"zscore"}: numeric vector of z-scores
-#'     \item \code{"percentile"}: numeric vector (0-100)
-#'     \item \code{"category"}: character vector of categories
-#'   }
+#' @return A tibble with one row per input and columns \code{expected} (\eqn{\mu}, mmHg),
+#'   \code{zscore}, \code{percentile} (0-100) and \code{category}. Values that cannot be
+#'   computed are \code{NA}; for \code{ref = "NICE/BHF"} only \code{category} is defined.
 #'
 #' @examples
 #' # One-stop interface:
-#' get_bp(
-#'   option = "category",
+#' bp_assess(
 #'   bp_value = c(115, 142),
 #'   bp_type = "systolic",
 #'   sex = c("M","F"), male_code = "M", female_code = "F",
@@ -448,14 +521,15 @@ get_bpCategory <- function(bp_value, bp_limit = c(-Inf, Inf), ...) {            
 #'
 #' @family BP functions
 #' @export
-get_bp <- function(option = c("expected", "zscore", "percentile", "category"), ...) {
-  option <- match.arg(option)                                                   # Partial match (e.g. "centile" -> "percentile")
+#' @importFrom tibble tibble
+bp_assess <- function(bp_value, bp_limit = c(-Inf, Inf), ..., .quiet = FALSE) {
+  valid <- .bp_validate_demo_input(bp_value = bp_value, ..., .quiet = .quiet)
+  .bp_message(valid, c("expected", "relative", "category"), bp_limit, .quiet = .quiet)
 
-  switch(option,
-         expected   = get_bpExpected(...),
-         zscore     = get_bpRelative(...)$zscore,
-         percentile = get_bpRelative(...)$percentile,
-         category   = get_bpCategory(...)
-  )
+  mu <- .calc_expected(valid)
+  relative <- .calc_relative(valid, mu)
+  category <- .calc_category(valid, mu, .bp_resolve_limit(valid, bp_limit))
+
+  tibble::tibble(expected = mu, zscore = relative$zscore, percentile = relative$percentile, category = category)
 }
 

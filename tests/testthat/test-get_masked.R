@@ -6,7 +6,7 @@ test_that("get_masked handles basic masking correctly", {
   expect_equal(result1, expected1)
 
   # Test with custom threshold
-  result2 <- get_masked(c(4, 6, 2, 4, 1), maxNum = 3)
+  result2 <- get_masked(c(4, 6, 2, 4, 1), threshold = 3)
   # Both 1 and 2 are masked, so no secondary masking needed
   expected2 <- c("4", "6", "masked", "4", "masked")
   expect_equal(result2, expected2)
@@ -14,33 +14,33 @@ test_that("get_masked handles basic masking correctly", {
 
 test_that("get_masked applies secondary masking rule correctly", {
   # When only one value is masked, second smallest should also be masked
-  # Example: c(5, 6, 2, 7, 8) with maxNum = 3
+  # Example: c(5, 6, 2, 7, 8) with threshold = 3
   # Only 2 is masked initially, so second smallest (5) should also be masked
-  result1 <- get_masked(c(5, 6, 2, 7, 8), maxNum = 3)
+  result1 <- get_masked(c(5, 6, 2, 7, 8), threshold = 3)
   expected1 <- c("masked", "6", "masked", "7", "8")
   expect_equal(result1, expected1)
 
-  # Another example: c(10, 1, 15, 20) with maxNum = 3
+  # Another example: c(10, 1, 15, 20) with threshold = 3
   # Only 1 is masked initially, so second smallest (10) should also be masked
-  result2 <- get_masked(c(10, 1, 15, 20), maxNum = 3)
+  result2 <- get_masked(c(10, 1, 15, 20), threshold = 3)
   expected2 <- c("masked", "masked", "15", "20")
   expect_equal(result2, expected2)
 })
 
 test_that("get_masked handles custom mask messages", {
   # Test with asterisk
-  result1 <- get_masked(c(4, 6, 2, 4, 3), maxNum = 3, maskMessage = "*")
+  result1 <- get_masked(c(4, 6, 2, 4, 3), threshold = 3, mask_label = "*")
   expected1 <- c("4", "6", "*", "4", "*") # Both 2 and 3 are masked, no secondary masking
   expect_equal(result1, expected1)
 
   # Test with different message
-  result2 <- get_masked(c(5, 1, 8), maxNum = 3, maskMessage = "<5")
+  result2 <- get_masked(c(5, 1, 8), threshold = 3, mask_label = "<5")
   expected2 <- c("<5", "<5", "8") # 1 masked initially, then 5 (second smallest) masked
   expect_equal(result2, expected2)
 })
 
 test_that("get_masked returns original vector when no masking needed", {
-  # All values >= maxNum or equal to 0
+  # All values >= threshold or equal to 0
   result1 <- get_masked(c(5, 6, 7, 8, 0))
   expected1 <- c("5", "6", "7", "8", "0")
   expect_equal(result1, expected1)
@@ -51,20 +51,20 @@ test_that("get_masked returns original vector when no masking needed", {
   expect_equal(result2, expected2)
 
   # All values >= threshold
-  result3 <- get_masked(c(10, 15, 20), maxNum = 5)
+  result3 <- get_masked(c(10, 15, 20), threshold = 5)
   expected3 <- c("10", "15", "20")
   expect_equal(result3, expected3)
 })
 
 test_that("get_masked handles zero values correctly", {
   # Zeros should never be masked
-  result1 <- get_masked(c(0, 1, 2, 0, 3), maxNum = 3)
+  result1 <- get_masked(c(0, 1, 2, 0, 3), threshold = 3)
   # 1 and 2 are masked, no secondary masking needed
   expected1 <- c("0", "masked", "masked", "0", "3")
   expect_equal(result1, expected1)
 
   # Zero in secondary masking scenario
-  result2 <- get_masked(c(0, 2, 5, 8), maxNum = 3)
+  result2 <- get_masked(c(0, 2, 5, 8), threshold = 3)
   # Only 2 masked initially, second smallest excluding 0 is 5
   expected2 <- c("0", "masked", "masked", "8")
   expect_equal(result2, expected2)
@@ -76,29 +76,29 @@ test_that("get_masked handles edge cases", {
   expect_equal(get_masked(c(5)), c("5"))
 
   # Two values, one needs masking
-  result1 <- get_masked(c(1, 10), maxNum = 3)
+  result1 <- get_masked(c(1, 10), threshold = 3)
   expected1 <- c("masked", "masked") # 1 masked, then 10 (second smallest) masked
   expect_equal(result1, expected1)
 
   # All same values below threshold
-  result2 <- get_masked(c(2, 2, 2), maxNum = 3)
+  result2 <- get_masked(c(2, 2, 2), threshold = 3)
   expected2 <- c("masked", "masked", "masked")
   expect_equal(result2, expected2)
 
   # All same values above threshold
-  result3 <- get_masked(c(5, 5, 5), maxNum = 3)
+  result3 <- get_masked(c(5, 5, 5), threshold = 3)
   expected3 <- c("5", "5", "5")
   expect_equal(result3, expected3)
 })
 
 test_that("get_masked handles secondary masking with insufficient unique values", {
   # When there's only one unique non-zero value, no secondary masking possible
-  result1 <- get_masked(c(0, 2, 2, 2), maxNum = 3)
+  result1 <- get_masked(c(0, 2, 2, 2), threshold = 3)
   expected1 <- c("0", "masked", "masked", "masked")
   expect_equal(result1, expected1)
 
   # When only zeros and one other value exist
-  result2 <- get_masked(c(0, 0, 1), maxNum = 3)
+  result2 <- get_masked(c(0, 0, 1), threshold = 3)
   expected2 <- c("0", "0", "masked") # Only 1 masked, no second smallest to mask
   expect_equal(result2, expected2)
 })
@@ -107,31 +107,31 @@ test_that("get_masked validates input parameters", {
   # Non-numeric vector
   expect_error(get_masked(c("a", "b", "c")), "Input 'vec' must be a numeric vector")
 
-  # Invalid maxNum
-  expect_error(get_masked(c(1, 2, 3), maxNum = 0), "'maxNum' must be a single positive numeric value")
-  expect_error(get_masked(c(1, 2, 3), maxNum = c(2, 3)), "'maxNum' must be a single positive numeric value")
-  expect_error(get_masked(c(1, 2, 3), maxNum = -1), "'maxNum' must be a single positive numeric value")
+  # Invalid threshold
+  expect_error(get_masked(c(1, 2, 3), threshold = 0), "'threshold' must be a single positive numeric value")
+  expect_error(get_masked(c(1, 2, 3), threshold = c(2, 3)), "'threshold' must be a single positive numeric value")
+  expect_error(get_masked(c(1, 2, 3), threshold = -1), "'threshold' must be a single positive numeric value")
 
-  # Invalid maskMessage
-  expect_error(get_masked(c(1, 2, 3), maskMessage = c("a", "b")), "'maskMessage' must be a single character string")
-  expect_error(get_masked(c(1, 2, 3), maskMessage = 123), "'maskMessage' must be a single character string")
+  # Invalid mask_label
+  expect_error(get_masked(c(1, 2, 3), mask_label = c("a", "b")), "'mask_label' must be a single character string")
+  expect_error(get_masked(c(1, 2, 3), mask_label = 123), "'mask_label' must be a single character string")
 })
 
-test_that("get_masked works with different maxNum thresholds", {
+test_that("get_masked works with different threshold thresholds", {
   vec <- c(1, 2, 3, 4, 5, 6)
 
-  # maxNum = 2: only 1 gets masked, then second smallest (2) gets masked
-  result1 <- get_masked(vec, maxNum = 2)
+  # threshold = 2: only 1 gets masked, then second smallest (2) gets masked
+  result1 <- get_masked(vec, threshold = 2)
   expected1 <- c("masked", "masked", "3", "4", "5", "6")
   expect_equal(result1, expected1)
 
-  # maxNum = 4: 1, 2, 3 get masked (multiple), no secondary masking
-  result2 <- get_masked(vec, maxNum = 4)
+  # threshold = 4: 1, 2, 3 get masked (multiple), no secondary masking
+  result2 <- get_masked(vec, threshold = 4)
   expected2 <- c("masked", "masked", "masked", "4", "5", "6")
   expect_equal(result2, expected2)
 
-  # maxNum = 7: all values except 0 would be masked
-  result3 <- get_masked(vec, maxNum = 7)
+  # threshold = 7: all values except 0 would be masked
+  result3 <- get_masked(vec, threshold = 7)
   expected3 <- c("masked", "masked", "masked", "masked", "masked", "masked")
   expect_equal(result3, expected3)
 })
