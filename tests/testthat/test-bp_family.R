@@ -304,6 +304,41 @@ test_that("bp_category handles newborns correctly", {
   expect_type(result$dbp_cat_c, "character")
 })
 
+# Categorise `bp_value` for a single age/reference with otherwise median inputs
+cat_for <- function(bp_value, bp_type, age, ref, ...) {
+  n <- length(bp_value)
+  bp_category(bp_value = bp_value, bp_type = bp_type,
+              sex = rep(1, n), male_code = 1, female_code = 2,
+              height_z = rep(0, n), age_years = rep(age, n), ref = ref,
+              .quiet = TRUE, ...)
+}
+
+test_that("bp_category returns NA below the lower bp_limit and keeps the limit itself", {
+  # Default limits: NPDA 50/15 (Fourth Report), NDA 70/20 (NICE/BHF)
+  expect_equal(cat_for(c(0, 49, 50), "sys", 8, "Fourth"), c(NA, NA, "Normotension"))
+  expect_equal(cat_for(c(0, 14, 15), "dia", 8, "Fourth"), c(NA, NA, "Normotension"))
+  expect_equal(cat_for(c(0, 49, 50), "sys", 15, "Fourth"), c(NA, NA, "Normotension"))
+  expect_equal(cat_for(c(0, 14, 15), "dia", 15, "Fourth"), c(NA, NA, "Normotension"))
+  expect_equal(cat_for(c(0, 69, 70), "sys", 30, "NICE"), c(NA, NA, "Normotension"))
+  expect_equal(cat_for(c(0, 19, 20), "dia", 30, "NICE"), c(NA, NA, "Normotension"))
+
+  # Custom limit
+  expect_equal(cat_for(c(99, 100), "sys", 30, "NICE", bp_limit = c(100, 300)), c(NA, "Normotension"))
+})
+
+test_that("bp_category returns NA above the upper bp_limit and keeps the limit itself", {
+  # Default limits: NPDA 200/150 (Fourth Report), NDA 300/150 (NICE/BHF)
+  expect_equal(cat_for(c(200, 201, 400), "sys", 8, "Fourth"), c("Stage 2 hypertension", NA, NA))
+  expect_equal(cat_for(c(150, 151, 400), "dia", 8, "Fourth"), c("Stage 2 hypertension", NA, NA))
+  expect_equal(cat_for(c(200, 201, 400), "sys", 15, "Fourth"), c("Stage 2 hypertension", NA, NA))
+  expect_equal(cat_for(c(150, 151, 400), "dia", 15, "Fourth"), c("Stage 2 hypertension", NA, NA))
+  expect_equal(cat_for(c(300, 301, 400), "sys", 30, "NICE"), c("Stage 3 hypertension", NA, NA))
+  expect_equal(cat_for(c(150, 151, 400), "dia", 30, "NICE"), c("Stage 3 hypertension", NA, NA))
+
+  # Custom limit
+  expect_equal(cat_for(c(200, 201), "sys", 30, "NICE", bp_limit = c(0, 200)), c("Stage 3 hypertension", NA))
+})
+
 test_that("bp_category respects custom bp_limit", {
   result <- df_hard |>
     mutate(

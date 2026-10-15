@@ -448,16 +448,17 @@ bp_category <- function(bp_value, bp_limit = c(-Inf, Inf), ..., .quiet = FALSE) 
     # 4.1 categorisation
     category <- purrr::pmap_chr(list(bp_value, valid$age_years), function(bpObserved, ageY) {
       if (is.na(ageY) || is.na(bpObserved)) return(NA)                            # This exclude anyone with invalid age//bp_value
+      if (bpObserved < bp_limit[1]) return(NA)                                    # Below the plausible range
 
       if (valid$bp_type == "systolic") {
-        if (bpObserved >= bp_limit[1] && bpObserved < 120) return("Normotension")
+        if (bpObserved < 120) return("Normotension")
         else if (bpObserved < 140) return("Prehypertension")
         else if (bpObserved < 160) return("Stage 1 hypertension")
         else if (bpObserved < 180) return("Stage 2 hypertension")
         else if (bpObserved <= bp_limit[2]) return("Stage 3 hypertension")
         else {NA}
       } else if (valid$bp_type == "diastolic") {
-        if (bpObserved >= bp_limit[1] && bpObserved < 80) return("Normotension")
+        if (bpObserved < 80) return("Normotension")
         else if (bpObserved < 90) return("Prehypertension")
         else if (bpObserved < 100) return("Stage 1 hypertension")
         else if (bpObserved < 120) return("Stage 2 hypertension")
@@ -469,15 +470,16 @@ bp_category <- function(bp_value, bp_limit = c(-Inf, Inf), ..., .quiet = FALSE) 
     # 4.2 categorisation
     category <- purrr::pmap_chr(list(bp_value, mu, valid$age_years, valid$sex), function(bpObserved, bpExpected, ageY, sexBinary) {
       if (is.na(bpExpected) || is.na(bpObserved)) return(NA)                   # This exclude anyone with invalid age/sex/height/bp_value
+      if (bpObserved < bp_limit[1]) return(NA)                                 # Below the plausible range
 
       coefs <- .coefs_BPFourth[[valid$bp_type]][[sexBinary]]                  # Get coefs from NHBPEP Fourth refs according to bp_type and sex
       bp90Centile <- stats::qnorm(0.90, mean = bpExpected, sd = coefs$std)           # Calculate values based on percentiles
       bp95Centile <- stats::qnorm(0.95, mean = bpExpected, sd = coefs$std)
       bp99Centile_plus5 <- stats::qnorm(0.99, mean = bpExpected, sd = coefs$std) + 5
 
-      if (ageY <= 12 && bpObserved >= bp_limit[1] && bpObserved < bp90Centile) return("Normotension")
-      else if (ageY > 12 && bpObserved >= bp_limit[1] && bpObserved < 120 && valid$bp_type == "systolic") return("Normotension")
-      else if (ageY > 12 && bpObserved >= bp_limit[1] && bpObserved < 80 && valid$bp_type == "diastolic") return("Normotension")
+      if (ageY <= 12 && bpObserved < bp90Centile) return("Normotension")
+      else if (ageY > 12 && bpObserved < 120 && valid$bp_type == "systolic") return("Normotension")
+      else if (ageY > 12 && bpObserved < 80 && valid$bp_type == "diastolic") return("Normotension")
       else if (bpObserved < bp95Centile) return("Prehypertension")
       else if (ageY < 1 && bpObserved < bp99Centile_plus5 && valid$bp_type == "systolic") return("Stage 1 hypertension")
       else if (ageY >= 1 && bpObserved < bp99Centile_plus5) return("Stage 1 hypertension")
