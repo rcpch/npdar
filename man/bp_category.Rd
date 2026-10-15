@@ -4,7 +4,7 @@
 \alias{bp_category}
 \title{Categorise Blood Pressure (Children/Adolescents and Young Adults)}
 \usage{
-bp_category(bp_value, bp_limit = c(-Inf, Inf), ...)
+bp_category(bp_value, bp_limit = c(-Inf, Inf), ..., .quiet = FALSE)
 }
 \arguments{
 \item{bp_value}{Numeric vector of observed BP values (mmHg).}
@@ -13,9 +13,8 @@ bp_category(bp_value, bp_limit = c(-Inf, Inf), ...)
 Defaults to \code{c(-Inf, Inf)}; if left as-is, NPDA/NDA defaults are applied based on \code{ref}.}
 
 \item{...}{
-  Arguments passed on to \code{\link{.validate_bp_demo_input}}, \code{\link{bp_expected}}
+  Arguments passed on to \code{\link{.bp_validate_demo_input}}, \code{\link{bp_expected}}
   \describe{
-    \item{\code{.quiet}}{Logical; suppress validation messages (default \code{FALSE}).}
     \item{\code{bp_type}}{Character; \code{"systolic"} or \code{"diastolic"}.}
     \item{\code{sex}}{Vector of sex codes in your data. Will be mapped to \code{"male"} or \code{"female"}
 using \code{male_code} and \code{female_code}. Values not matching these codes become \code{NA}.}
@@ -27,6 +26,8 @@ and set to \code{NA}. Default \code{5}.}
     \item{\code{age_years}}{Numeric vector of ages in years.}
     \item{\code{ref}}{Reference: \code{"Fourth Report"} (children/adolescents, 0-17) or \code{"NICE/BHF"} (adults, >17).}
   }}
+
+\item{.quiet}{Logical; suppress messages (default \code{FALSE}).}
 }
 \value{
 Character vector of BP categories:
@@ -81,8 +82,8 @@ bp_category(
 bp_category(
   bp_value = c(118, 135, 162, 185),
   bp_type = "diastolic",
-  sex = "M", male_code = "M", female_code = "F",
-  height_z = 0,
+  sex = rep("M", 4), male_code = "M", female_code = "F",
+  height_z = rep(0, 4),
   age_years = c(22, 30, 45, 67),
   ref = "NICE/BHF"
 )
@@ -101,7 +102,9 @@ bp_category(
 }
 \seealso{
 Other BP functions:
-\code{\link[=.validate_bp_demo_input]{.validate_bp_demo_input()}},
+\code{\link[=.bp_message]{.bp_message()}},
+\code{\link[=.bp_resolve_limit]{.bp_resolve_limit()}},
+\code{\link[=.bp_validate_demo_input]{.bp_validate_demo_input()}},
 \code{\link[=bp_assess]{bp_assess()}},
 \code{\link[=bp_expected]{bp_expected()}},
 \code{\link{bp_family}},

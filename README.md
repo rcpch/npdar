@@ -98,12 +98,13 @@ library(npdar)
 
 It’s recommended to use the NHBPEP Fourth Report reference for children
 and adolescents aged 0-17 years. Height must already be expressed as a
-z-score, not in centimetres. The 25-year-old below is outside this
-reference’s age range, so returns `NA`.
+z-score, not in centimetres or other units. `bp_assess()` returns a
+tibble with the expected BP, z-score, percentile and category. The
+25-year-old below is outside this reference’s age range, so returns
+`NA`.
 
 ``` r
 bp_assess(
-  option = "category",
   bp_value = c(95, 125, 155),
   bp_type = "systolic",
   sex = c(1, 2, 1),
@@ -115,16 +116,20 @@ bp_assess(
 #> Ignore 1 age(s) outside 0-17 years. NHBPEP Fourth Report is only designed for children <= 17 years.
 #> NHBPEP Fourth Report categorise 'Normotension' to 'Stage 2 hypertension'; Special rules for newborns (<1), children (0-12), adolescents (12-17).
 #> BP outside National Paediatric Diabetes Audit (NPDA) limit removed unless acceptable range is explicitly specified by 'bp_limit'.
-#> [1] "Normotension"    "Prehypertension" NA
+#> # A tibble: 3 × 4
+#>   expected zscore percentile category       
+#>      <dbl>  <dbl>      <dbl> <chr>          
+#> 1     102. -0.672       25.1 Normotension   
+#> 2     112.  1.28        90.0 Prehypertension
+#> 3      NA  NA           NA   <NA>
 ```
 
 For adults older than 17 years, it’s recommended to select the NICE/BHF
 reference explicitly. Ages outside the selected reference range return
-`NA`.
+`NA`, and only `category` is defined for adults.
 
 ``` r
 bp_assess(
-  option = "category",
   bp_value = c(155, 155),
   bp_type = "systolic",
   sex = c(1, 1),
@@ -134,9 +139,61 @@ bp_assess(
   ref = "NICE/BHF"
 )
 #> Ignore 1 age(s) ≤ 17 years. NPDA only uses NICE/BHF reference for (young) adults >17 years.
+#> NICE/BHF only provides category guidelines, expected BP and zscore/percentile BP not calculated.
 #> NICE/BHF categorise 'Normotension' to 'Stage 3 hypertension'.
 #> BP outside National Diabetes Audit (NDA) limit removed unless acceptable range is explicitly specified by 'bp_limit'.
+#> # A tibble: 2 × 4
+#>   expected zscore percentile category            
+#>      <dbl>  <dbl>      <dbl> <chr>               
+#> 1       NA     NA         NA <NA>                
+#> 2       NA     NA         NA Stage 1 hypertension
+```
+
+Apart from the `bp_assess()` function, `bp_category()`, `bp_relative()`,
+and `bp_expected()` can be used separately to compute only the category,
+z score, percentile, or expected value respectively.
+
+``` r
+bp_category(
+  bp_value = c(155, 155),
+  bp_type = "systolic",
+  sex = c(1, 1),
+  male_code = 1, female_code = 2,
+  height_z = c(0, 0),
+  age_years = c(15, 25),
+  ref = "NICE/BHF",
+  .quiet = TRUE
+)
 #> [1] NA                     "Stage 1 hypertension"
+```
+
+The `bp_family` functions can be used in a `dplyr` pipeline nicely.
+
+``` r
+df <- data.frame(
+  id = 1:3,
+  sex = c(1, 2, 1),
+  height_z = c(0, 0.5, -0.5),
+  age_years = c(10, 15, 25),
+  sbp = c(95, 125, 155)
+)
+
+df |>
+  dplyr::mutate(
+    sbp_z = bp_relative(
+      bp_value = sbp, bp_type = "systolic",
+      sex = sex, 
+      male_code = 1, female_code = 2,
+      height_z = height_z, 
+      age_years = age_years,
+      ref = "Fourth",
+      .quiet = FALSE)$zscore
+  )
+#> Ignore 1 age(s) outside 0-17 years. NHBPEP Fourth Report is only designed for children <= 17 years.
+#>   id sex height_z age_years sbp      sbp_z
+#> 1  1   1      0.0        10  95 -0.6718766
+#> 2  2   2      0.5        15 125  1.2830761
+#> 3  3   1     -0.5        25 155         NA
 ```
 
 ### Privacy Masking
@@ -177,8 +234,8 @@ Select the tied mode that occurs most recently:
 
 ``` r
 get_ultimate(dat_long, find = "uptodate_mode", exclude = c("Unknown", NA))
-#> Warning in get_ultimate(dat_long, find = "uptodate_mode", exclude = c("Unknown",
-#> : There are multiple modes, the remaining modes are: A, C
+#> Warning in get_ultimate(dat_long, find = "uptodate_mode", exclude =
+#> c("Unknown", : There are multiple modes, the remaining modes are: A, C
 #> [1] "B"
 ```
 

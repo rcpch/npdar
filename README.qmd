@@ -117,13 +117,13 @@ library(npdar)
 
 It's recommended to use the NHBPEP Fourth Report reference for children
 and adolescents aged 0-17 years. Height must already be expressed as a
-z-score, not in centimetres. The 25-year-old below is outside this
-reference's age range, so returns `NA`.
+z-score, not in centimetres or other units. `bp_assess()` returns a tibble with the
+expected BP, z-score, percentile and category. The 25-year-old below is
+outside this reference's age range, so returns `NA`.
 
 ```{r}
-#| label: bp-category-children
+#| label: bp-assess-children
 bp_assess(
-  option = "category",
   bp_value = c(95, 125, 155),
   bp_type = "systolic",
   sex = c(1, 2, 1),
@@ -136,12 +136,11 @@ bp_assess(
 
 For adults older than 17 years, it's recommended to select the NICE/BHF
 reference explicitly. Ages outside the selected reference range return
-`NA`.
+`NA`, and only `category` is defined for adults.
 
 ```{r}
-#| label: bp-category-adults
+#| label: bp-assess-adults
 bp_assess(
-  option = "category",
   bp_value = c(155, 155),
   bp_type = "systolic",
   sex = c(1, 1),
@@ -150,6 +149,49 @@ bp_assess(
   age_years = c(15, 25),
   ref = "NICE/BHF"
 )
+```
+
+Apart from the `bp_assess()` function, `bp_category()`, `bp_relative()`, 
+and `bp_expected()` can be used separately to compute only the category, 
+z score, percentile, or expected value respectively.
+
+```{r}
+#| label: bp-category-adults
+bp_category(
+  bp_value = c(155, 155),
+  bp_type = "systolic",
+  sex = c(1, 1),
+  male_code = 1, female_code = 2,
+  height_z = c(0, 0),
+  age_years = c(15, 25),
+  ref = "NICE/BHF",
+  .quiet = TRUE
+)
+```
+
+The `bp_family` functions can be used in a `dplyr` pipeline nicely.
+
+```{r}
+#| label: bp-relative-children
+df <- data.frame(
+  id = 1:3,
+  sex = c(1, 2, 1),
+  height_z = c(0, 0.5, -0.5),
+  age_years = c(10, 15, 25),
+  sbp = c(95, 125, 155)
+)
+
+df |>
+  dplyr::mutate(
+    sbp_z = bp_relative(
+      bp_value = sbp, bp_type = "systolic",
+      sex = sex, 
+      male_code = 1, female_code = 2,
+      height_z = height_z, 
+      age_years = age_years,
+      ref = "Fourth",
+      .quiet = FALSE)$zscore
+  )
 ```
 
 ### Privacy Masking

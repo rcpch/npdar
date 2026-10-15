@@ -4,16 +4,17 @@
 \alias{bp_assess}
 \title{Master Wrapper for Blood Pressure Utilities}
 \usage{
-bp_assess(option = c("expected", "zscore", "percentile", "category"), ...)
+bp_assess(bp_value, bp_limit = c(-Inf, Inf), ..., .quiet = FALSE)
 }
 \arguments{
-\item{option}{Character; one of \code{"expected"}, \code{"zscore"},
-\code{"percentile"}, \code{"category"} (partial matching enabled).}
+\item{bp_value}{Numeric vector of observed BP values (mmHg).}
+
+\item{bp_limit}{Length-2 numeric vector \code{c(min, max)} giving acceptable range used for
+categorisation. See \code{\link{bp_category}}.}
 
 \item{...}{
-  Arguments passed on to \code{\link{.validate_bp_demo_input}}, \code{\link{bp_expected}}, \code{\link{bp_relative}}, \code{\link{bp_category}}
+  Arguments passed on to \code{\link{.bp_validate_demo_input}}
   \describe{
-    \item{\code{.quiet}}{Logical; suppress validation messages (default \code{FALSE}).}
     \item{\code{bp_type}}{Character; \code{"systolic"} or \code{"diastolic"}.}
     \item{\code{sex}}{Vector of sex codes in your data. Will be mapped to \code{"male"} or \code{"female"}
 using \code{male_code} and \code{female_code}. Values not matching these codes become \code{NA}.}
@@ -24,28 +25,23 @@ using \code{male_code} and \code{female_code}. Values not matching these codes b
 and set to \code{NA}. Default \code{5}.}
     \item{\code{age_years}}{Numeric vector of ages in years.}
     \item{\code{ref}}{Reference: \code{"Fourth Report"} (children/adolescents, 0-17) or \code{"NICE/BHF"} (adults, >17).}
-    \item{\code{bp_value}}{Numeric vector of observed BP values (mmHg).}
-    \item{\code{bp_limit}}{Length-2 numeric vector \code{c(min, max)} giving acceptable range.
-Defaults to \code{c(-Inf, Inf)}; if left as-is, NPDA/NDA defaults are applied based on \code{ref}.}
   }}
+
+\item{.quiet}{Logical; suppress messages (default \code{FALSE}).}
 }
 \value{
-Depending on \code{option}:
-  \itemize{
-    \item \code{"expected"}: numeric vector of \eqn{\mu}
-    \item \code{"zscore"}: numeric vector of z-scores
-    \item \code{"percentile"}: numeric vector (0-100)
-    \item \code{"category"}: character vector of categories
-  }
+A tibble with one row per input and columns \code{expected} (\eqn{\mu}, mmHg),
+  \code{zscore}, \code{percentile} (0-100) and \code{category}. Values that cannot be
+  computed are \code{NA}; for \code{ref = "NICE/BHF"} only \code{category} is defined.
 }
 \description{
-Convenience wrapper to access expected values, z-scores, percentiles,
-or guideline categories with a single function call.
+Runs \code{\link{bp_expected}}, \code{\link{bp_relative}} and \code{\link{bp_category}}
+in one call. Inputs are validated once and the expected BP is computed once, so messages
+are printed once and the results are consistent with each other.
 }
 \examples{
 # One-stop interface:
 bp_assess(
-  option = "category",
   bp_value = c(115, 142),
   bp_type = "systolic",
   sex = c("M","F"), male_code = "M", female_code = "F",
@@ -57,7 +53,9 @@ bp_assess(
 }
 \seealso{
 Other BP functions:
-\code{\link[=.validate_bp_demo_input]{.validate_bp_demo_input()}},
+\code{\link[=.bp_message]{.bp_message()}},
+\code{\link[=.bp_resolve_limit]{.bp_resolve_limit()}},
+\code{\link[=.bp_validate_demo_input]{.bp_validate_demo_input()}},
 \code{\link[=bp_category]{bp_category()}},
 \code{\link[=bp_expected]{bp_expected()}},
 \code{\link{bp_family}},

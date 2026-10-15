@@ -8,7 +8,7 @@ bp_expected(..., .quiet = FALSE)
 }
 \arguments{
 \item{...}{
-  Arguments passed on to \code{\link{.validate_bp_demo_input}}
+  Arguments passed on to \code{\link{.bp_validate_demo_input}}
   \describe{
     \item{\code{bp_type}}{Character; \code{"systolic"} or \code{"diastolic"}.}
     \item{\code{sex}}{Vector of sex codes in your data. Will be mapped to \code{"male"} or \code{"female"}
@@ -20,6 +20,7 @@ using \code{male_code} and \code{female_code}. Values not matching these codes b
 and set to \code{NA}. Default \code{5}.}
     \item{\code{age_years}}{Numeric vector of ages in years.}
     \item{\code{ref}}{Reference: \code{"Fourth Report"} (children/adolescents, 0-17) or \code{"NICE/BHF"} (adults, >17).}
+    \item{\code{bp_value}}{Optional numeric vector of observed BP (mmHg); only used here to check that its length matches the other inputs.}
   }}
 
 \item{.quiet}{Logical; suppress validation messages (default \code{FALSE}).}
@@ -108,7 +109,9 @@ bp_expected(
 }
 \seealso{
 Other BP functions:
-\code{\link[=.validate_bp_demo_input]{.validate_bp_demo_input()}},
+\code{\link[=.bp_message]{.bp_message()}},
+\code{\link[=.bp_resolve_limit]{.bp_resolve_limit()}},
+\code{\link[=.bp_validate_demo_input]{.bp_validate_demo_input()}},
 \code{\link[=bp_assess]{bp_assess()}},
 \code{\link[=bp_category]{bp_category()}},
 \code{\link{bp_family}},

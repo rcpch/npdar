@@ -94,7 +94,9 @@ internally. Two approaches I recommended for obtaining height z-scores are:
 }
 \seealso{
 Other BP functions:
-\code{\link[=.validate_bp_demo_input]{.validate_bp_demo_input()}},
+\code{\link[=.bp_message]{.bp_message()}},
+\code{\link[=.bp_resolve_limit]{.bp_resolve_limit()}},
+\code{\link[=.bp_validate_demo_input]{.bp_validate_demo_input()}},
 \code{\link[=bp_assess]{bp_assess()}},
 \code{\link[=bp_category]{bp_category()}},
 \code{\link[=bp_expected]{bp_expected()}},

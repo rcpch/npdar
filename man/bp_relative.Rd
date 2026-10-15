@@ -10,7 +10,7 @@ bp_relative(bp_value, ..., .quiet = FALSE)
 \item{bp_value}{Numeric vector of observed BP values (mmHg).}
 
 \item{...}{
-  Arguments passed on to \code{\link{.validate_bp_demo_input}}
+  Arguments passed on to \code{\link{.bp_validate_demo_input}}
   \describe{
     \item{\code{bp_type}}{Character; \code{"systolic"} or \code{"diastolic"}.}
     \item{\code{sex}}{Vector of sex codes in your data. Will be mapped to \code{"male"} or \code{"female"}
@@ -61,7 +61,9 @@ bp_relative(
 }
 \seealso{
 Other BP functions:
-\code{\link[=.validate_bp_demo_input]{.validate_bp_demo_input()}},
+\code{\link[=.bp_message]{.bp_message()}},
+\code{\link[=.bp_resolve_limit]{.bp_resolve_limit()}},
+\code{\link[=.bp_validate_demo_input]{.bp_validate_demo_input()}},
 \code{\link[=bp_assess]{bp_assess()}},
 \code{\link[=bp_category]{bp_category()}},
 \code{\link[=bp_expected]{bp_expected()}},
