@@ -5,8 +5,8 @@
 <!-- badges: start -->
 
 [![R
-Package](https://img.shields.io/badge/R-package-blue.png)](https://github.com/rcpch/npdar)
-[![pkgdown](https://img.shields.io/badge/docs-pkgdown-blue.png)](https://rcpch.github.io/npdar/)
+Package](https://img.shields.io/badge/R-package-blue.svg)](https://github.com/rcpch/npdar)
+[![pkgdown](https://img.shields.io/badge/docs-pkgdown-blue.svg)](https://rcpch.github.io/npdar/)
 [![GPLv3
 license](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0.html)
 [![R-CMD-check](https://github.com/rcpch/npdar/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/rcpch/npdar/actions/workflows/R-CMD-check.yaml)
