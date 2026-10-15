@@ -1,5 +1,63 @@
 # Changelog
 
+## npdar 0.6.0
+
+- Rewrite `README.md` with `README.qmd` and update `.Rbuildignore`.
+- Add light switch and MathJax for math notations in pkgdown site.
+- Breaking: renamed functions to snake_case; the domain families drop
+  `get_`, the utilities keep it:
+  - `get_bp()` →
+    [`bp_assess()`](https://rcpch.github.io/npdar/reference/bp_assess.md)
+  - `get_bpExpected()` →
+    [`bp_expected()`](https://rcpch.github.io/npdar/reference/bp_expected.md)
+  - `get_bpRelative()` →
+    [`bp_relative()`](https://rcpch.github.io/npdar/reference/bp_relative.md)
+  - `get_bpCategory()` →
+    [`bp_category()`](https://rcpch.github.io/npdar/reference/bp_category.md)
+  - `get_auditYear()` →
+    [`audit_year()`](https://rcpch.github.io/npdar/reference/audit_year.md)
+  - `get_auditYears()` →
+    [`audit_year_range()`](https://rcpch.github.io/npdar/reference/audit_year_range.md)
+  - `get_corrMat()` →
+    [`plot_corr_matrix()`](https://rcpch.github.io/npdar/reference/plot_corr_matrix.md)
+  - Help topics `family_bp` → `bp_family` and `family_auditYear` →
+    `audit_year_family`.
+  - [`get_frequency()`](https://rcpch.github.io/npdar/reference/get_frequency.md),
+    [`get_masked()`](https://rcpch.github.io/npdar/reference/get_masked.md)
+    and
+    [`get_ultimate()`](https://rcpch.github.io/npdar/reference/get_ultimate.md)
+    are unchanged.
+- Breaking: renamed arguments to snake_case with clearer names:
+  - [`audit_year_range()`](https://rcpch.github.io/npdar/reference/audit_year_range.md):
+    `startYear` → `start_year`, `endYear` → `end_year`.
+  - [`get_masked()`](https://rcpch.github.io/npdar/reference/get_masked.md):
+    `maxNum` → `threshold`, `maskMessage` → `mask_label`.
+  - [`get_ultimate()`](https://rcpch.github.io/npdar/reference/get_ultimate.md):
+    `except` → `exclude`, `warning` → `warn`.
+- Edit help aliases `bp` (for `bp_family`) and `fiscal_year` (for
+  `audit_year_family`).
+- Breaking: In `bp_family`,
+  [`bp_assess()`](https://rcpch.github.io/npdar/reference/bp_assess.md)
+  no longer takes `option`; it validates inputs once and returns a
+  tibble with `expected`, `zscore`, `percentile` and `category`.
+- In `bp_family`, functions now error if `sex`, `age_years`, `height_z`
+  and `bp_value` differ in length (no recycling), and
+  [`bp_relative()`](https://rcpch.github.io/npdar/reference/bp_relative.md)
+  returns one row per input for NICE/BHF.
+- In `bp_family`,
+  [`bp_category()`](https://rcpch.github.io/npdar/reference/bp_category.md)
+  gains `.quiet`, and `.quiet = TRUE` now also silences the NICE/BHF
+  notices in
+  [`bp_expected()`](https://rcpch.github.io/npdar/reference/bp_expected.md)
+  and
+  [`bp_relative()`](https://rcpch.github.io/npdar/reference/bp_relative.md).
+- In `bp_family`, fixed
+  [`bp_category()`](https://rcpch.github.io/npdar/reference/bp_category.md)
+  and
+  [`bp_assess()`](https://rcpch.github.io/npdar/reference/bp_assess.md)
+  returning “Prehypertension” for BP below the lower `bp_limit`; these
+  now return `NA`.
+
 ## npdar 0.5.0
 
 - Added `count_na` argument to
@@ -14,18 +72,15 @@
   ([\#29](https://github.com/RCPCH/npdar/issues/29)).
 - Simplified
   [`get_frequency()`](https://rcpch.github.io/npdar/reference/get_frequency.md)
-  and
-  [`get_corrMat()`](https://rcpch.github.io/npdar/reference/get_corrMat.md)
-  internals and tidied the unit tests.
+  and `get_corrMat()` internals and tidied the unit tests.
 - Added a pkgdown website, <https://rcpch.github.io/npdar/>, with a
   grouped function reference
   ([\#11](https://github.com/RCPCH/npdar/issues/11)).
 
 ## npdar 0.4.3
 
-- Added
-  [`get_corrMat()`](https://rcpch.github.io/npdar/reference/get_corrMat.md)
-  function to create interactive correlation matrix with `plotly`
+- Added `get_corrMat()` function to create interactive correlation
+  matrix with `plotly`
   ([\#23](https://github.com/RCPCH/npdar/issues/23)).
 - Added new feature for
   [`get_frequency()`](https://rcpch.github.io/npdar/reference/get_frequency.md)
@@ -33,18 +88,12 @@
 - Consistent get\_ + camelCase naming convention:
   - `mask_numerators()` →
     [`get_masked()`](https://rcpch.github.io/npdar/reference/get_masked.md)
-  - `get_BP()` →
-    [`get_bp()`](https://rcpch.github.io/npdar/reference/get_bp.md)
-  - `get_BPCategory()` →
-    [`get_bpCategory()`](https://rcpch.github.io/npdar/reference/get_bpCategory.md)
-  - `get_BPExpected()` →
-    [`get_bpExpected()`](https://rcpch.github.io/npdar/reference/get_bpExpected.md)
-  - `get_BPRelative()` →
-    [`get_bpRelative()`](https://rcpch.github.io/npdar/reference/get_bpRelative.md)
-  - `get_AuditYear()` →
-    [`get_auditYear()`](https://rcpch.github.io/npdar/reference/get_auditYear.md)
-  - `get_AuditYears()` →
-    [`get_auditYears()`](https://rcpch.github.io/npdar/reference/get_auditYears.md)
+  - `get_BP()` → `get_bp()`
+  - `get_BPCategory()` → `get_bpCategory()`
+  - `get_BPExpected()` → `get_bpExpected()`
+  - `get_BPRelative()` → `get_bpRelative()`
+  - `get_AuditYear()` → `get_auditYear()`
+  - `get_AuditYears()` → `get_auditYears()`
 - Updated to roxygen2 8.0.0 and improved documentation.
 
 ## npdar 0.4.2

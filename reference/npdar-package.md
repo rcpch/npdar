@@ -7,7 +7,7 @@ Diabetes Audit (NPDA) data.
 
 **Blood Pressure Assessment:**
 
-- [`family_bp`](https://rcpch.github.io/npdar/reference/family_bp.md):
+- [`bp_family`](https://rcpch.github.io/npdar/reference/bp_family.md):
 
   - Calculate expected blood pressure, z-scores and centiles based on
     given reference.
@@ -15,6 +15,12 @@ Diabetes Audit (NPDA) data.
   - Categorise blood pressure into clinical stages (e.g., Hypertension).
 
 **Statistical Utilities:**
+
+- [`get_masked`](https://rcpch.github.io/npdar/reference/get_masked.md):
+
+  - Mask small numerators to protect patient data privacy.
+
+&nbsp;
 
 - [`get_ultimate`](https://rcpch.github.io/npdar/reference/get_ultimate.md):
 
@@ -30,15 +36,9 @@ Diabetes Audit (NPDA) data.
     denominator, and percentage in long format for easy use in
     \`ggplot2\` or \`plotly\`.
 
-**Data Privacy Suppression:**
-
-- [`get_masked`](https://rcpch.github.io/npdar/reference/get_masked.md):
-
-  - Mask small numerators to protect patient privacy.
-
 \#' **Finding Audit Year(s):**
 
-- [`family_auditYear`](https://rcpch.github.io/npdar/reference/family_auditYear.md):
+- [`audit_year_family`](https://rcpch.github.io/npdar/reference/audit_year_family.md):
 
   - Determine current audit year from (specified) dates, based on custom
     fiscal year structure.
@@ -47,7 +47,7 @@ Diabetes Audit (NPDA) data.
 
 **Correlation Matrix with Plotly:**
 
-- [`get_corrMat`](https://rcpch.github.io/npdar/reference/get_corrMat.md):
+- [`plot_corr_matrix`](https://rcpch.github.io/npdar/reference/plot_corr_matrix.md):
 
   - Compute Pearson or Spearman correlation matrices for numeric
     variables.

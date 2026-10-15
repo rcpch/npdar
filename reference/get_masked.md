@@ -2,14 +2,14 @@
 
 This function masks small numerator values in sensitive data to protect
 privacy by preventing potential identification of individuals. It
-applies two key rules: (1) mask any numerators in the range (0, maxNum),
-and (2) if only one numerator is masked, also mask all occurrences of
-the second smallest value to prevent back-calculation.
+applies two key rules: (1) mask any numerators in the range (0,
+threshold), and (2) if only one numerator is masked, also mask all
+occurrences of the second smallest value to prevent back-calculation.
 
 ## Usage
 
 ``` r
-get_masked(vec, maxNum = 3, maskMessage = "masked")
+get_masked(vec, threshold = 3, mask_label = "masked")
 ```
 
 ## Arguments
@@ -18,12 +18,12 @@ get_masked(vec, maxNum = 3, maskMessage = "masked")
 
   A numeric vector of count data (numerators) to be masked.
 
-- maxNum:
+- threshold:
 
   Numeric. The threshold value for masking. Values greater than 0 and
-  less than `maxNum` will be masked. Default is 3.
+  less than `threshold` will be masked. Default is 3.
 
-- maskMessage:
+- mask_label:
 
   Character string. The message to replace masked values with. Default
   is "masked".
@@ -37,7 +37,8 @@ values need masking, returns the original vector converted to character.
 
 The function implements a two-step masking process:
 
-1.  **Initial masking**: Any values in the range (0, maxNum) are masked
+1.  **Initial masking**: Any values in the range (0, threshold) are
+    masked
 
 2.  **Secondary masking**: If only one value was masked in step 1, all
     occurrences of the second smallest value (excluding 0) are also
@@ -64,22 +65,22 @@ get_masked(example_vec1)  # Returns: "4" "6" "masked" "4" "0"
 
 # With different threshold
 example_vec2 <- c(4, 6, 2, 4, 1)
-get_masked(example_vec2, maxNum = 3)  # Masks values 1 and 2, plus second smallest (4)
+get_masked(example_vec2, threshold = 3)  # Masks values 1 and 2, plus second smallest (4)
 #> [1] "4"      "6"      "masked" "4"      "masked"
 
 # Custom mask message
 example_vec3 <- c(4, 6, 2, 4, 3)
-get_masked(example_vec3, maxNum = 3, maskMessage = "*")
+get_masked(example_vec3, threshold = 3, mask_label = "*")
 #> [1] "4" "6" "*" "4" "*"
 
 # Demonstrating secondary masking rule
 example_vec4 <- c(4, 6, 3, 4, 3)
-get_masked(example_vec4, maxNum = 3)  # Only value 2 would be masked initially
+get_masked(example_vec4, threshold = 3)  # Only value 2 would be masked initially
 #> [1] "4" "6" "3" "4" "3"
 
 # Higher threshold
 example_vec5 <- c(4, 6, 3, 4, 3)
-get_masked(example_vec5, maxNum = 5, maskMessage = "*")  # Masks 3s and 4s
+get_masked(example_vec5, threshold = 5, mask_label = "*")  # Masks 3s and 4s
 #> [1] "*" "6" "*" "*" "*"
 
 # No masking needed
@@ -106,7 +107,7 @@ results <- dat |>
   summarise(numerator = n(), .groups = "drop") |>
   mutate(
     proportion = sprintf("%.1f%%", 100 * numerator / sum(numerator)),
-    numerator_masked = get_masked(numerator, maxNum = 3),
+    numerator_masked = get_masked(numerator, threshold = 3),
     proportion_masked = ifelse(numerator_masked == 'masked', 'masked', proportion)
   )
 } # }

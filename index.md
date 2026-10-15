@@ -1,29 +1,40 @@
+# npdar
+
 ## Overview
 
-**npdar** is an R package that provides utility functions to support the
-[National Paediatric Diabetes Audit
-(NPDA)](https://www.rcpch.ac.uk/work-we-do/clinical-audits/npda)
-programme, developed and maintained by the [Royal College of Paediatrics
-and Child Health (RCPCH)](https://www.rcpch.ac.uk/).
+**npdar** provides R utilities for the [National Paediatric Diabetes
+Audit (NPDA)](https://www.rcpch.ac.uk/work-we-do/clinical-audits/npda),
+developed and maintained by the [Royal College of Paediatrics and Child
+Health (RCPCH)](https://www.rcpch.ac.uk/).
 
-View package site here: <https://rcpch.github.io/npdar/>
+The package supports:
 
-The package currently includes functions for:
+- **Blood pressure assessment:** calculate expected values, z-scores and
+  percentiles, and categorise blood pressure using paediatric or adult
+  references.
 
-- **Blood pressure assessment** — calculating expected BP values,
-  z-scores, percentiles, and categorising hypertension for children and
-  adults based on appropriate references or guidelines.
-- **Statistical utilities** — 1) identifying the most recent/first/last
-  modal value or the first/last entry from a vector with options to
-  ignore specific values. 2) summarising categorical measure(s) by
-  group(s), returning count, denominator, and percentage in long format
-  for easy use in `ggplot2` or `plotly`.
-- **Data privacy suppression** — masking small numerators in a
-  categorical variable to protect patient privacy.
-- **Finding audit year(s)** — determining current audit year & quarter
-  based on the provided date and Q1 start month.
+- **Statistical utilities:**
 
-## ⚠️Disclaimer
+  1.  mask small counts and apply secondary suppression to reduce the
+      risk of back-calculation for data privacy;
+
+  2.  identify first/last/most recent modal values or first/last entry
+      in a longitudinal record with options to ignore specific values;
+
+  3.  summarise categorical measure(s) by group(s) with counts,
+      denominators and percentages in long format for easy use in
+      `ggplot2` and `plotly`.
+
+- **Audit period identification:** identify audit/fiscal years and
+  quarters using a configurable first-quarter start month.
+
+- **Correlation visualisation:** create interactive correlation matrix
+  with `plotly` and [`stats::cor()`](https://rdrr.io/r/stats/cor.html).
+
+See the [package documentation](https://rcpch.github.io/npdar/) for full
+function references and examples.
+
+## Disclaimer ⚠️
 
 **This package is designed for:**
 
@@ -42,20 +53,23 @@ pressure categorisation functions implement published research
 guidelines (NHBPEP Fourth Report, NICE/BHF guidances) **for audit
 analysis purposes only, not for clinical use**.
 
-------------------------------------------------------------------------
-
 ## Installation
 
 **npdar** is not currently available on CRAN. Install the development
-version from GitHub with [`devtools`](https://devtools.r-lib.org/):
+version from GitHub using [pak](https://pak.r-lib.org/):
 
 ``` r
 
-install.packages("devtools")
-devtools::install_github("rcpch/npdar")
+install.packages("pak")
+pak::pak("rcpch/npdar")
+
+# devtools::install_github() was deprecated 
+# in favour of pak::pak() since devtools 2.5.0
+# install.packages("devtools")
+# devtools::install_github("rcpch/npdar")
 ```
 
-Or with [`remotes`](https://remotes.r-lib.org/):
+Alternatively, use [remotes](https://remotes.r-lib.org/):
 
 ``` r
 
@@ -63,161 +77,382 @@ install.packages("remotes")
 remotes::install_github("rcpch/npdar")
 ```
 
-Then load the package:
+## Quick Start
 
 ``` r
 
 library(npdar)
 ```
 
-------------------------------------------------------------------------
+### Blood Pressure
 
-## Quick Start
+It’s recommended to use the NHBPEP Fourth Report reference for children
+and adolescents aged 0-17 years. Height must already be expressed as a
+z-score, not in centimetres or other units.
+[`bp_assess()`](https://rcpch.github.io/npdar/reference/bp_assess.md)
+returns a tibble with the expected BP, z-score, percentile and category.
+The 25-year-old below is outside this reference’s age range, so returns
+`NA`.
 
 ``` r
 
-library(npdar)
-
-library(dplyr)
-library(ggplot2)
-library(plotly)
-
-# --- Blood Pressure ---
-
-# Categorise BP for children (Fourth Report) and adults (NICE/BHF)
-get_bp(
-  option     = "category",
-  bp_value   = c(95, 125, 155),
-  bp_type    = "systolic",
-  sex        = c(1, 2, 1),
-  male_code  = 1, female_code = 2,
-  height_z   = c(0, 0.5, -0.5),
-  age_years  = c(10, 15, 25),
-  ref        = c("Fourth Report")
+bp_assess(
+  bp_value = c(95, 125, 155),
+  bp_type = "systolic",
+  sex = c(1, 2, 1),
+  male_code = 1, female_code = 2,
+  height_z = c(0, 0.5, -0.5),
+  age_years = c(10, 15, 25),
+  ref = "Fourth Report"
 )
-#> Ignore 1 age(s) outside 0-17 years. NHBPEP Fourth Report is only designed for children ≤ 17 years.
-#> NHBPEP Fourth Report categorise 'Normotension' to 'Stage 2 hypertension'; Special rules for 
-#> newborns (<1), children (0-12), adolescents (12-17).
-#> BP outside National Paediatric Diabetes Audit (NPDA) limit removed unless acceptable range is 
-#> explicitly specified by 'bp_limit'.
-#> [1] "Normotension"    "Prehypertension" NA
+#> Ignore 1 age(s) outside 0-17 years. NHBPEP Fourth Report is only designed for children <= 17 years.
+#> NHBPEP Fourth Report categorise 'Normotension' to 'Stage 2 hypertension'; Special rules for newborns (<1), children (0-12), adolescents (12-17).
+#> BP outside National Paediatric Diabetes Audit (NPDA) limit removed unless acceptable range is explicitly specified by 'bp_limit'.
+#> # A tibble: 3 × 4
+#>   expected zscore percentile category       
+#>      <dbl>  <dbl>      <dbl> <chr>          
+#> 1     102. -0.672       25.1 Normotension   
+#> 2     112.  1.28        90.0 Prehypertension
+#> 3      NA  NA           NA   <NA>
+```
 
+For adults older than 17 years, it’s recommended to select the NICE/BHF
+reference explicitly. Ages outside the selected reference range return
+`NA`, and only `category` is defined for adults.
 
-# --- Privacy masking ---
+``` r
 
-# Mask numerator counts below 3 in audit outputs
-get_masked(c(4, 6, 2, 4, 0))
-#> [1] "masked" "6"      "masked" "masked" "0"
-get_masked(c(4, 6, 2, 4, 0), maxNum = 3, maskMessage = "*")
-#> [1] "*" "6" "*" "*" "0"
+bp_assess(
+  bp_value = c(155, 155),
+  bp_type = "systolic",
+  sex = c(1, 1),
+  male_code = 1, female_code = 2,
+  height_z = c(0, 0),
+  age_years = c(15, 25),
+  ref = "NICE/BHF"
+)
+#> Ignore 1 age(s) ≤ 17 years. NPDA only uses NICE/BHF reference for (young) adults >17 years.
+#> NICE/BHF only provides category guidelines, expected BP and zscore/percentile BP not calculated.
+#> NICE/BHF categorise 'Normotension' to 'Stage 3 hypertension'.
+#> BP outside National Diabetes Audit (NDA) limit removed unless acceptable range is explicitly specified by 'bp_limit'.
+#> # A tibble: 2 × 4
+#>   expected zscore percentile category            
+#>      <dbl>  <dbl>      <dbl> <chr>               
+#> 1       NA     NA         NA <NA>                
+#> 2       NA     NA         NA Stage 1 hypertension
+```
 
+Apart from the
+[`bp_assess()`](https://rcpch.github.io/npdar/reference/bp_assess.md)
+function,
+[`bp_category()`](https://rcpch.github.io/npdar/reference/bp_category.md),
+[`bp_relative()`](https://rcpch.github.io/npdar/reference/bp_relative.md),
+and
+[`bp_expected()`](https://rcpch.github.io/npdar/reference/bp_expected.md)
+can be used separately to compute only the category, z score,
+percentile, or expected value respectively.
 
-# --- Longitudinal summarisation (first/last/most recent modal values) ---
+``` r
 
-# Find the desired mode
-x <- c("A", "B", "C", "A", "A", "Unknown", "Unknown", NA, "C", "C", "B", "B", "Unknown")
+bp_category(
+  bp_value = c(155, 155),
+  bp_type = "systolic",
+  sex = c(1, 1),
+  male_code = 1, female_code = 2,
+  height_z = c(0, 0),
+  age_years = c(15, 25),
+  ref = "NICE/BHF",
+  .quiet = TRUE
+)
+#> [1] NA                     "Stage 1 hypertension"
+```
 
-# The most recent mode
-get_ultimate(x, find = "uptodate_mode", except = c("Unknown", NA)) 
-#> Warning in get_ultimate(x, find = "uptodate_mode", except = c("Unknown", NA)) :
-#> There are multiple modes, the remaining modes are: A, C
+The `bp_family` functions can be used in a `dplyr` pipeline nicely.
+
+``` r
+
+df <- data.frame(
+  id = 1:3,
+  sex = c(1, 2, 1),
+  height_z = c(0, 0.5, -0.5),
+  age_years = c(10, 15, 25),
+  sbp = c(95, 125, 155)
+)
+
+df |>
+  dplyr::mutate(
+    sbp_z = bp_relative(
+      bp_value = sbp, bp_type = "systolic",
+      sex = sex, 
+      male_code = 1, female_code = 2,
+      height_z = height_z, 
+      age_years = age_years,
+      ref = "Fourth",
+      .quiet = FALSE)$zscore
+  )
+#> Ignore 1 age(s) outside 0-17 years. NHBPEP Fourth Report is only designed for children <= 17 years.
+#>   id sex height_z age_years sbp      sbp_z
+#> 1  1   1      0.0        10  95 -0.6718766
+#> 2  2   2      0.5        15 125  1.2830761
+#> 3  3   1     -0.5        25 155         NA
+```
+
+### Privacy Masking
+
+By default,
+[`get_masked()`](https://rcpch.github.io/npdar/reference/get_masked.md)
+masks positive counts below 3 and leaves zeros unchanged. If only one
+count is masked, all occurrences of the next smallest positive value are
+also masked to prevent back-calculation. The result is a character
+vector. Here only `2` is below 3, so the `4`s are masked as well.
+
+``` r
+
+get_masked(c(4, 6, 2, 4, 0, 5, 5))
+#> [1] "masked" "6"      "masked" "masked" "0"      "5"      "5"
+```
+
+Customise the threshold and the suppression label:
+
+``` r
+
+get_masked(c(4, 6, 2, 4, 0, 5, 5), threshold = 5, mask_label = "*")
+#> [1] "*" "6" "*" "*" "0" "5" "5"
+get_masked(c(4, 6, 2, 4, 0, 5, 5), threshold = 6, mask_label = "*")
+#> [1] "*" "6" "*" "*" "0" "*" "*"
+```
+
+### Longitudinal Summaries
+
+[`get_ultimate()`](https://rcpch.github.io/npdar/reference/get_ultimate.md)
+uses vector order, so sort longitudinal records chronologically before
+selecting a most recent value. These examples exclude unknown and
+missing values and deliberately include tied modes; warnings explain
+which modes were not selected.
+
+``` r
+
+dat_long <- c("A", "B", "C", "A", "A", "Unknown", "Unknown",
+          NA, "C", "C", "B", "B", "Unknown")
+```
+
+Select the tied mode that occurs most recently:
+
+``` r
+
+get_ultimate(dat_long, find = "uptodate_mode", exclude = c("Unknown", NA))
+#> Warning in get_ultimate(dat_long, find = "uptodate_mode", exclude =
+#> c("Unknown", : There are multiple modes, the remaining modes are: A, C
 #> [1] "B"
+```
 
-# The last mode
-get_ultimate(x, find = "last_mode", except = c("Unknown"))
-#> Warning in get_ultimate(x, find = "last_mode", except = except = c("Unknown")) :
+Use the package’s `last_mode` rule instead:
+
+``` r
+
+get_ultimate(dat_long, find = "last_mode", exclude = c("Unknown", NA))
+#> Warning in get_ultimate(dat_long, find = "last_mode", exclude = c("Unknown", :
 #> There are multiple modes, the remaining modes are: A, B
 #> [1] "C"
+```
 
-# --- Categorical frequency summarisation ---
-# 1. Unnested groups
+### Categorical Frequencies
+
+The following examples use synthetic data.
+[`get_frequency()`](https://rcpch.github.io/npdar/reference/get_frequency.md)
+returns a long table with a numerator, denominator and proportion
+(`percent`, on a 0-1 scale) for each category. Missing measure values
+are excluded by default; use `count_na = TRUE` to include them.
+
+``` r
+
 set.seed(1999)
-df <- data.frame(participant_id = 1:60,
-                 country        = c(rep("England", 30), rep("Wales", 30)),
-                 region         = c(
-                   rep("East England", 10), rep("West England", 10), rep(NA, 10),
-                   rep("North Wales", 10), rep("South Wales", 10), rep(NA, 10)
-                 ),
-                 # Categorical Q1
-                 q1_catq        = sample(c("A", "B", "C", NA), 60, replace = TRUE),
-                 # Categorical Q2 
-                 q2_catq        = sample(c("A", "B", "C", "D", "E", NA), 60, replace = TRUE)
+dat_survey1 <- data.frame(
+  participant_id = seq_len(60),
+  country = rep(c("England", "Wales"), each = 30),
+  region = rep(
+    c("East England", "West England", NA, "North Wales", "South Wales", NA),
+    each = 10
+  ),
+  q1_catq = sample(c("A", "B", "C", NA), 60, replace = TRUE),
+  q2_catq = sample(c("A", "B", "C", "D", "E", NA), 60, replace = TRUE)
 )
 
-group_cols <- c("overall", "country", "region")
+dat_survey2 <- data.frame(
+  auditYear = c(rep(2021, 3), rep(2022, 3), rep(2023, 6)),
+  sex = c(
+    "Female", "Female", "Male", "Female", "Male", "Male",
+    "Female", "Male", "Male", "Male", NA, NA
+  ),
+  type = c("A", "B", "B", "A", "B", NA,
+           sample(c("A", "B", NA), 6, replace = TRUE))
+)
+```
 
-measure_cols <- df |>
-  select(matches("q[0-9]+_catq")) |>
-  names()
+#### Separate Group Summary
 
-sum <- get_frequency(
-  data     = df,
-  measures = measure_cols,
-  groups   = group_cols
+With `nested = FALSE` (the default), each grouping variable is
+summarised separately. The special group name `"overall"` adds an
+overall summary.
+
+``` r
+
+sum_freq_eg1 <- get_frequency(
+  data = dat_survey1,
+  measures = c("q1_catq", "q2_catq"),
+  groups = c("overall", "country", "region")
 )
 
-head(sum)
-#>   overall country region measure category numerator denominator percent
-#> 1 overall NA      NA     q1_catq A               10          41   0.244
-#> 2 overall NA      NA     q1_catq B               18          41   0.439
-#> 3 overall NA      NA     q1_catq C               13          41   0.317
-#> 4 overall NA      NA     q2_catq A                9          54   0.167
-#> 5 overall NA      NA     q2_catq B               16          54   0.296
-#> 6 overall NA      NA     q2_catq C               10          54   0.185
+sum_freq_eg1 |>
+  dplyr::filter(category == "A")
+#> # A tibble: 14 × 8
+#>    overall country region       measure category numerator denominator percent
+#>    <chr>   <chr>   <chr>        <chr>   <chr>        <dbl>       <dbl>   <dbl>
+#>  1 overall <NA>    <NA>         q1_catq A               10          41  0.244 
+#>  2 overall <NA>    <NA>         q2_catq A                9          54  0.167 
+#>  3 <NA>    England <NA>         q1_catq A                5          21  0.238 
+#>  4 <NA>    England <NA>         q2_catq A                1          28  0.0357
+#>  5 <NA>    Wales   <NA>         q1_catq A                5          20  0.25  
+#>  6 <NA>    Wales   <NA>         q2_catq A                8          26  0.308 
+#>  7 <NA>    <NA>    East England q1_catq A                2           7  0.286 
+#>  8 <NA>    <NA>    East England q2_catq A                0           9  0     
+#>  9 <NA>    <NA>    North Wales  q1_catq A                1           7  0.143 
+#> 10 <NA>    <NA>    North Wales  q2_catq A                4          10  0.4   
+#> 11 <NA>    <NA>    South Wales  q1_catq A                3           9  0.333 
+#> 12 <NA>    <NA>    South Wales  q2_catq A                2           9  0.222 
+#> 13 <NA>    <NA>    West England q1_catq A                1           7  0.143 
+#> 14 <NA>    <NA>    West England q2_catq A                1          10  0.1
+```
 
-# plotly
-sum |>
-  filter(!is.na(country)) |>
-  group_by(measure) |>
-  do(p=plot_ly(., x = ~country, y = ~percent, color = ~category, type = "bar")) |>
-  subplot(nrows = 1, shareX = TRUE, shareY = TRUE)
+#### Nested Group Summary
 
-# ggplot
-sum |>
-  filter(!is.na(country)) |>
+Use `nested = TRUE` to summarise combinations of grouping variables,
+such as sex within each audit year:
+
+``` r
+
+get_frequency(
+  data = dat_survey2,
+  measures = "type",
+  groups = c("auditYear", "sex"),
+  nested = TRUE
+)
+#> # A tibble: 12 × 7
+#>    auditYear sex    measure category numerator denominator percent
+#>        <dbl> <chr>  <chr>   <chr>        <dbl>       <dbl>   <dbl>
+#>  1      2021 Female type    A                1           2     0.5
+#>  2      2021 Female type    B                1           2     0.5
+#>  3      2021 Male   type    A                0           1     0  
+#>  4      2021 Male   type    B                1           1     1  
+#>  5      2022 Female type    A                1           1     1  
+#>  6      2022 Female type    B                0           1     0  
+#>  7      2022 Male   type    A                0           1     0  
+#>  8      2022 Male   type    B                1           1     1  
+#>  9      2023 Female type    A                0           1     0  
+#> 10      2023 Female type    B                1           1     1  
+#> 11      2023 Male   type    A                0           2     0  
+#> 12      2023 Male   type    B                2           2     1
+```
+
+#### Count NAs
+
+Use `count_na = TRUE` to include missing values in the denominator and
+report them as a separate `NA` category (only for measures that contain
+missing values).
+
+``` r
+
+sum_freq_eg3 <- get_frequency(
+  data = dat_survey1,
+  measures = "q1_catq",
+  groups = c("country", "region"),
+  nested = TRUE,
+  count_na = TRUE
+)
+
+sum_freq_eg3 |>
+  dplyr::filter(region %in% c("East England", "North Wales"))
+#> # A tibble: 8 × 7
+#>   country region       measure category numerator denominator percent
+#>   <chr>   <chr>        <chr>   <chr>        <int>       <int>   <dbl>
+#> 1 England East England q1_catq A                2          10     0.2
+#> 2 England East England q1_catq B                4          10     0.4
+#> 3 England East England q1_catq C                1          10     0.1
+#> 4 England East England q1_catq <NA>             3          10     0.3
+#> 5 Wales   North Wales  q1_catq A                1          10     0.1
+#> 6 Wales   North Wales  q1_catq B                2          10     0.2
+#> 7 Wales   North Wales  q1_catq C                4          10     0.4
+#> 8 Wales   North Wales  q1_catq <NA>             3          10     0.3
+```
+
+#### Static Plot with `ggplot2`
+
+``` r
+
+library(ggplot2)
+
+sum_freq_eg1 |>
+  dplyr::filter(!is.na(country)) |>
   ggplot(aes(x = country, y = percent, fill = category)) +
   geom_col() +
   facet_wrap(~ measure, nrow = 1) +
+  scale_y_continuous(labels = scales::percent) +
   labs(x = "Country", y = "Percent", fill = "Category")
+```
 
-# 2. Nested groups
-set.seed(1999)
-df_nested <- data.frame(
-  auditYear = c(rep(2021, 3), rep(2022, 3), rep(2023, 6)),
-  sex = c("Female", "Female", "Male",
-          "Female", "Male", "Male",
-          rep("Female", 1), rep("Male", 3), rep(NA, 2)),
-  type = c("A", "B", "B",
-           "A", "B", NA,
-           sample(c("A", "B", NA), 6, replace = TRUE))
-)
+#### Interactive Plot with `plotly`
 
-sum_nested <- get_frequency(data = df_nested, measures = "type", groups = c("auditYear", "sex"), nested = TRUE)
+``` r
 
-head(sum_nested)
-#>   auditYear sex    measure category numerator denominator percent
-#> 1      2021 Female type    A                1           2     0.5
-#> 2      2021 Female type    B                1           2     0.5
-#> 3      2021 Male   type    A                0           1     0  
-#> 4      2021 Male   type    B                1           1     1  
-#> 5      2022 Female type    A                1           1     1  
-#> 6      2022 Female type    B                0           1     0  
+library(plotly)
 
-# --- Finding audit period(s) ---
-get_auditYear() # Return current audit year & quarter (based on NPDA default Q1 start month)
+sum_freq_eg1 |>
+  dplyr::filter(!is.na(country)) |>
+  dplyr::group_by(measure) |>
+  dplyr::group_map(\(df, ...) {
+    plot_ly(df, x = ~country, y = ~percent, 
+            color = ~category, type = "bar")
+  }) |>
+  subplot(nrows = 1, shareX = TRUE, shareY = TRUE)
+```
 
-get_auditYear("2025-03-31")  
+### Audit Periods
+
+The default audit year starts in April. With no date supplied,
+[`audit_year()`](https://rcpch.github.io/npdar/reference/audit_year.md)
+uses today’s date:
+
+``` r
+
+audit_year()
+#> [1] "2026/27 Q3"
+```
+
+Fixed dates keep the rendered examples reproducible:
+
+``` r
+
+audit_year("2025-03-31")
 #> [1] "2024/25 Q4"
-
-get_auditYear("2025-03-31", format = F)  
+audit_year("2025-03-31", format = FALSE)
 #> [1] 2024
+```
 
-get_auditYear("2025-03-31", start_month = 1)  
+Change the first-quarter start month for a different audit calendar:
+
+``` r
+
+audit_year("2025-03-31", start_month = 1)
 #> [1] "2025/26 Q1"
+```
+
+Generate an inclusive sequence of audit years:
+
+``` r
 
 data.frame(
-  audit_year = get_auditYears(2010, 2015),
-  audit_year_numeric = get_auditYears(2010, 2015, format = FALSE)
+  audit_year = audit_year_range(2010, 2015),
+  audit_year_numeric = audit_year_range(2010, 2015, format = FALSE)
 )
 #>   audit_year audit_year_numeric
 #> 1    2010/11               2010
@@ -226,27 +461,43 @@ data.frame(
 #> 4    2013/14               2013
 #> 5    2014/15               2014
 #> 6    2015/16               2015
-
-# --- Correlation matrix with Plotly---
-# Basic correlation matrix
-get_corrMat(mtcars)
-
-# Spearman correlation without tile labels, with additional plotly arguments
-get_corrMat(mtcars,
-            method = "spearman",
-            show_values = FALSE,
-            show_stars = TRUE,
-            colorbar = list(title = "Correlation")) |>
-plotly::layout(annotations = list(
-  text = paste0("<i><b>Note:</b> *: p<0.05, **: p<0.01, ***: p<0.001.</i>"),
-  x = 1, y = 1, xref = "paper", yref = "paper",
-  xanchor = "right", yanchor = "top",
-  showarrow = FALSE))
 ```
 
-------------------------------------------------------------------------
+### Correlation Matrix with `plotly`
+
+[`plot_corr_matrix()`](https://rcpch.github.io/npdar/reference/plot_corr_matrix.md)
+creates an interactive lower-triangle correlation heatmap. Supply a data
+frame containing only numeric variables:
+
+``` r
+
+plot_corr_matrix(mtcars)
+```
+
+Customise the plot, for example by selecting Spearman correlations,
+hiding the values and customising the colour bar:
+
+``` r
+
+plot_corr_matrix(
+  mtcars,
+  method = "spearman",
+  show_values = FALSE,
+  show_stars = TRUE,
+  colorbar = list(title = "Spearman Corr")
+) |>
+  plotly::layout(
+    margin = list(b = 80),
+    annotations = list(list(
+      text = paste0("<i><b>Note:</b> *: p<0.05, **: p<0.01, ***: p<0.001.</i>"),
+      x = 1, y = -0.15, xref = "paper", yref = "paper",
+      xanchor = "right", yanchor = "top",
+      showarrow = FALSE
+    ))
+  )
+```
 
 ## License
 
-This package is licensed under the [GNU General Public License
-v3.0](https://rcpch.github.io/npdar/LICENSE.md).
+This package is licensed under the [GNU General Public License v3.0 or
+later](https://rcpch.github.io/npdar/LICENSE.md).
