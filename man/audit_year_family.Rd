@@ -2,8 +2,7 @@
 % Please edit documentation in R/audit_year_family.R
 \name{audit_year_family}
 \alias{audit_year_family}
-\alias{auditYear}
-\alias{auditYears}
+\alias{fiscal_year}
 \title{Functions for Audit Year(s) Determination}
 \description{
 Functions to determine current audit year and generate sequential lists of
@@ -48,8 +47,8 @@ For example:
 }
 
 \seealso{
-Other auditYear functions:
+Other Audit year functions:
 \code{\link[=audit_year]{audit_year()}},
 \code{\link[=audit_year_range]{audit_year_range()}}
 }
-\concept{auditYear functions}
+\concept{Audit year functions}

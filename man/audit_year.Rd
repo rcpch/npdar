@@ -78,8 +78,8 @@ df |> mutate(audit_year = audit_year(admission_date))
 }
 }
 \seealso{
-Other auditYear functions:
+Other Audit year functions:
 \code{\link{audit_year_family}},
 \code{\link[=audit_year_range]{audit_year_range()}}
 }
-\concept{auditYear functions}
+\concept{Audit year functions}

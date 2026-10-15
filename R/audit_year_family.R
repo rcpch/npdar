@@ -12,7 +12,7 @@
 #'   \item \code{\link{audit_year_range}}: Generate sequence of audit years
 #' }
 #'
-#' @template auditYear_quarters
+#' @template audit_year_quarters
 #'
 #' @section Key Features:
 #' \itemize{
@@ -22,9 +22,9 @@
 #'   \item Optional integer or formatted string output
 #' }
 #'
-#' @family auditYear functions
+#' @family Audit year functions
 #' @name audit_year_family
-#' @aliases auditYear auditYears
+#' @aliases fiscal_year
 NULL
 
 # ========== 0. Internal Helper Function ==========
@@ -41,13 +41,13 @@ NULL
 #' @keywords internal
 #' @noRd
 #'
-#' @family auditYear functions
+#' @family Audit year functions
 #' @examples
 #' \dontrun{
-#' .formatAuditYear(2017)  # Returns "2017/18"
-#' .formatAuditYear(2024)  # Returns "2024/25"
+#' .format_audit_year(2017)  # Returns "2017/18"
+#' .format_audit_year(2024)  # Returns "2024/25"
 #' }
-.formatAuditYear <- function(year) {
+.format_audit_year <- function(year) {
   paste0(year, "/", sprintf("%02d", (year + 1) %% 100))
 }
 
@@ -72,9 +72,9 @@ NULL
 #'   If \code{format = FALSE}, returns an integer representing the audit year's
 #'   start year.
 #'
-#' @template auditYear_quarters
+#' @template audit_year_quarters
 #'
-#' @family auditYear functions
+#' @family Audit year functions
 #' @export
 #'
 #' @examples
@@ -130,7 +130,7 @@ audit_year <- function(date = Sys.Date(), start_month = 4, format = TRUE) {
   # Step 2. If format==T, determine audit quarter & format as "YYYY/YY Qx"; else return integer year
   if (format==TRUE) {
     # Step 2a. Format year as "YYYY/YY"
-    audit_year <- .formatAuditYear(audit_year)
+    audit_year <- .format_audit_year(audit_year)
     # Step 2b. Determine audit quarter
     audit_quarter <- ceiling(((m - start_month + 12) %% 12 + 1) / 3)
     result <- paste0(audit_year, " Q", audit_quarter)
@@ -176,7 +176,7 @@ audit_year <- function(date = Sys.Date(), start_month = 4, format = TRUE) {
 #'
 #' @seealso \code{\link{audit_year}} for determining a single audit year from a date.
 #'
-#' @family auditYear functions
+#' @family Audit year functions
 #' @export
 #'
 #' @examples
@@ -237,8 +237,8 @@ audit_year_range <- function(start_year = 2010, end_year = audit_year(format = F
 
   # 2. If format==T, format as "YYYY/YY"
   if (format == TRUE) {
-    # vapply(resultList, .formatAuditYear, FUN.VALUE = character(1))
-    .formatAuditYear(resultList)
+    # vapply(resultList, .format_audit_year, FUN.VALUE = character(1))
+    .format_audit_year(resultList)
   } else {
     as.integer(resultList)
   }
