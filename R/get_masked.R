@@ -76,9 +76,10 @@
 #'   group_by(unit_number, gender) |>
 #'   summarise(numerator = n(), .groups = "drop") |>
 #'   mutate(
-#'     proportion = sprintf("%.1f%%", 100 * numerator / sum(numerator)),
-#'     numerator_masked = get_masked(numerator, threshold = 3),
-#'     proportion_masked = ifelse(numerator_masked == 'masked', 'masked', proportion)
+#'     denomiantor = sum(numerator),
+#'     percent = sprintf("%.1f%%", 100 * numerator / denomiantor),
+#'     numerator_masked = get_masked(numerator, threshold = 3, mask_label = '*'),
+#'     percent_masked = ifelse(numerator_masked == '*', '*', percent)
 #'   )
 #' }
 get_masked <- function(vec, threshold = 3, mask_label = 'masked', mask_zero = FALSE, mask_na = FALSE) {
@@ -95,6 +96,9 @@ get_masked <- function(vec, threshold = 3, mask_label = 'masked', mask_zero = FA
   if (!is.logical(mask_zero) || length(mask_zero) != 1 || is.na(mask_zero)) {
     stop("'mask_zero' must be TRUE or FALSE")
   }
+  if (!is.logical(mask_na) || length(mask_na) != 1 || is.na(mask_na)) {
+    stop("'mask_na' must be TRUE or FALSE")
+  }
 
   is_known <- !is.na(vec)
 
@@ -104,6 +108,8 @@ get_masked <- function(vec, threshold = 3, mask_label = 'masked', mask_zero = FA
   if (mask_zero) {
     is_to_mask <- is_to_mask | (is_known & vec == 0)
   }
+  if (mask_na) {
+    is_to_mask <- is_to_mask | !is_known
   }
 
   # Step 2: Ensure at least two values are masked, at least one of them positive
