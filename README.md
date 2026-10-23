@@ -199,23 +199,36 @@ df |>
 ### Privacy Masking
 
 By default, `get_masked()` masks positive counts below 3 and leaves
-zeros unchanged. If only one count is masked, all occurrences of the
-next smallest positive value are also masked to prevent
-back-calculation. The result is a character vector. Here only `2` is
-below 3, so the `4`s are masked as well.
+zeros and `NA`s unchanged, as they are meaningful and do not put privacy
+at risk. At least two values are always masked, so that a masked count
+cannot be back-calculated from the denominator: if fewer are masked, the
+next smallest positive value is masked as well. The result is a
+character vector.
 
 ``` r
-get_masked(c(4, 6, 2, 4, 0, 5, 5))
-#> [1] "masked" "6"      "masked" "masked" "0"      "5"      "5"
+vec1 <- c(5, 6, 4, 5, 1, 0, 0, NA)
+get_masked(vec1)
+#> [1] "5"      "6"      "masked" "5"      "masked" "0"      "0"      NA
 ```
 
-Customise the threshold and the suppression label:
+Customise the threshold and mask label:
 
 ``` r
-get_masked(c(4, 6, 2, 4, 0, 5, 5), threshold = 5, mask_label = "*")
-#> [1] "*" "6" "*" "*" "0" "5" "5"
-get_masked(c(4, 6, 2, 4, 0, 5, 5), threshold = 6, mask_label = "*")
-#> [1] "*" "6" "*" "*" "0" "*" "*"
+get_masked(vec1, mask_label = "*", threshold = 6)
+#> [1] "*" "6" "*" "*" "*" "0" "0" NA
+```
+
+Use `mask_zero` and `mask_na` to mask zeros and `NA`s too. At least one
+positive value is still masked, otherwise the denominator would reveal
+that every masked value is zero or unknown:
+
+``` r
+get_masked(vec1, mask_label = "*", mask_zero = TRUE)
+#> [1] "5" "6" "4" "5" "*" "*" "*" NA
+get_masked(vec1, mask_label = "*", mask_na = TRUE)
+#> [1] "5" "6" "4" "5" "*" "0" "0" "*"
+get_masked(vec1, mask_label = "*", mask_zero = TRUE, mask_na = TRUE)
+#> [1] "5" "6" "4" "5" "*" "*" "*" "*"
 ```
 
 ### Longitudinal Summaries
