@@ -105,7 +105,18 @@ test_that("get_masked handles secondary masking with insufficient unique values"
 
 test_that("get_masked validates input parameters", {
   # Non-numeric vector
-  expect_error(get_masked(c("a", "b", "c")), "Input 'vec' must be a numeric vector")
+  expect_error(get_masked(c("a", "b", "c")), "Input 'vec' must be a numeric vector without any negative value")
+  expect_error(get_masked(c("a", 2, 3)), "Input 'vec' must be a numeric vector without any negative value")
+
+  # Logical vector
+  expect_error(get_masked(c(TRUE, FALSE)), "Input 'vec' must be a numeric vector without any negative value")
+  
+  # unfortunately, this mixed vector will be treated as numeric (TRUE = 1, FALSE = 0) and may cannot be caught
+  # get_masked(c(1, 2, TRUE, FALSE))
+
+  # Negative values
+  expect_error(get_masked(c(1, -1, 5)), "Input 'vec' must be a numeric vector without any negative value")
+  expect_error(get_masked(c(-0.5, NA, 5)), "Input 'vec' must be a numeric vector without any negative value")
 
   # Invalid threshold
   expect_error(get_masked(c(1, 2, 3), threshold = 0), "'threshold' must be a single positive numeric value")

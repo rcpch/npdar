@@ -83,8 +83,8 @@
 #' }
 get_masked <- function(vec, threshold = 3, mask_label = 'masked') {
   # Input validation
-  if (!is.numeric(vec)) {
-    stop("Input 'vec' must be a numeric vector")
+  if (!is.numeric(vec) || any(vec < 0, na.rm = TRUE)) {
+    stop("Input 'vec' must be a numeric vector without any negative value")
   }
   if (!is.numeric(threshold) || length(threshold) != 1 || threshold <= 0) {
     stop("'threshold' must be a single positive numeric value")
