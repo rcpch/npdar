@@ -57,7 +57,7 @@ test_that("get_masked returns original vector when no masking needed", {
 })
 
 test_that("get_masked handles zero values correctly", {
-  # Zeros should never be masked
+  # Zeros are not masked by default
   result1 <- get_masked(c(0, 1, 2, 0, 3), threshold = 3)
   # 1 and 2 are masked, no secondary masking needed
   expected1 <- c("0", "masked", "masked", "0", "3")
@@ -123,6 +123,11 @@ test_that("get_masked validates input parameters", {
   expect_error(get_masked(c(1, 2, 3), threshold = c(2, 3)), "'threshold' must be a single positive numeric value")
   expect_error(get_masked(c(1, 2, 3), threshold = -1), "'threshold' must be a single positive numeric value")
 
+  # Invalid mask_zero
+  expect_error(get_masked(c(1, 2, 3), mask_zero = NA), "'mask_zero' must be TRUE or FALSE")
+  expect_error(get_masked(c(1, 2, 3), mask_zero = "yes"), "'mask_zero' must be TRUE or FALSE")
+  expect_error(get_masked(c(1, 2, 3), mask_zero = c(TRUE, FALSE)), "'mask_zero' must be TRUE or FALSE")
+
   # Invalid mask_label
   expect_error(get_masked(c(1, 2, 3), mask_label = c("a", "b")), "'mask_label' must be a single character string")
   expect_error(get_masked(c(1, 2, 3), mask_label = 123), "'mask_label' must be a single character string")
@@ -157,4 +162,42 @@ test_that("get_masked always returns character vector", {
   result2 <- get_masked(c(1, 10, 20))
   expect_type(result2, "character")
   expect_true(all(is.character(result2)))
+})
+
+test_that("get_masked leaves zeros unmasked by default", {
+  result <- get_masked(c(0, 0, 2, 2, 3), mask_label = "*")
+  expect_equal(result, c("0", "0", "*", "*", "3"))
+})
+
+test_that("get_masked masks zeros when mask_zero = TRUE", {
+  result <- get_masked(c(0, 0, 2, 2, 3), mask_label = "*", mask_zero = TRUE)
+  expect_equal(result, c("*", "*", "*", "*", "3"))
+})
+
+test_that("mask_zero counts masked zeros towards the two masked values", {
+  # A masked positive plus a masked zero is enough, no secondary masking
+  result1 <- get_masked(c(1, 5, 6, 7, 0), mask_label = "*", mask_zero = TRUE)
+  expect_equal(result1, c("*", "5", "6", "7", "*"))
+
+  result2 <- get_masked(c(0, 0, 2, 5, 8), mask_label = "*", mask_zero = TRUE)
+  expect_equal(result2, c("*", "*", "*", "5", "8"))
+
+  # No positive below threshold: masked zeros alone would reveal the masked sum is 0,
+  # so the smallest positive value is masked too
+  result3 <- get_masked(c(0, 0, 5, 6, 7), mask_label = "*", mask_zero = TRUE)
+  expect_equal(result3, c("*", "*", "*", "6", "7"))
+
+  # Single zero and a single smallest positive are enough
+  result4 <- get_masked(c(0, 5, 6), mask_label = "*", mask_zero = TRUE)
+  expect_equal(result4, c("*", "*", "6"))
+})
+
+test_that("mask_zero = TRUE changes nothing when there are no zeros", {
+  vec <- c(4, 6, 2, 4)
+  expect_equal(get_masked(vec, mask_zero = TRUE), get_masked(vec))
+  expect_equal(get_masked(c(5, 6, 7), mask_zero = TRUE), c("5", "6", "7"))
+})
+
+test_that("mask_zero = TRUE with only zeros has nothing else to mask", {
+  expect_equal(get_masked(c(0, 0, 0), mask_label = "*", mask_zero = TRUE), c("*", "*", "*"))
 })

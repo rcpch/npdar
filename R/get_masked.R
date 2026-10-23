@@ -81,7 +81,7 @@
 #'     proportion_masked = ifelse(numerator_masked == 'masked', 'masked', proportion)
 #'   )
 #' }
-get_masked <- function(vec, threshold = 3, mask_label = 'masked') {
+get_masked <- function(vec, threshold = 3, mask_label = 'masked', mask_zero = FALSE, mask_na = FALSE) {
   # Input validation
   if (!is.numeric(vec) || any(vec < 0, na.rm = TRUE)) {
     stop("Input 'vec' must be a numeric vector without any negative value")
@@ -92,32 +92,31 @@ get_masked <- function(vec, threshold = 3, mask_label = 'masked') {
   if (!is.character(mask_label) || length(mask_label) != 1) {
     stop("'mask_label' must be a single character string")
   }
-
-  # Step 1: Mask any values within the range (0, threshold)
-  vec_masked <- ifelse(vec > 0 & vec < threshold, mask_label, vec)
-
-  # Count how many values were masked currently
-  num_masked <- sum(vec_masked == mask_label)
-
-  # Step 2: If no values within range (0, threshold), return the original vector
-  if (num_masked == 0) {
-    return(as.character(vec)) # Convert to character for consistency
+  if (!is.logical(mask_zero) || length(mask_zero) != 1 || is.na(mask_zero)) {
+    stop("'mask_zero' must be TRUE or FALSE")
   }
 
-  # Step 3: If only 1 value was masked, mask all occurrences of the second smallest
-  if (num_masked == 1) {
-    # Get unique values excluding 0
-    unique_sorted <- unique(sort(vec)) # Sort and get all unique values
-    unique_sorted <- unique_sorted[unique_sorted != 0] # Exclude 0
+  is_known <- !is.na(vec)
 
-    # Check if there's a second smallest value to mask
-    if (length(unique_sorted) >= 2) {
-      # Get the second smallest value (excluding 0)
-      second_smallest <- unique_sorted[2]
-      # Mask all occurrences (use original vec, not vec_masked which is now character)
-      vec_masked[vec == second_smallest] <- mask_label
+  # Step 1: Mask positive values below the threshold, and zeros / NAs if requested
+  is_positive <- is_known & vec > 0
+  is_to_mask <- is_positive & vec < threshold
+  if (mask_zero) {
+    is_to_mask <- is_to_mask | (is_known & vec == 0)
+  }
+  }
+
+  # Step 2: Ensure at least two values are masked, at least one of them positive
+  needs_more <- function() sum(is_to_mask) < 2 || !any(is_to_mask & is_positive)
+  if (any(is_to_mask) && needs_more()) {
+    for (value in sort(unique(vec[is_positive & !is_to_mask]))) {
+      is_to_mask[is_known & vec == value] <- TRUE
+      if (!needs_more()) break
     }
   }
 
-  return(vec_masked)
+  # Step 3: Apply masking
+  vec_masked <- as.character(vec)
+  vec_masked[is_to_mask] <- mask_label
+  vec_masked
 }
