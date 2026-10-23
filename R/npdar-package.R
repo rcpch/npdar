@@ -35,7 +35,7 @@
 #'     denominator, and percentage in long format for easy use in `ggplot2` or `plotly`.
 #' }}
 #'
-#' #' \strong{Finding Audit Year(s):}
+#' \strong{Finding Audit Year(s):}
 #' \itemize{
 #'   \item \code{\link{audit_year_family}}:
 #'   \itemize{
