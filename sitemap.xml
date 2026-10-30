@@ -1,6 +1,8 @@
 <urlset xmlns = 'http://www.sitemaps.org/schemas/sitemap/0.9'>
 <url><loc>https://rcpch.github.io/npdar/404.html</loc></url>
 <url><loc>https://rcpch.github.io/npdar/LICENSE.html</loc></url>
+<url><loc>https://rcpch.github.io/npdar/articles/get_masked.html</loc></url>
+<url><loc>https://rcpch.github.io/npdar/articles/index.html</loc></url>
 <url><loc>https://rcpch.github.io/npdar/authors.html</loc></url>
 <url><loc>https://rcpch.github.io/npdar/index.html</loc></url>
 <url><loc>https://rcpch.github.io/npdar/news/index.html</loc></url>
@@ -20,6 +22,7 @@
 <url><loc>https://rcpch.github.io/npdar/reference/get_ultimate.html</loc></url>
 <url><loc>https://rcpch.github.io/npdar/reference/index.html</loc></url>
 <url><loc>https://rcpch.github.io/npdar/reference/npdar-package.html</loc></url>
-<url><loc>https://rcpch.github.io/npdar/reference/plot_corr_matrix.html</loc></url>
+<url><loc>https://rcpch.github.io/npdar/reference/plot_corrmat_ly.html</loc></url>
+<url><loc>https://rcpch.github.io/npdar/reference/plot_raincloud_ly.html</loc></url>
 </urlset>
 

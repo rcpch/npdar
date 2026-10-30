@@ -36,7 +36,7 @@ Diabetes Audit (NPDA) data.
     denominator, and percentage in long format for easy use in
     \`ggplot2\` or \`plotly\`.
 
-\#' **Finding Audit Year(s):**
+**Finding Audit Year(s):**
 
 - [`audit_year_family`](https://rcpch.github.io/npdar/reference/audit_year_family.md):
 
@@ -45,20 +45,29 @@ Diabetes Audit (NPDA) data.
 
   - Generate sequential lists of audit years.
 
-**Correlation Matrix with Plotly:**
+**Creating interactive plots with plotly:**
 
-- [`plot_corr_matrix`](https://rcpch.github.io/npdar/reference/plot_corr_matrix.md):
+- [`plot_corrmat_ly`](https://rcpch.github.io/npdar/reference/plot_corrmat_ly.md):
+
+  - Draws an interactive correlation matrix heatmap plot using plotly.
 
   - Compute Pearson or Spearman correlation matrices for numeric
     variables.
-
-  - Display the lower triangle as an interactive plotly heatmap.
 
   - Optionally show correlation values and statistical significance
     stars.
 
   - Supports missing-data handling via
     [`stats::cor()`](https://rdrr.io/r/stats/cor.html) options.
+
+&nbsp;
+
+- [`plot_raincloud_ly`](https://rcpch.github.io/npdar/reference/plot_raincloud_ly.md):
+
+  - Draws an interactive raincloud plot using plotly.
+
+  - Options to show or hide each of half-violin density plots, boxplots,
+    and scatter plots of the raw values.
 
 ## See also
 

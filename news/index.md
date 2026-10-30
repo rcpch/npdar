@@ -1,5 +1,53 @@
 # Changelog
 
+## npdar 0.7.0
+
+- New
+  [`plot_raincloud_ly()`](https://rcpch.github.io/npdar/reference/plot_raincloud_ly.md)
+  draws an interactive plotly raincloud plot
+  ([\#22](https://github.com/RCPCH/npdar/issues/22)).
+- Breaking: `plot_corr_matrix()` is renamed to
+  [`plot_corrmat_ly()`](https://rcpch.github.io/npdar/reference/plot_corrmat_ly.md),
+  so interactive plotly functions share the `_ly` suffix.
+- [`plot_corrmat_ly()`](https://rcpch.github.io/npdar/reference/plot_corrmat_ly.md)
+  hover text now shows the sample size `n` used for each pair, according
+  to `use` ([\#33](https://github.com/RCPCH/npdar/issues/33)).
+- [`plot_corrmat_ly()`](https://rcpch.github.io/npdar/reference/plot_corrmat_ly.md)
+  with `use = "na.or.complete"` no longer errors when there are no
+  complete rows; it returns `NA` correlations as
+  [`stats::cor()`](https://rdrr.io/r/stats/cor.html) does
+  (`use = "complete.obs"` still errors).
+- Breaking:
+  [`get_masked()`](https://rcpch.github.io/npdar/reference/get_masked.md)
+  no longer has a default `threshold`; it must now be specified
+  ([\#37](https://github.com/RCPCH/npdar/issues/37)).
+- Initiated vignettes
+  ([\#11](https://github.com/RCPCH/npdar/issues/11)).
+- [`get_masked()`](https://rcpch.github.io/npdar/reference/get_masked.md)
+  now errors if `vec` is not numeric (including logical) or contains
+  negative values and handles `NA`s; only values `>= 0` and `NA` are
+  accepted ([\#34](https://github.com/RCPCH/npdar/issues/34)).
+- [`get_masked()`](https://rcpch.github.io/npdar/reference/get_masked.md)
+  gains `mask_na` and `mask_zero` to allow user to choose whether
+  whether to mask `NA`s or zeros (both default to `FALSE`, backward
+  compatible). The function’s secondary masking now ensures at least two
+  values are masked, at least one of them positive. Masked zeros and
+  `NA`s count towards the two, but the smallest positive value(s) are
+  always masked even if only zeros or `NA`s were masked
+  ([\#34](https://github.com/RCPCH/npdar/issues/34)).
+- Rewrite
+  [`get_masked()`](https://rcpch.github.io/npdar/reference/get_masked.md)
+  documentation and add a vignette
+  [`vignette("get_masked")`](https://rcpch.github.io/npdar/articles/get_masked.md)
+  ([\#11](https://github.com/RCPCH/npdar/issues/11),
+  [\#34](https://github.com/RCPCH/npdar/issues/34)).
+- [`get_ultimate()`](https://rcpch.github.io/npdar/reference/get_ultimate.md)
+  gains `na.rm` (default `TRUE`, backward compatible). Set
+  `na.rm = FALSE` to treat `NA` as a meaningful value considered as a
+  valid candidate. `exclude` must not contain `NA` (it now errors); use
+  `na.rm` instead ([\#35](https://github.com/RCPCH/npdar/issues/35)).
+- Fix typo in `npdar-package.R`.
+
 ## npdar 0.6.0
 
 - Rewrite `README.md` with `README.qmd` and update `.Rbuildignore`.
@@ -18,8 +66,7 @@
     [`audit_year()`](https://rcpch.github.io/npdar/reference/audit_year.md)
   - `get_auditYears()` →
     [`audit_year_range()`](https://rcpch.github.io/npdar/reference/audit_year_range.md)
-  - `get_corrMat()` →
-    [`plot_corr_matrix()`](https://rcpch.github.io/npdar/reference/plot_corr_matrix.md)
+  - `get_corrMat()` → `plot_corr_matrix()`
   - Help topics `family_bp` → `bp_family` and `family_auditYear` →
     `audit_year_family`.
   - [`get_frequency()`](https://rcpch.github.io/npdar/reference/get_frequency.md),

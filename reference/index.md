@@ -33,7 +33,9 @@
 - [`audit_year_range()`](https://rcpch.github.io/npdar/reference/audit_year_range.md)
   : Generate Sequential List of Audit Years
 
-## Correlation matrix with plotly
+## Creating interactive plots with plotly
 
-- [`plot_corr_matrix()`](https://rcpch.github.io/npdar/reference/plot_corr_matrix.md)
+- [`plot_corrmat_ly()`](https://rcpch.github.io/npdar/reference/plot_corrmat_ly.md)
   : Correlation Matrix with Plotly
+- [`plot_raincloud_ly()`](https://rcpch.github.io/npdar/reference/plot_raincloud_ly.md)
+  : Raincloud Plot with Plotly

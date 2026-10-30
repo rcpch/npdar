@@ -199,27 +199,44 @@ df |>
 
 ### Privacy Masking
 
-By default,
 [`get_masked()`](https://rcpch.github.io/npdar/reference/get_masked.md)
-masks positive counts below 3 and leaves zeros unchanged. If only one
-count is masked, all occurrences of the next smallest positive value are
-also masked to prevent back-calculation. The result is a character
-vector. Here only `2` is below 3, so the `4`s are masked as well.
+masks positive counts below `threshold` which you must specify: the
+right value depends on your reporting rules and the NPDA usually uses 3.
+By default, zeros and `NA`s are exempt from masking as they are usally
+meaningful and do not put privacy at risk, but you can choose to mask
+them too. At least two values are always masked, so that a masked count
+cannot be back-calculated from the denominator: if fewer are masked, the
+next smallest positive value is masked as well. The result is always a
+character vector, so it can be combined with a mask label. The default
+`mask_label` is “masked” for the masked values.
 
 ``` r
 
-get_masked(c(4, 6, 2, 4, 0, 5, 5))
-#> [1] "masked" "6"      "masked" "masked" "0"      "5"      "5"
+vec1 <- c(5, 6, 4, 5, 1, 0, 0, NA)
+get_masked(vec1, threshold = 3)
+#> [1] "5"      "6"      "masked" "5"      "masked" "0"      "0"      NA
 ```
 
-Customise the threshold and the suppression label:
+Customise the threshold and mask label:
 
 ``` r
 
-get_masked(c(4, 6, 2, 4, 0, 5, 5), threshold = 5, mask_label = "*")
-#> [1] "*" "6" "*" "*" "0" "5" "5"
-get_masked(c(4, 6, 2, 4, 0, 5, 5), threshold = 6, mask_label = "*")
-#> [1] "*" "6" "*" "*" "0" "*" "*"
+get_masked(vec1, threshold = 6, mask_label = "*")
+#> [1] "*" "6" "*" "*" "*" "0" "0" NA
+```
+
+Use `mask_zero` and `mask_na` to mask zeros and `NA`s too. At least one
+positive value is still masked, otherwise the denominator would reveal
+that every masked value is zero or unknown:
+
+``` r
+
+get_masked(vec1, threshold = 3, mask_label = "*", mask_zero = TRUE)
+#> [1] "5" "6" "4" "5" "*" "*" "*" NA
+get_masked(vec1, threshold = 3, mask_label = "*", mask_na = TRUE)
+#> [1] "5" "6" "4" "5" "*" "0" "0" "*"
+get_masked(vec1, threshold = 3, mask_label = "*", mask_zero = TRUE, mask_na = TRUE)
+#> [1] "5" "6" "4" "5" "*" "*" "*" "*"
 ```
 
 ### Longitudinal Summaries
@@ -233,16 +250,17 @@ which modes were not selected.
 ``` r
 
 dat_long <- c("A", "B", "C", "A", "A", "Unknown", "Unknown",
-          NA, "C", "C", "B", "B", "Unknown")
+              NA, "C", "C", "B", "B", "Unknown",
+              NA, NA, NA)
 ```
 
 Select the tied mode that occurs most recently:
 
 ``` r
 
-get_ultimate(dat_long, find = "uptodate_mode", exclude = c("Unknown", NA))
-#> Warning in get_ultimate(dat_long, find = "uptodate_mode", exclude =
-#> c("Unknown", : There are multiple modes, the remaining modes are: A, C
+get_ultimate(dat_long, find = "uptodate_mode", exclude = "Unknown", na.rm = TRUE)
+#> Warning in get_ultimate(dat_long, find = "uptodate_mode", exclude = "Unknown",
+#> : There are multiple modes, the remaining modes are: A, C
 #> [1] "B"
 ```
 
@@ -250,10 +268,19 @@ Use the package’s `last_mode` rule instead:
 
 ``` r
 
-get_ultimate(dat_long, find = "last_mode", exclude = c("Unknown", NA))
-#> Warning in get_ultimate(dat_long, find = "last_mode", exclude = c("Unknown", :
+get_ultimate(dat_long, find = "last_mode", exclude = "Unknown", na.rm = TRUE)
+#> Warning in get_ultimate(dat_long, find = "last_mode", exclude = "Unknown", :
 #> There are multiple modes, the remaining modes are: A, B
 #> [1] "C"
+```
+
+`NA`s are removed by default. Use `na.rm = FALSE` to treat `NA` as a
+meaningful value, e.g. when later visits were deliberately left unknown:
+
+``` r
+
+get_ultimate(dat_long, find = "uptodate_mode", exclude = "Unknown", na.rm = FALSE)
+#> [1] NA
 ```
 
 ### Categorical Frequencies
@@ -465,13 +492,13 @@ data.frame(
 
 ### Correlation Matrix with `plotly`
 
-[`plot_corr_matrix()`](https://rcpch.github.io/npdar/reference/plot_corr_matrix.md)
+[`plot_corrmat_ly()`](https://rcpch.github.io/npdar/reference/plot_corrmat_ly.md)
 creates an interactive lower-triangle correlation heatmap. Supply a data
 frame containing only numeric variables:
 
 ``` r
 
-plot_corr_matrix(mtcars)
+plot_corrmat_ly(mtcars)
 ```
 
 Customise the plot, for example by selecting Spearman correlations,
@@ -479,7 +506,7 @@ hiding the values and customising the colour bar:
 
 ``` r
 
-plot_corr_matrix(
+plot_corrmat_ly(
   mtcars,
   method = "spearman",
   show_values = FALSE,
@@ -495,6 +522,43 @@ plot_corr_matrix(
       showarrow = FALSE
     ))
   )
+```
+
+### Raincloud Plot with `plotly`
+
+[`plot_raincloud_ly()`](https://rcpch.github.io/npdar/reference/plot_raincloud_ly.md)
+creates an interactive raincloud plot, combining a half-violin density,
+a boxplot and the raw data points for each group. The orientation
+follows the data: a numeric `x` with a categorical `y` gives a
+horizontal plot, and the reverse gives a vertical one.
+
+``` r
+
+set.seed(1)
+plot_raincloud_ly(iris,
+                  x = "Species",
+                  y = "Sepal.Length",
+                  scatter_layout = "jitter",
+                  show_buttons = FALSE)
+```
+
+Buttons below the plot show or hide the density, scatter and box
+elements. Customise the plot, for example by using a vertical layout
+with custom colours, stacked dots instead of jitter, no boxplot and a
+legend, and tweak it further with `plotly::layout()`:
+
+``` r
+
+plot_raincloud_ly(iris,
+                  x = "Sepal.Length",
+                  y = "Species",
+                  colors = c("#11A7F2", "#E00087", "#00bdaa"),
+                  scatter_layout = "dots",
+                  show_box = FALSE,
+                  show_legend = TRUE) |>
+  plotly::layout(yaxis = list(showticklabels = FALSE),
+                 legend = list(x = 1, y = -0.2, xanchor = "right",
+                               orientation = "h"))
 ```
 
 ## License
@@ -537,8 +601,16 @@ later](https://rcpch.github.io/npdar/LICENSE.md).
 - [`audit_year_range()`](https://rcpch.github.io/npdar/reference/audit_year_range.md)
   : Generate Sequential List of Audit Years
 
-## Correlation matrix with plotly
+## Creating interactive plots with plotly
 
-- [`plot_corr_matrix()`](https://rcpch.github.io/npdar/reference/plot_corr_matrix.md)
+- [`plot_corrmat_ly()`](https://rcpch.github.io/npdar/reference/plot_corrmat_ly.md)
   : Correlation Matrix with Plotly
+- [`plot_raincloud_ly()`](https://rcpch.github.io/npdar/reference/plot_raincloud_ly.md)
+  : Raincloud Plot with Plotly
 
+# Articles
+
+### All vignettes
+
+- [Masking small numerators with
+  get_masked()](https://rcpch.github.io/npdar/articles/get_masked.md):
