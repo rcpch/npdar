@@ -2,7 +2,7 @@
 test_that("plot_corr_matrix requires numeric columns only", {
   expect_error(
     plot_corr_matrix(data.frame(x = 1:5,
-                           y = letters[1:5])),
+                                y = letters[1:5])),
     "All columns in `data` must be numeric"
   )
 })
@@ -157,20 +157,74 @@ test_that("plot_corr_matrix errors with all.obs and missing values", {
     "does not allow NA values")
 })
 
-test_that("plot_corr_matrix errors when na.or.complete or complete.obs leaves no complete observations", {
+test_that("plot_corr_matrix errors when complete.obs leaves no complete observations", {
   df <- data.frame(x = c(1, NA, NA),
                    y = c(NA, 2, NA),
                    z = c(NA, NA, 3))
 
   expect_error(
-    plot_corr_matrix(df, use = "na.or.complete"),
-    "No complete observations available"
-  )
-
-  expect_error(
     plot_corr_matrix(df, use = "complete.obs"),
     "No complete observations available"
   )
+})
+
+test_that("plot_corr_matrix returns NA correlations when na.or.complete has no complete rows", {
+  df <- data.frame(x = c(1, NA, NA),
+                   y = c(NA, 2, NA),
+                   z = c(NA, NA, 3))
+
+  p <- plot_corr_matrix(df, use = "na.or.complete")
+
+  expect_true(all(is.na(p$x$attrs[[1]]$z)))
+})
+
+# ========== Test sample size in hover text ==========
+test_that("plot_corr_matrix hover text shows n according to `use`", {
+  df <- mtcars[, 1:3]
+  df[1:3, "mpg"] <- NA
+  hover <- function(use) {
+    p <- plot_corr_matrix(df, use = use)
+    unname(p$x$attrs[[1]]$text)
+  }
+
+  # rows: cyl, disp; cols: mpg, cyl
+  pairwise <- hover("pairwise.complete.obs")
+  expect_match(pairwise[1, 1], "n: 29", fixed = TRUE)  # cyl vs mpg
+  expect_match(pairwise[2, 1], "n: 29", fixed = TRUE)  # disp vs mpg
+  expect_match(pairwise[2, 2], "n: 32", fixed = TRUE)  # disp vs cyl
+
+  complete <- hover("complete.obs")
+  expect_match(complete[2, 2], "n: 29", fixed = TRUE)  # disp vs cyl
+  expect_match(hover("na.or.complete")[2, 2], "n: 29", fixed = TRUE)
+
+  # correlations involving mpg are NA, but n is still reported
+  everything <- hover("everything")
+  expect_match(everything[1, 1], "correlation: NA", fixed = TRUE)
+  expect_match(everything[1, 1], "n: 32", fixed = TRUE)
+  expect_match(everything[2, 2], "n: 32", fixed = TRUE)
+})
+
+# ========== Test tile labels and spearman ==========
+test_that("plot_corr_matrix tile labels follow digits, show_values and show_stars", {
+  labels <- function(...) {
+    p <- plot_corr_matrix(mtcars[, 1:3], ...)
+    vapply(plotly::plotly_build(p)$x$layout$annotations, `[[`, "", "text")
+  }
+  r <- cor(mtcars[, 1:3])["cyl", "mpg"]
+
+  expect_equal(labels()[1], paste0(sprintf("%.2f", r), "***"))
+  expect_equal(labels(digits = 3)[1], paste0(sprintf("%.3f", r), "***"))
+  expect_equal(labels(show_stars = FALSE)[1], sprintf("%.2f", r))
+  expect_equal(labels(show_values = FALSE)[1], "***")
+  expect_length(labels(show_values = FALSE, show_stars = FALSE), 0)
+})
+
+test_that("plot_corr_matrix supports spearman correlation", {
+  p <- plot_corr_matrix(mtcars[, 1:3], method = "spearman")
+  z <- unname(p$x$attrs[[1]]$z)
+
+  expect_equal(z[1, 1], cor(mtcars$cyl, mtcars$mpg, method = "spearman"))
+  expect_match(unname(p$x$attrs[[1]]$text)[1, 1], "spearman correlation", fixed = TRUE)
 })
 
 # ========== Test argument mismatch ==========
@@ -192,18 +246,18 @@ test_that("plot_corr_matrix validates method argument", {
 test_that("plot_corr_matrix allows additional plotly arguments through dots", {
   expect_s3_class(
     plot_corr_matrix(mtcars,
-                showscale = FALSE,
-                zmin = -0.5,
-                zmax = 0.5),
+                     showscale = FALSE,
+                     zmin = -0.5,
+                     zmax = 0.5),
     "plotly"
-    )
+  )
 })
 
 test_that("plot_corr_matrix plotly dots can override heatmap arguments", {
   p <- plot_corr_matrix(mtcars[, 1:4],
-                   showscale = FALSE,
-                   zmin = -0.5,
-                   zmax = 0.5)
+                        showscale = FALSE,
+                        zmin = -0.5,
+                        zmax = 0.5)
 
   expect_s3_class(p, "plotly")
   expect_false(p$x$attrs[[1]]$showscale)

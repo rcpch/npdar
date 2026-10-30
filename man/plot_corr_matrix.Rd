@@ -54,10 +54,10 @@ plot_corr_matrix(mtcars)
 
 # Spearman correlation without tile labels, with additional plotly arguments
 plot_corr_matrix(mtcars,
-            method = "spearman",
-            show_values = FALSE,
-            show_stars = TRUE,
-            colorbar = list(title = "Correlation")) |>
+                 method = "spearman",
+                 show_values = FALSE,
+                 show_stars = TRUE,
+                 colorbar = list(title = "Correlation")) |>
 plotly::layout(annotations = list(
   text = paste0("<i><b>Note:</b>",
                 "*: p<0.05, **: p<0.01, ***: p<0.001.</i>"),
