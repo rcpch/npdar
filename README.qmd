@@ -414,13 +414,13 @@ data.frame(
 
 ### Correlation Matrix with `plotly`
 
-`plot_corr_matrix()` creates an interactive lower-triangle correlation
+`plot_corrmat_ly()` creates an interactive lower-triangle correlation
 heatmap. Supply a data frame containing only numeric variables:
 
 ```{r}
 #| label: correlation-basic
 #| eval: FALSE
-plot_corr_matrix(mtcars)
+plot_corrmat_ly(mtcars)
 ```
 
 Customise the plot, for example by selecting Spearman correlations,
@@ -429,7 +429,7 @@ hiding the values and customising the colour bar:
 ```{r}
 #| label: correlation-custom
 #| eval: FALSE
-plot_corr_matrix(
+plot_corrmat_ly(
   mtcars,
   method = "spearman",
   show_values = FALSE,

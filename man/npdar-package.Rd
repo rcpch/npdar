@@ -52,7 +52,7 @@ National Paediatric Diabetes Audit (NPDA) data.
 
 \strong{Correlation Matrix with Plotly:}
 \itemize{
-  \item \code{\link{plot_corr_matrix}}:
+  \item \code{\link{plot_corrmat_ly}}:
   \itemize{
     \item Compute Pearson or Spearman correlation matrices for numeric variables.
     \item Display the lower triangle as an interactive \pkg{plotly} heatmap.

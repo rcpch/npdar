@@ -1,9 +1,9 @@
 #' Correlation Matrix with Plotly
 #'
 #' @description
-#' Computes a correlation matrix and corresponding p-values, and visualises the
-#' lower triangle as an interactive heatmap using \pkg{plotly}. Correlation
-#' values and significance stars can be displayed inside each tile.
+#' Draws an interactive correlation matrix heatmap plot using \pkg{plotly}.
+#' Correlation values and significance stars can be displayed inside each tile,
+#' with hover text showing the correlation coefficient, p-value, and sample size.
 #'
 #' @param data A data frame or matrix containing only numeric variables.
 #' @param method Correlation method: \code{"pearson"} or \code{"spearman"},
@@ -25,14 +25,14 @@
 #'
 #' @examples
 #' # Basic correlation matrix
-#' plot_corr_matrix(mtcars)
+#' plot_corrmat_ly(mtcars)
 #'
 #' # Spearman correlation without tile labels, with additional plotly arguments
-#' plot_corr_matrix(mtcars,
-#'                  method = "spearman",
-#'                  show_values = FALSE,
-#'                  show_stars = TRUE,
-#'                  colorbar = list(title = "Correlation")) |>
+#' plot_corrmat_ly(mtcars,
+#'                 method = "spearman",
+#'                 show_values = FALSE,
+#'                 show_stars = TRUE,
+#'                 colorbar = list(title = "Correlation")) |>
 #' plotly::layout(annotations = list(
 #'   text = paste0("<i><b>Note:</b>",
 #'                 "*: p<0.05, **: p<0.01, ***: p<0.001.</i>"),
@@ -45,18 +45,18 @@
 #' @importFrom tibble tibble
 #' @importFrom rlang .data
 #' @export
-plot_corr_matrix <- function(data,
-                             method = c("pearson", "spearman"), # mimic stats::cor() options
-                             use = c("pairwise.complete.obs",
-                                     "complete.obs",
-                                     "everything",
-                                     "all.obs",
-                                     "na.or.complete"), # mimic stats::cor() options
-                             digits = 2,
-                             show_stars = TRUE,
-                             show_values = TRUE,
-                             colors = c("#11A7F2", "#FFFFFF", "#E00087"),
-                             ...                        # other plotly arguments
+plot_corrmat_ly <- function(data,
+                            method = c("pearson", "spearman"), # mimic stats::cor() options
+                            use = c("pairwise.complete.obs",
+                                    "complete.obs",
+                                    "everything",
+                                    "all.obs",
+                                    "na.or.complete"), # mimic stats::cor() options
+                            digits = 2,
+                            show_stars = TRUE,
+                            show_values = TRUE,
+                            colors = c("#11A7F2", "#FFFFFF", "#E00087"),
+                            ...                        # other plotly arguments
 ) {
 
   method <- match.arg(method)
