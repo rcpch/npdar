@@ -60,23 +60,25 @@ so the masked values can no longer be told apart:
 
 ```{r}
 #| label: get-masked-basic
-get_masked(counts_real, mask_label = "*")
+get_masked(counts_real, threshold = 3, mask_label = "*")
 ```
 
 Obviously, masking with `get_masked()` only makes sense 
 **when the denominator is shown**. 
 If it is not, a simple `ifelse()` on the threshold is enough.
 
-## Default behaviour
+## Basic usage
 
-By default, `get_masked()` masks positive counts below `threshold` (default is 3), 
-with the `mask_label` being "masked, and leaves zeros and `NA`s unchanged. 
-It always returns a character vector, so the result can be combined with 
-a mask label.
+`get_masked()` masks positive counts below `threshold` which you must specify:
+the right value depends on your reporting rules and the NPDA usually uses 3.
+By default, zeros and `NA`s are exempt from masking as they are usally
+meaningful and do not put privacy at risk, but you can choose to mask them too.
+The result is always a character vector, so it can be combined with a mask label. 
+The default `mask_label` is "masked" for the masked values. 
 
 ```{r}
 #| label: default
-get_masked(hospitals$n, mask_label = "*")
+get_masked(hospitals$n, threshold = 3, mask_label = "*")
 ```
 
 Both 2s are masked because they are below 3, and there are two of them. Zeros
@@ -92,10 +94,10 @@ masked as well. Here the 1 is the only count below 3, so the 5s are also masked:
 ```{r}
 #| label: mask-secondary
 vec <- c(1, 5, 5, 6, 7, 0, NA)
-get_masked(vec, mask_label = "*")
+get_masked(vec, threshold = 3, mask_label = "*")
 ```
 
-You can customise the `threshold`, which sets the smallest count that can be shown, 
+The `threshold` sets the smallest count that can be shown, 
 and `mask_label` sets what replaces the masked values:
 
 ```{r}
@@ -111,9 +113,9 @@ than masking the higher numbers.
 
 ```{r}
 #| label: mask-zero-na
-get_masked(vec, mask_label = "*", mask_zero = TRUE)
-get_masked(vec, mask_label = "*", mask_na = TRUE)
-get_masked(vec, mask_label = "*", mask_zero = TRUE, mask_na = TRUE)
+get_masked(vec, threshold = 3, mask_label = "*", mask_zero = TRUE)
+get_masked(vec, threshold = 3, mask_label = "*", mask_na = TRUE)
+get_masked(vec, threshold = 3, mask_label = "*", mask_zero = TRUE, mask_na = TRUE)
 ```
 
 Note that masked zeros and `NA`s count towards the minimum of two masked values, 
@@ -126,8 +128,8 @@ If there is nothing to protect, nothing is masked:
 
 ```{r}
 #| label: mask-nothing-zero
-get_masked(c(0, 0, 0))
-get_masked(c(0, 0, 0), mask_label = "*", mask_zero = TRUE)
+get_masked(c(0, 0, 0), threshold = 3)
+get_masked(c(0, 0, 0), threshold = 3, mask_label = "*", mask_zero = TRUE)
 ```
 
 A vector made only of bare `NA`s is logical in R, so use `NA_real_` or
@@ -135,7 +137,7 @@ A vector made only of bare `NA`s is logical in R, so use `NA_real_` or
 
 ```{r}
 #| label: mask-nothing-na
-get_masked(c(NA_real_, NA_real_), mask_label = "*", mask_na = TRUE)
+get_masked(c(NA_real_, NA_real_), threshold = 3, mask_label = "*", mask_na = TRUE)
 ```
 
 ## Masking a data frame
@@ -176,7 +178,7 @@ regions <- tibble(
 regions |>
   group_by(region) |>
   mutate(total = sum(n, na.rm = TRUE),
-         n_masked = get_masked(n, mask_label = "*")) |>
+         n_masked = get_masked(n, threshold = 3, mask_label = "*")) |>
   ungroup()
 ```
 

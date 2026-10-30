@@ -18,7 +18,7 @@
 #'   \code{c(1, 2, TRUE, FALSE)} is coerced to numeric by R
 #'   before reaching the function, so it will be silently allowed.
 #' @param threshold Numeric. The threshold value for masking. Values greater than 0
-#'   and less than \code{threshold} will be masked. Default is 3.
+#'   and less than \code{threshold} will be masked. As an example, the NPDA usually uses 3.
 #' @param mask_label Character string. The message to replace masked values with.
 #'   Default is "masked".
 #' @param mask_zero Logical. If \code{TRUE}, zeros are masked as well. Default is
@@ -57,12 +57,12 @@
 #' @export
 #'
 #' @examples
-#' # By default, positive values less than 3 and the second smallest positive value are masked
+#' # Positive values less than the threshold and the second smallest positive value are masked
 #' vec1 <- c(5, 6, 4, 5, 1, 0, 0, NA)
-#' get_masked(vec1)
+#' get_masked(vec1, threshold = 3)
 #'
 #' # Custom mask message
-#' get_masked(vec1, mask_label = "*")
+#' get_masked(vec1, threshold = 3, mask_label = "*")
 #'
 #' # No masking if all positive values are above the threshold
 #' vec2 <- c(5, 6, 4, 5, 3, 0, 0, NA)
@@ -72,11 +72,11 @@
 #' get_masked(vec2, mask_label = "*", threshold = 4)
 #'
 #' # Zeros are kept by default; mask_zero = TRUE masks them and the smallest positive values too
-#' get_masked(vec1, mask_label = "*", mask_zero = TRUE)
+#' get_masked(vec1, threshold = 3, mask_label = "*", mask_zero = TRUE)
 #'
 #' # NAs are kept by default; mask_na = TRUE masks them and the smallest positive values too
-#' get_masked(vec1, mask_label = "*", mask_na = TRUE)
-#' get_masked(vec1, mask_label = "*", mask_zero = TRUE, mask_na = TRUE)
+#' get_masked(vec1, threshold = 3, mask_label = "*", mask_na = TRUE)
+#' get_masked(vec1, threshold = 3, mask_label = "*", mask_zero = TRUE, mask_na = TRUE)
 #'
 #' # Realistic workflow example
 #' \dontrun{
@@ -101,12 +101,13 @@
 #'     percent_masked = ifelse(numerator_masked == '*', '*', percent)
 #'   )
 #' }
-get_masked <- function(vec, threshold = 3, mask_label = 'masked', mask_zero = FALSE, mask_na = FALSE) {
+get_masked <- function(vec, threshold, mask_label = 'masked', mask_zero = FALSE, mask_na = FALSE) {
   # Input validation
   if (!is.numeric(vec) || any(vec < 0, na.rm = TRUE)) {
     stop("Input 'vec' must be a numeric vector without any negative value")
   }
-  if (!is.numeric(threshold) || length(threshold) != 1 || threshold <= 0) {
+  
+  if (missing(threshold) || !is.numeric(threshold) || length(threshold) != 1 || threshold <= 0) {
     stop("'threshold' must be a single positive numeric value")
   }
   if (!is.character(mask_label) || length(mask_label) != 1) {

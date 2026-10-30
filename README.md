@@ -198,23 +198,26 @@ df |>
 
 ### Privacy Masking
 
-By default, `get_masked()` masks positive counts below 3 and leaves
-zeros and `NA`s unchanged, as they are meaningful and do not put privacy
-at risk. At least two values are always masked, so that a masked count
-cannot be back-calculated from the denominator: if fewer are masked, the
-next smallest positive value is masked as well. The result is a
-character vector.
+`get_masked()` masks positive counts below `threshold` which you must
+specify: the right value depends on your reporting rules and the NPDA
+usually uses 3. By default, zeros and `NA`s are exempt from masking as
+they are usally meaningful and do not put privacy at risk, but you can
+choose to mask them too. At least two values are always masked, so that
+a masked count cannot be back-calculated from the denominator: if fewer
+are masked, the next smallest positive value is masked as well. The
+result is always a character vector, so it can be combined with a mask
+label. The default `mask_label` is “masked” for the masked values.
 
 ``` r
 vec1 <- c(5, 6, 4, 5, 1, 0, 0, NA)
-get_masked(vec1)
+get_masked(vec1, threshold = 3)
 #> [1] "5"      "6"      "masked" "5"      "masked" "0"      "0"      NA
 ```
 
 Customise the threshold and mask label:
 
 ``` r
-get_masked(vec1, mask_label = "*", threshold = 6)
+get_masked(vec1, threshold = 6, mask_label = "*")
 #> [1] "*" "6" "*" "*" "*" "0" "0" NA
 ```
 
@@ -223,11 +226,11 @@ positive value is still masked, otherwise the denominator would reveal
 that every masked value is zero or unknown:
 
 ``` r
-get_masked(vec1, mask_label = "*", mask_zero = TRUE)
+get_masked(vec1, threshold = 3, mask_label = "*", mask_zero = TRUE)
 #> [1] "5" "6" "4" "5" "*" "*" "*" NA
-get_masked(vec1, mask_label = "*", mask_na = TRUE)
+get_masked(vec1, threshold = 3, mask_label = "*", mask_na = TRUE)
 #> [1] "5" "6" "4" "5" "*" "0" "0" "*"
-get_masked(vec1, mask_label = "*", mask_zero = TRUE, mask_na = TRUE)
+get_masked(vec1, threshold = 3, mask_label = "*", mask_zero = TRUE, mask_na = TRUE)
 #> [1] "5" "6" "4" "5" "*" "*" "*" "*"
 ```
 

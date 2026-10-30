@@ -6,7 +6,7 @@
 \usage{
 get_masked(
   vec,
-  threshold = 3,
+  threshold,
   mask_label = "masked",
   mask_zero = FALSE,
   mask_na = FALSE
@@ -20,7 +20,7 @@ non-numeric input throw an error. Note that a mixed vector such as
 before reaching the function, so it will be silently allowed.}
 
 \item{threshold}{Numeric. The threshold value for masking. Values greater than 0
-and less than \code{threshold} will be masked. Default is 3.}
+and less than \code{threshold} will be masked. As an example, the NPDA usually uses 3.}
 
 \item{mask_label}{Character string. The message to replace masked values with.
 Default is "masked".}
@@ -74,12 +74,12 @@ The function always returns a character vector to facilitate merging with other
 masked datasets that may contain non-numeric mask messages.
 }
 \examples{
-# By default, positive values less than 3 and the second smallest positive value are masked
+# Positive values less than the threshold and the second smallest positive value are masked
 vec1 <- c(5, 6, 4, 5, 1, 0, 0, NA)
-get_masked(vec1)
+get_masked(vec1, threshold = 3)
 
 # Custom mask message
-get_masked(vec1, mask_label = "*")
+get_masked(vec1, threshold = 3, mask_label = "*")
 
 # No masking if all positive values are above the threshold
 vec2 <- c(5, 6, 4, 5, 3, 0, 0, NA)
@@ -89,11 +89,11 @@ get_masked(vec2, mask_label = "*", threshold = 3)
 get_masked(vec2, mask_label = "*", threshold = 4)
 
 # Zeros are kept by default; mask_zero = TRUE masks them and the smallest positive values too
-get_masked(vec1, mask_label = "*", mask_zero = TRUE)
+get_masked(vec1, threshold = 3, mask_label = "*", mask_zero = TRUE)
 
 # NAs are kept by default; mask_na = TRUE masks them and the smallest positive values too
-get_masked(vec1, mask_label = "*", mask_na = TRUE)
-get_masked(vec1, mask_label = "*", mask_zero = TRUE, mask_na = TRUE)
+get_masked(vec1, threshold = 3, mask_label = "*", mask_na = TRUE)
+get_masked(vec1, threshold = 3, mask_label = "*", mask_zero = TRUE, mask_na = TRUE)
 
 # Realistic workflow example
 \dontrun{
