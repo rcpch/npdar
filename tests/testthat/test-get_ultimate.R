@@ -4,7 +4,7 @@ test_that("get_ultimate handles numeric data with exclusions correctly", {
   # Test uptodate_mode
   expect_equal(get_ultimate(x, find = "uptodate_mode", warn = FALSE), 99)
   expect_equal(get_ultimate(x, find = "uptodate_mode", exclude = 99, warn = FALSE), 1)
-  expect_equal(get_ultimate(x, find = "uptodate_mode", exclude = c(99, NA), warn = FALSE), 1)
+  expect_equal(get_ultimate(x, find = "uptodate_mode", exclude = 99, na.rm = TRUE, warn = FALSE), 1)
 
   # Test with all values excluded
   x2 <- c(99, 99, 99, 99, NA, NA, NA, NA)
@@ -47,28 +47,73 @@ test_that("get_ultimate handles NA values correctly", {
   expect_equal(get_ultimate(c(NA, NA, NA), find = "uptodate_mode", warn = FALSE), NA)
 })
 
+test_that("get_ultimate na.rm = FALSE keeps NAs as candidate values", {
+  x <- c(1, 1, 2, NA, NA, NA)
+
+  # na.rm = TRUE is the default
+  expect_equal(get_ultimate(x, find = "last_mode", exclude = NULL, warn = FALSE), 1)
+  expect_equal(get_ultimate(x, find = "last_mode", exclude = NULL, na.rm = TRUE, warn = FALSE), 1)
+  expect_equal(get_ultimate(x, find = "last_entry", exclude = NULL, warn = FALSE), 2)
+
+  # NA can be the mode or the first/last entry
+  expect_equal(get_ultimate(x, find = "last_mode", exclude = NULL, na.rm = FALSE, warn = FALSE), NA_real_)
+  expect_equal(get_ultimate(x, find = "uptodate_mode", exclude = NULL, na.rm = FALSE, warn = FALSE), NA_real_)
+  expect_equal(get_ultimate(x, find = "last_entry", exclude = NULL, na.rm = FALSE, warn = FALSE), NA_real_)
+  expect_equal(get_ultimate(c(NA, 1, 2), find = "first_entry", exclude = NULL, na.rm = FALSE, warn = FALSE), NA_real_)
+  expect_equal(get_ultimate(c(NA, 1, 2), find = "first_entry", exclude = NULL, warn = FALSE), 1)
+
+  # Other exclusions still apply, and NA is kept
+  expect_equal(get_ultimate(c(1, 99, 99, NA, NA, NA), find = "uptodate_mode", exclude = 99, na.rm = FALSE, warn = FALSE), NA_real_)
+  expect_equal(get_ultimate(c(1, 1, 99, 99, 99, NA), find = "uptodate_mode", exclude = 99, na.rm = FALSE, warn = FALSE), 1)
+
+  # Character data
+  x_chr <- c("A", "A", "Unknown", NA, NA)
+  expect_equal(get_ultimate(x_chr, find = "uptodate_mode", exclude = "Unknown", na.rm = FALSE, warn = FALSE), NA_character_)
+  expect_equal(get_ultimate(x_chr, find = "uptodate_mode", exclude = "Unknown", warn = FALSE), "A")
+
+  # exclude cannot contain NA; NAs are handled by na.rm
+  expect_error(get_ultimate(x, find = "last_mode", exclude = NA, warn = FALSE), "must not contain NA")
+  expect_error(get_ultimate(x, find = "last_mode", exclude = c(99, NA), na.rm = FALSE, warn = FALSE), "must not contain NA")
+  expect_error(get_ultimate(c("A", NA), find = "last_mode", exclude = c("Unknown", NA), warn = FALSE), "must not contain NA")
+  expect_error(get_ultimate(x, find = "last_mode", exclude = NA_character_, warn = FALSE), "must not contain NA")
+
+  # Multiple modes warning lists NA as a remaining mode
+  expect_warning(
+    get_ultimate(c(1, 1, NA, NA), find = "uptodate_mode", exclude = NULL, na.rm = FALSE),
+    "remaining modes are: 1"
+  )
+
+  # Only NAs
+  expect_equal(get_ultimate(c(NA, NA), find = "uptodate_mode", exclude = NULL, na.rm = FALSE, warn = FALSE), NA)
+})
+
 test_that("get_ultimate produces appropriate warnings", {
   # Test warning for multiple modes
   expect_warning(
-    get_ultimate(c(1, 2, 3), find = "uptodate_mode", exclude = NA),
+    get_ultimate(c(1, 2, 3), find = "uptodate_mode", exclude = NULL),
     "There are multiple modes, the remaining modes are:"
   )
 
-  # Test warning when exclude is not specified (here, 2/multiple warnings are generated from one call)
-  # expect_warning(
-  #   get_ultimate(c(1, 2, 3), find = "uptodate_mode"),
-  #   regexp = c("NAs are excluded",
-  #              "multiple modes"),
-  #   all = TRUE
-  # )
-  # expect_warning above no longer works with multiple warnings for testthat≥3.1, instead expect_snapshot is used:
   expect_snapshot(
     get_ultimate(c(1, 2, 3), find = "uptodate_mode")
   )
 
+  # No warning when exclude is not specified
+  expect_no_warning(get_ultimate(c(1, 1, 2), find = "uptodate_mode"))
+
   # Test no warning when warn = FALSE
-  expect_silent(get_ultimate(c(1, 2, 3), find = "uptodate_mode", exclude = NA, warn = FALSE))
+  expect_silent(get_ultimate(c(1, 2, 3), find = "uptodate_mode", exclude = NULL, warn = FALSE))
   expect_silent(get_ultimate(c(1, 2, 3), find = "uptodate_mode", warn = FALSE))
+
+  # NA removal warning only when na.rm is unspecified and x contains NAs
+  expect_warning(
+    get_ultimate(c(1, 1, NA), find = "uptodate_mode", exclude = NULL),
+    "NAs are removed by default"
+  )
+  expect_no_warning(get_ultimate(c(1, 1, NA), find = "uptodate_mode", exclude = NULL, na.rm = TRUE))
+  expect_no_warning(get_ultimate(c(1, 1, NA), find = "uptodate_mode", exclude = NULL, na.rm = FALSE))
+  expect_no_warning(get_ultimate(c(1, 1, 2), find = "uptodate_mode", exclude = NULL))
+  expect_no_warning(get_ultimate(c(1, 1, NA), find = "uptodate_mode", exclude = NULL, warn = FALSE))
 })
 
 test_that("get_ultimate handles edge cases", {

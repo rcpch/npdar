@@ -240,21 +240,30 @@ warnings explain which modes were not selected.
 ```{r}
 #| label: data-longitudinal
 dat_long <- c("A", "B", "C", "A", "A", "Unknown", "Unknown",
-          NA, "C", "C", "B", "B", "Unknown")
+              NA, "C", "C", "B", "B", "Unknown",
+              NA, NA, NA)
 ```
 
 Select the tied mode that occurs most recently:
 
 ```{r}
 #| label: ultimate-recent-mode
-get_ultimate(dat_long, find = "uptodate_mode", exclude = c("Unknown", NA))
+get_ultimate(dat_long, find = "uptodate_mode", exclude = "Unknown", na.rm = TRUE)
 ```
 
 Use the package's `last_mode` rule instead:
 
 ```{r}
 #| label: ultimate-last-mode
-get_ultimate(dat_long, find = "last_mode", exclude = c("Unknown", NA))
+get_ultimate(dat_long, find = "last_mode", exclude = "Unknown", na.rm = TRUE)
+```
+
+`NA`s are removed by default. Use `na.rm = FALSE` to treat `NA` as a
+meaningful value, e.g. when later visits were deliberately left unknown:
+
+```{r}
+#| label: ultimate-na-rm
+get_ultimate(dat_long, find = "uptodate_mode", exclude = "Unknown", na.rm = FALSE)
 ```
 
 ### Categorical Frequencies

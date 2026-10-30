@@ -243,25 +243,34 @@ warnings explain which modes were not selected.
 
 ``` r
 dat_long <- c("A", "B", "C", "A", "A", "Unknown", "Unknown",
-          NA, "C", "C", "B", "B", "Unknown")
+              NA, "C", "C", "B", "B", "Unknown",
+              NA, NA, NA)
 ```
 
 Select the tied mode that occurs most recently:
 
 ``` r
-get_ultimate(dat_long, find = "uptodate_mode", exclude = c("Unknown", NA))
-#> Warning in get_ultimate(dat_long, find = "uptodate_mode", exclude =
-#> c("Unknown", : There are multiple modes, the remaining modes are: A, C
+get_ultimate(dat_long, find = "uptodate_mode", exclude = "Unknown", na.rm = TRUE)
+#> Warning in get_ultimate(dat_long, find = "uptodate_mode", exclude = "Unknown",
+#> : There are multiple modes, the remaining modes are: A, C
 #> [1] "B"
 ```
 
 Use the package’s `last_mode` rule instead:
 
 ``` r
-get_ultimate(dat_long, find = "last_mode", exclude = c("Unknown", NA))
-#> Warning in get_ultimate(dat_long, find = "last_mode", exclude = c("Unknown", :
+get_ultimate(dat_long, find = "last_mode", exclude = "Unknown", na.rm = TRUE)
+#> Warning in get_ultimate(dat_long, find = "last_mode", exclude = "Unknown", :
 #> There are multiple modes, the remaining modes are: A, B
 #> [1] "C"
+```
+
+`NA`s are removed by default. Use `na.rm = FALSE` to treat `NA` as a
+meaningful value, e.g. when later visits were deliberately left unknown:
+
+``` r
+get_ultimate(dat_long, find = "uptodate_mode", exclude = "Unknown", na.rm = FALSE)
+#> [1] NA
 ```
 
 ### Categorical Frequencies
