@@ -1,3 +1,17 @@
+# npdar 0.7.0
+
+* New `plot_raincloud_ly()` draws an interactive plotly raincloud plot (#22).
+* Breaking: `plot_corr_matrix()` is renamed to `plot_corrmat_ly()`, so interactive plotly functions share the `_ly` suffix.
+* `plot_corrmat_ly()` hover text now shows the sample size `n` used for each pair, according to `use` (#33).
+* `plot_corrmat_ly()` with `use = "na.or.complete"` no longer errors when there are no complete rows; it returns `NA` correlations as `stats::cor()` does (`use = "complete.obs"` still errors).
+* Breaking: `get_masked()` no longer has a default `threshold`; it must now be specified (#37).
+* Initiated vignettes (#11).
+* `get_masked()` now errors if `vec` is not numeric (including logical) or contains negative values and handles `NA`s; only values `>= 0` and `NA` are accepted (#34).
+* `get_masked()` gains `mask_na` and `mask_zero` to allow user to choose whether whether to mask `NA`s or zeros (both default to `FALSE`, backward compatible). The function's secondary masking now ensures at least two values are masked, at least one of them positive. Masked zeros and `NA`s count towards the two, but the smallest positive value(s) are always masked even if only zeros or `NA`s were masked (#34).
+* Rewrite `get_masked()` documentation and add a vignette `vignette("get_masked")` (#11, #34).
+* `get_ultimate()` gains `na.rm` (default `TRUE`, backward compatible). Set `na.rm = FALSE` to treat `NA` as a meaningful value considered as a valid candidate. `exclude` must not contain `NA` (it now errors); use `na.rm` instead (#35).
+* Fix typo in `npdar-package.R`.
+
 # npdar 0.6.0
 * Rewrite `README.md` with `README.qmd` and update `.Rbuildignore`.
 * Add light switch and MathJax for math notations in pkgdown site.
