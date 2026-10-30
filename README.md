@@ -461,18 +461,18 @@ data.frame(
 
 ### Correlation Matrix with `plotly`
 
-`plot_corr_matrix()` creates an interactive lower-triangle correlation
+`plot_corrmat_ly()` creates an interactive lower-triangle correlation
 heatmap. Supply a data frame containing only numeric variables:
 
 ``` r
-plot_corr_matrix(mtcars)
+plot_corrmat_ly(mtcars)
 ```
 
 Customise the plot, for example by selecting Spearman correlations,
 hiding the values and customising the colour bar:
 
 ``` r
-plot_corr_matrix(
+plot_corrmat_ly(
   mtcars,
   method = "spearman",
   show_values = FALSE,
@@ -488,6 +488,40 @@ plot_corr_matrix(
       showarrow = FALSE
     ))
   )
+```
+
+### Raincloud Plot with `plotly`
+
+`plot_raincloud_ly()` creates an interactive raincloud plot, combining a
+half-violin density, a boxplot and the raw data points for each group.
+The orientation follows the data: a numeric `x` with a categorical `y`
+gives a horizontal plot, and the reverse gives a vertical one.
+
+``` r
+set.seed(1)
+plot_raincloud_ly(iris,
+                  x = "Species",
+                  y = "Sepal.Length",
+                  scatter_layout = "jitter",
+                  show_buttons = FALSE)
+```
+
+Buttons below the plot show or hide the density, scatter and box
+elements. Customise the plot, for example by using a vertical layout
+with custom colours, stacked dots instead of jitter, no boxplot and a
+legend, and tweak it further with `plotly::layout()`:
+
+``` r
+plot_raincloud_ly(iris,
+                  x = "Sepal.Length",
+                  y = "Species",
+                  colors = c("#11A7F2", "#E00087", "#00bdaa"),
+                  scatter_layout = "dots",
+                  show_box = FALSE,
+                  show_legend = TRUE) |>
+  plotly::layout(yaxis = list(showticklabels = FALSE),
+                 legend = list(x = 1, y = -0.2, xanchor = "right",
+                               orientation = "h"))
 ```
 
 ## License

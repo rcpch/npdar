@@ -22,7 +22,8 @@ reference:
       - audit_year_family
       - audit_year
       - audit_year_range
-  - title: Correlation matrix with plotly
+  - title: Creating interactive plots with plotly
     contents:
       - plot_corrmat_ly
+      - plot_raincloud_ly
 
