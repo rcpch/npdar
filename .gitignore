@@ -7,3 +7,7 @@
 .DS_Store
 .quarto
 docs
+inst/doc
+**/.quarto/
+/doc/
+/Meta/

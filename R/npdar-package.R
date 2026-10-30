@@ -35,7 +35,7 @@
 #'     denominator, and percentage in long format for easy use in `ggplot2` or `plotly`.
 #' }}
 #'
-#' #' \strong{Finding Audit Year(s):}
+#' \strong{Finding Audit Year(s):}
 #' \itemize{
 #'   \item \code{\link{audit_year_family}}:
 #'   \itemize{
@@ -44,14 +44,22 @@
 #'     \item Generate sequential lists of audit years.
 #' }}
 #'
-#' \strong{Correlation Matrix with Plotly:}
+#' \strong{Creating interactive plots with plotly:}
 #' \itemize{
-#'   \item \code{\link{plot_corr_matrix}}:
+#'   \item \code{\link{plot_corrmat_ly}}:
 #'   \itemize{
+#'     \item Draws an interactive correlation matrix heatmap plot using \pkg{plotly}.
 #'     \item Compute Pearson or Spearman correlation matrices for numeric variables.
-#'     \item Display the lower triangle as an interactive \pkg{plotly} heatmap.
 #'     \item Optionally show correlation values and statistical significance stars.
 #'     \item Supports missing-data handling via \code{stats::cor()} options.
+#' }}
+#'
+#' \itemize{
+#'   \item \code{\link{plot_raincloud_ly}}:
+#'   \itemize{
+#'     \item Draws an interactive raincloud plot using \pkg{plotly}.
+#'     \item Options to show or hide each of half-violin density plots,
+#'     boxplots, and scatter plots of the raw values.
 #' }}
 #'
 #' @author

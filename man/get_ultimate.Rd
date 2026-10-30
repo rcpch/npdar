@@ -4,7 +4,7 @@
 \alias{get_ultimate}
 \title{Get the up-to-date/first/last mode or first/last entry from a vector}
 \usage{
-get_ultimate(x, find, exclude, warn = TRUE)
+get_ultimate(x, find, exclude = NULL, warn = TRUE, na.rm = TRUE)
 }
 \arguments{
 \item{x}{A vector of values to be evaluated. Can be numeric, character, but date (POSIXct) is currently not supported.}
@@ -19,16 +19,23 @@ get_ultimate(x, find, exclude, warn = TRUE)
 }}
 
 \item{exclude}{A value or vector of values to ignore/exclude from consideration.
-\code{NA} values are always excluded automatically. Can be a single value (e.g., 99, "Unknown", NA)
-or multiple values (e.g., \code{c(99, "Unknown")}). If not specified, a warning is issued.}
+Can be a single value (e.g., 99, "Unknown") or multiple values (e.g., \code{c(99, "Unknown")}).
+Must not contain \code{NA} (an error is thrown); use \code{na.rm} to control how \code{NA}s are handled.
+Default is \code{NULL} (nothing is excluded).}
 
 \item{warn}{Logical. Whether to display warning messages. Warnings are shown when
 multiple modal values exist, showing the remaining modes apart from the one designated in \code{find},
-or when \code{exclude} is not specified. Default is \code{TRUE}.}
+or when \code{x} contains \code{NA}s and \code{na.rm} is not specified (they are removed by default).
+Default is \code{TRUE}.}
+
+\item{na.rm}{Logical. Whether to exclude \code{NA}s before evaluating.
+Default is \code{TRUE}. If \code{FALSE}, \code{NA} will be considered
+as a valid candidate and treated like any other value.}
 }
 \value{
-The result based on the \code{find} and \code{exclude} parameters.
-  If no valid values remain after exclusions, returns \code{NA}.
+The result based on the \code{find}, \code{exclude} and \code{na.rm} parameters.
+  If no valid values remain after exclusions, returns \code{NA}. With \code{na.rm = FALSE},
+  \code{NA} is also returned when it is itself the selected mode or entry.
   When multiple modes exist and \code{warn = TRUE}, a warning message lists the
   other modal values not returned.
 }
@@ -36,37 +43,38 @@ The result based on the \code{find} and \code{exclude} parameters.
 This function finds the most recent (i.e., up-to-date) mode, the first/last mode, or
 the first/last entry from a vector, with options to ignore specific values.
 Particularly useful for finding the most current valid values in longitudinal data.
-\code{NA} values are always excluded by default.
+\code{NA} values are excluded by default (\code{na.rm = TRUE}); set \code{na.rm = FALSE}
+when a missing value is meaningful and should be considered like any other value.
 }
 \examples{
 # Example 1: Exclude invalid entries before finding the designated value
 x <- c(1, 1, 2, 2, 2, 1, 99, 99, 99, 99, NA, NA, NA, NA)
-get_ultimate(x, find="uptodate_mode")  # 99 (BAD)
-get_ultimate(x, find="uptodate_mode",
-             exclude=99)                # 1 NAs excluded by default (GOOD)
-get_ultimate(x, find="uptodate_mode",
-             exclude=c(99, NA))         # 1 (GOOD)
+get_ultimate(x, find = "uptodate_mode")  # 99
+get_ultimate(x, find = "uptodate_mode",
+             exclude = 99)               # 1, NAs excluded by default
+get_ultimate(x, find = "uptodate_mode",
+             exclude = 99, na.rm=FALSE)      # NA, if NAs are meaningful
 # When all values are excluded
 x <- c(99, 99, 99, 99, NA, NA, NA, NA)
-get_ultimate(x, find='uptodate_mode')  # 99 (BAD PRACTICE)
-get_ultimate(x, find='uptodate_mode',
-             exclude=99)                # NA (GOOD PRACTICE)
+get_ultimate(x, find = 'uptodate_mode')  # 99 (BAD PRACTICE)
+get_ultimate(x, find = 'uptodate_mode',
+             exclude = 99)               # NA (GOOD PRACTICE)
 get_ultimate(c(9,9,9,9,9), find='uptodate_mode',
-             exclude=9, warn=F)      # NA
+             exclude = 9, warn = FALSE)        # NA
 get_ultimate(c(9,9,9,9,9), find='last_entry',
-             exclude=9, warn=F)      # NA
+             exclude = 9, warn = FALSE)        # NA
 
 # Example 2: Finding up-to-date mode with categorical data
 x <- c("F", "F", "Other", "Other", "Unknown",
         "Other", "M", "M", "M", "M", "F", "F",
         "Other", "Unknown", "Unknown", "Unknown")
 get_ultimate(x, find = "uptodate_mode",
-             exclude = "Unknown")        # "Other" (last occurrence) (GOOD)
+             exclude = "Unknown")       # "Other" (last occurrence) (GOOD)
 get_ultimate(x, find = "uptodate_mode") # "Unknown" (BAD)
 get_ultimate(x, find = "first_mode",
-             warn = FALSE)           # "F" (first among unique modes)
+             warn = FALSE)              # "F" (first among unique modes)
 get_ultimate(x, find = "last_mode",
-             warn = FALSE)           # "Unknown" (last among unique modes)
+             warn = FALSE)           # "M" (last among unique modes)
 
 # Example 3: Finding first/last valid entry
 get_ultimate(x, find = "last_entry",

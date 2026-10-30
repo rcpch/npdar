@@ -1,9 +1,9 @@
 #' Correlation Matrix with Plotly
 #'
 #' @description
-#' Computes a correlation matrix and corresponding p-values, and visualises the
-#' lower triangle as an interactive heatmap using \pkg{plotly}. Correlation
-#' values and significance stars can be displayed inside each tile.
+#' Draws an interactive correlation matrix heatmap plot using \pkg{plotly}.
+#' Correlation values and significance stars can be displayed inside each tile,
+#' with hover text showing the correlation coefficient, p-value, and sample size.
 #'
 #' @param data A data frame or matrix containing only numeric variables.
 #' @param method Correlation method: \code{"pearson"} or \code{"spearman"},
@@ -25,14 +25,14 @@
 #'
 #' @examples
 #' # Basic correlation matrix
-#' plot_corr_matrix(mtcars)
+#' plot_corrmat_ly(mtcars)
 #'
 #' # Spearman correlation without tile labels, with additional plotly arguments
-#' plot_corr_matrix(mtcars,
-#'             method = "spearman",
-#'             show_values = FALSE,
-#'             show_stars = TRUE,
-#'             colorbar = list(title = "Correlation")) |>
+#' plot_corrmat_ly(mtcars,
+#'                 method = "spearman",
+#'                 show_values = FALSE,
+#'                 show_stars = TRUE,
+#'                 colorbar = list(title = "Correlation")) |>
 #' plotly::layout(annotations = list(
 #'   text = paste0("<i><b>Note:</b>",
 #'                 "*: p<0.05, **: p<0.01, ***: p<0.001.</i>"),
@@ -45,19 +45,19 @@
 #' @importFrom tibble tibble
 #' @importFrom rlang .data
 #' @export
-plot_corr_matrix <- function(data,
-                        method = c("pearson", "spearman"), # mimic stats::cor() options
-                        use = c("pairwise.complete.obs",
-                                "complete.obs",
-                                "everything",
-                                "all.obs",
-                                "na.or.complete"), # mimic stats::cor() options
-                        digits = 2,
-                        show_stars = TRUE,
-                        show_values = TRUE,
-                        colors = c("#11A7F2", "#FFFFFF", "#E00087"),
-                        ...                        # other plotly arguments
-                        ) {
+plot_corrmat_ly <- function(data,
+                            method = c("pearson", "spearman"), # mimic stats::cor() options
+                            use = c("pairwise.complete.obs",
+                                    "complete.obs",
+                                    "everything",
+                                    "all.obs",
+                                    "na.or.complete"), # mimic stats::cor() options
+                            digits = 2,
+                            show_stars = TRUE,
+                            show_values = TRUE,
+                            colors = c("#11A7F2", "#FFFFFF", "#E00087"),
+                            ...                        # other plotly arguments
+) {
 
   method <- match.arg(method)
   use  <- match.arg(use)
@@ -103,8 +103,9 @@ plot_corr_matrix <- function(data,
 
   data_complete <- data[complete_idx, , drop = FALSE]
 
-  if (use %in% c("complete.obs", "na.or.complete") && nrow(data_complete) == 0) {
-    stop("No complete observations available after applying `use = '", use, "'`.")
+  # na.or.complete returns NA correlations instead of an error, as in stats::cor()
+  if (use == "complete.obs" && nrow(data_complete) == 0) {
+    stop("No complete observations available after applying `use = 'complete.obs'`.")
   }
 
   #------ 3) Correlation matrix ------
@@ -113,13 +114,18 @@ plot_corr_matrix <- function(data,
                         method = method,
                         use = use)
 
-  #------ 4) P-value matrix ------
+  #------ 4) P-value and sample size matrices ------
   # Build p-values manually via cor.test()
   p_mat <- matrix(NA_real_,
                   nrow = length(vars),
                   ncol = length(vars),
                   dimnames = list(vars, vars)
-                  )
+  )
+  n_mat <- matrix(NA_integer_,
+                  nrow = length(vars),
+                  ncol = length(vars),
+                  dimnames = list(vars, vars)
+  )
 
   for (i in seq_along(vars)) {
     for (j in seq_len(i - 1)) {
@@ -127,12 +133,13 @@ plot_corr_matrix <- function(data,
       x <- data[[vars[i]]]
       y <- data[[vars[j]]]
 
-      # Missing-data handling for p-values
+      # Missing-data handling for p-values; n mirrors the rows used by `use`
       if (use == "pairwise.complete.obs") {
         ok <- stats::complete.cases(x, y)
         x2 <- x[ok]
         y2 <- y[ok]
       } else if (use == "everything") {
+        n_mat[i, j] <- length(x)
         if (anyNA(x) || anyNA(y)) {
           next
         }
@@ -142,6 +149,8 @@ plot_corr_matrix <- function(data,
         x2 <- data_complete[[vars[i]]]
         y2 <- data_complete[[vars[j]]]
       }
+
+      n_mat[i, j] <- length(x2)
 
       # Need enough observations and variation
       if (
@@ -175,7 +184,8 @@ plot_corr_matrix <- function(data,
     Var1 = vars[lower[, "row"]],
     Var2 = vars[lower[, "col"]],
     Correlation = cor_mat[lower],
-    P_value = p_mat[lower]
+    P_value = p_mat[lower],
+    N = n_mat[lower]
   ) |>
     dplyr::mutate(
       Sig = dplyr::case_when(
@@ -198,12 +208,14 @@ plot_corr_matrix <- function(data,
         paste0(
           "<b>", .data$Var1, " vs ", .data$Var2, "</b>",
           "<br>", method, " correlation: NA",
-          "<br>p-value: NA"
+          "<br>p-value: NA",
+          "<br>n: ", .data$N
         ),
         paste0(
           "<b>", .data$Var1, " vs ", .data$Var2, "</b>",
           "<br>", method, " correlation: ", .data$CorrLabel, .data$Sig,
-          "<br>p-value: ", format.pval(.data$P_value, digits = 3, eps = 0.001)
+          "<br>p-value: ", format.pval(.data$P_value, digits = 3, eps = 0.001),
+          "<br>n: ", .data$N
         )
       )
     )

@@ -4,68 +4,96 @@
 \alias{get_masked}
 \title{Mask small numerators for sensitive data privacy}
 \usage{
-get_masked(vec, threshold = 3, mask_label = "masked")
+get_masked(
+  vec,
+  threshold,
+  mask_label = "masked",
+  mask_zero = FALSE,
+  mask_na = FALSE
+)
 }
 \arguments{
-\item{vec}{A numeric vector of count data (numerators) to be masked.}
+\item{vec}{A numeric vector of count data (numerators) to be masked. Only
+values \code{>= 0} and \code{NA} are accepted; negative values and
+non-numeric input throw an error. Note that a mixed vector such as
+\code{c(1, 2, TRUE, FALSE)} is coerced to numeric by R
+before reaching the function, so it will be silently allowed.}
 
 \item{threshold}{Numeric. The threshold value for masking. Values greater than 0
-and less than \code{threshold} will be masked. Default is 3.}
+and less than \code{threshold} will be masked. As an example, the NPDA usually uses 3.}
 
 \item{mask_label}{Character string. The message to replace masked values with.
 Default is "masked".}
+
+\item{mask_zero}{Logical. If \code{TRUE}, zeros are masked as well. Default is
+\code{FALSE}, because a zero conveys a meaningful and positive message
+(e.g. no patients at this hospital has the disease) and does not put privacy at risk.}
+
+\item{mask_na}{Logical. If \code{TRUE}, \code{NA}s are masked as well. Default is
+\code{FALSE}, because an \code{NA} conveys a meaningful message (e.g. the hospital has
+unknown number of patients with the disease) and does not put privacy at risk.}
 }
 \value{
-A character vector with small values replaced by the mask message.
+A character vector with masked values replaced by \code{mask_label}.
   If no values need masking, returns the original vector converted to character.
+  Unmasked \code{NA}s are returned as \code{NA_character_}.
 }
 \description{
-This function masks small numerator values in sensitive data to protect privacy
-by preventing potential identification of individuals. It applies two key rules:
-(1) mask any numerators in the range (0, threshold), and (2) if only one numerator is masked,
-also mask all occurrences of the second smallest value to prevent back-calculation.
+Masks small numerators (counts) to protect patient privacy when the
+corresponding denominator (the total) is also shown. It applies two rules:
+(1) mask any numerator in the range (0, threshold), optionally together with zeros
+and \code{NA}s, and (2) make sure at least two values are masked, at least one of
+them positive, by also masking the next smallest positive value(s) if needed.
+
+Rule 2 is the reason this function exists. If a denominator is published, a single
+masked numerator can be recovered by subtracting the visible numerators from the
+total. Masking at least two values, one of them positive, leaves the individual
+values undetermined. If the denominator is not shown, a simple \code{ifelse()} on the
+threshold should suffice and there's no need to use this function.
 }
 \details{
 The function implements a two-step masking process:
 \enumerate{
-  \item \strong{Initial masking}: Any values in the range (0, threshold) are masked
-  \item \strong{Secondary masking}: If only one value was masked in step 1,
-        all occurrences of the second smallest value (excluding 0) are also masked
-        to prevent back-calculation of the original masked value
+  \item \strong{Initial masking}: Any values in the range (0, threshold) are masked,
+        plus zeros if \code{mask_zero = TRUE} and \code{NA}s if \code{mask_na = TRUE}.
+  \item \strong{Secondary masking}: If anything was masked but fewer than two
+        values were, or none of them is positive, the smallest unmasked positive
+        value(s) are also masked, all occurrences at a time, until at least two
+        values are masked and at least one is positive (or none are left).
 }
 
-This approach prevents scenarios where having only one masked value would allow
-users to calculate the masked value by subtraction from known totals.
+\strong{Masked zeros and \code{NA}s:}
+When \code{mask_zero} and \code{mask_na} are \code{TRUE},
+zeros and \code{NA}s count towards the minimum of two masked values but
+cannot be the only ones. They add nothing to the total, so if only they were masked,
+subtracting the visible numerators from the denominator would reveal that every
+masked value is 0 or unknown, which is why the smallest positive value(s) must also be masked.
 }
 \note{
-Zero values are never masked as they typically represent legitimate absence of cases.
 The function always returns a character vector to facilitate merging with other
 masked datasets that may contain non-numeric mask messages.
 }
 \examples{
-# Basic usage - mask values less than 3
-example_vec1 <- c(4, 6, 2, 4, 0)
-get_masked(example_vec1)  # Returns: "4" "6" "masked" "4" "0"
-
-# With different threshold
-example_vec2 <- c(4, 6, 2, 4, 1)
-get_masked(example_vec2, threshold = 3)  # Masks values 1 and 2, plus second smallest (4)
+# Positive values less than the threshold and the second smallest positive value are masked
+vec1 <- c(5, 6, 4, 5, 1, 0, 0, NA)
+get_masked(vec1, threshold = 3)
 
 # Custom mask message
-example_vec3 <- c(4, 6, 2, 4, 3)
-get_masked(example_vec3, threshold = 3, mask_label = "*")
+get_masked(vec1, threshold = 3, mask_label = "*")
 
-# Demonstrating secondary masking rule
-example_vec4 <- c(4, 6, 3, 4, 3)
-get_masked(example_vec4, threshold = 3)  # Only value 2 would be masked initially
+# No masking if all positive values are above the threshold
+vec2 <- c(5, 6, 4, 5, 3, 0, 0, NA)
+get_masked(vec2, mask_label = "*", threshold = 3)
 
-# Higher threshold
-example_vec5 <- c(4, 6, 3, 4, 3)
-get_masked(example_vec5, threshold = 5, mask_label = "*")  # Masks 3s and 4s
+# Custom threshold
+get_masked(vec2, mask_label = "*", threshold = 4)
 
-# No masking needed
-example_vec6 <- c(5, 6, 7, 8, 0)
-get_masked(example_vec6)  # Returns original as characters: "5" "6" "7" "8" "0"
+# Zeros are kept by default; mask_zero = TRUE masks them and the smallest positive values too
+get_masked(vec1, threshold = 3, mask_label = "*", mask_zero = TRUE)
+
+# NAs are kept by default; mask_na = TRUE masks them and the smallest positive values too
+get_masked(vec1, threshold = 3, mask_label = "*", mask_na = TRUE)
+get_masked(vec1, threshold = 3, mask_label = "*", mask_zero = TRUE, mask_na = TRUE)
 
 # Realistic workflow example
 \dontrun{
@@ -75,19 +103,19 @@ library(tibble)
 # Create example demographic data
 set.seed(1234)
 dat <- tibble(
-  unit_number = sample(8, size = 100, replace = TRUE),
-  gender = sample(c("boy", "girl", "non-binary", "prefer not to say"),
-                  size = 100, replace = TRUE)
+  hospital_id = sample(8, size = 100, replace = TRUE),
+  condition = sample(c("adhd", "asd", "dyslexia","prefer not to say"),
+                     size = 100, replace = TRUE)
 )
-
 # Apply masking to grouped counts
 results <- dat |>
-  group_by(unit_number, gender) |>
+  group_by(hospital_id, condition) |>
   summarise(numerator = n(), .groups = "drop") |>
   mutate(
-    proportion = sprintf("\%.1f\%\%", 100 * numerator / sum(numerator)),
-    numerator_masked = get_masked(numerator, threshold = 3),
-    proportion_masked = ifelse(numerator_masked == 'masked', 'masked', proportion)
+    denomiantor = sum(numerator),
+    percent = sprintf("\%.1f\%\%", 100 * numerator / denomiantor),
+    numerator_masked = get_masked(numerator, threshold = 3, mask_label = '*'),
+    percent_masked = ifelse(numerator_masked == '*', '*', percent)
   )
 }
 }

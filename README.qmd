@@ -196,23 +196,38 @@ df |>
 
 ### Privacy Masking
 
-By default, `get_masked()` masks positive counts below 3 and leaves
-zeros unchanged. If only one count is masked, all occurrences of the
-next smallest positive value are also masked to prevent
-back-calculation. The result is a character vector. Here only `2` is
-below 3, so the `4`s are masked as well.
+`get_masked()` masks positive counts below `threshold` which you must specify:
+the right value depends on your reporting rules and the NPDA usually uses 3.
+By default, zeros and `NA`s are exempt from masking as they are usally
+meaningful and do not put privacy at risk, but you can choose to mask them too.
+At least two values are always masked, so that a masked count cannot be back-calculated 
+from the denominator: if fewer are masked, the next smallest positive value is
+masked as well. 
+The result is always a character vector, so it can be combined with a mask label. 
+The default `mask_label` is "masked" for the masked values. 
 
 ```{r}
 #| label: mask-default
-get_masked(c(4, 6, 2, 4, 0, 5, 5))
+vec1 <- c(5, 6, 4, 5, 1, 0, 0, NA)
+get_masked(vec1, threshold = 3)
 ```
 
-Customise the threshold and the suppression label:
+Customise the threshold and mask label:
 
 ```{r}
-#| label: mask-custom
-get_masked(c(4, 6, 2, 4, 0, 5, 5), threshold = 5, mask_label = "*")
-get_masked(c(4, 6, 2, 4, 0, 5, 5), threshold = 6, mask_label = "*")
+#| label: mask-threshold-label
+get_masked(vec1, threshold = 6, mask_label = "*")
+```
+
+Use `mask_zero` and `mask_na` to mask zeros and `NA`s too. At least one
+positive value is still masked, otherwise the denominator would reveal
+that every masked value is zero or unknown:
+
+```{r}
+#| label: mask-zero-na
+get_masked(vec1, threshold = 3, mask_label = "*", mask_zero = TRUE)
+get_masked(vec1, threshold = 3, mask_label = "*", mask_na = TRUE)
+get_masked(vec1, threshold = 3, mask_label = "*", mask_zero = TRUE, mask_na = TRUE)
 ```
 
 ### Longitudinal Summaries
@@ -225,21 +240,30 @@ warnings explain which modes were not selected.
 ```{r}
 #| label: data-longitudinal
 dat_long <- c("A", "B", "C", "A", "A", "Unknown", "Unknown",
-          NA, "C", "C", "B", "B", "Unknown")
+              NA, "C", "C", "B", "B", "Unknown",
+              NA, NA, NA)
 ```
 
 Select the tied mode that occurs most recently:
 
 ```{r}
 #| label: ultimate-recent-mode
-get_ultimate(dat_long, find = "uptodate_mode", exclude = c("Unknown", NA))
+get_ultimate(dat_long, find = "uptodate_mode", exclude = "Unknown", na.rm = TRUE)
 ```
 
 Use the package's `last_mode` rule instead:
 
 ```{r}
 #| label: ultimate-last-mode
-get_ultimate(dat_long, find = "last_mode", exclude = c("Unknown", NA))
+get_ultimate(dat_long, find = "last_mode", exclude = "Unknown", na.rm = TRUE)
+```
+
+`NA`s are removed by default. Use `na.rm = FALSE` to treat `NA` as a
+meaningful value, e.g. when later visits were deliberately left unknown:
+
+```{r}
+#| label: ultimate-na-rm
+get_ultimate(dat_long, find = "uptodate_mode", exclude = "Unknown", na.rm = FALSE)
 ```
 
 ### Categorical Frequencies
@@ -399,13 +423,13 @@ data.frame(
 
 ### Correlation Matrix with `plotly`
 
-`plot_corr_matrix()` creates an interactive lower-triangle correlation
+`plot_corrmat_ly()` creates an interactive lower-triangle correlation
 heatmap. Supply a data frame containing only numeric variables:
 
 ```{r}
 #| label: correlation-basic
 #| eval: FALSE
-plot_corr_matrix(mtcars)
+plot_corrmat_ly(mtcars)
 ```
 
 Customise the plot, for example by selecting Spearman correlations,
@@ -414,7 +438,7 @@ hiding the values and customising the colour bar:
 ```{r}
 #| label: correlation-custom
 #| eval: FALSE
-plot_corr_matrix(
+plot_corrmat_ly(
   mtcars,
   method = "spearman",
   show_values = FALSE,
@@ -430,6 +454,44 @@ plot_corr_matrix(
       showarrow = FALSE
     ))
   )
+```
+
+### Raincloud Plot with `plotly`
+
+`plot_raincloud_ly()` creates an interactive raincloud plot, combining a
+half-violin density, a boxplot and the raw data points for each group. The
+orientation follows the data: a numeric `x` with a categorical `y` gives a
+horizontal plot, and the reverse gives a vertical one.
+
+```{r}
+#| label: raincloud-basic
+#| eval: FALSE
+set.seed(1)
+plot_raincloud_ly(iris,
+                  x = "Species",
+                  y = "Sepal.Length",
+                  scatter_layout = "jitter",
+                  show_buttons = FALSE)
+```
+
+Buttons below the plot show or hide the density, scatter and box elements.
+Customise the plot, for example by using a vertical layout with custom colours,
+stacked dots instead of jitter, no boxplot and a legend, and tweak it further
+with `plotly::layout()`:
+
+```{r}
+#| label: raincloud-custom
+#| eval: FALSE
+plot_raincloud_ly(iris,
+                  x = "Sepal.Length",
+                  y = "Species",
+                  colors = c("#11A7F2", "#E00087", "#00bdaa"),
+                  scatter_layout = "dots",
+                  show_box = FALSE,
+                  show_legend = TRUE) |>
+  plotly::layout(yaxis = list(showticklabels = FALSE),
+                 legend = list(x = 1, y = -0.2, xanchor = "right",
+                               orientation = "h"))
 ```
 
 ## License
