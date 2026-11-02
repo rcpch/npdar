@@ -27,7 +27,7 @@
 
     <a class="navbar-brand me-2" href="index.html">npdar</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -77,6 +77,7 @@
 <p><strong>npdar</strong> provides R utilities for the <a href="https://www.rcpch.ac.uk/work-we-do/clinical-audits/npda" class="external-link">National Paediatric Diabetes Audit (NPDA)</a>, developed and maintained by the <a href="https://www.rcpch.ac.uk/" class="external-link">Royal College of Paediatrics and Child Health (RCPCH)</a>.</p>
 <p>The package supports:</p>
 <ul>
+<li><p><strong>Interactive visualisation:</strong> raincloud plots and correlation matrices built with <code>plotly</code>.</p></li>
 <li><p><strong>Blood pressure assessment:</strong> calculate expected values, z-scores and percentiles, and categorise blood pressure using paediatric or adult references.</p></li>
 <li>
 <p><strong>Statistical utilities:</strong></p>
@@ -87,7 +88,6 @@
 </ol>
 </li>
 <li><p><strong>Audit period identification:</strong> identify audit/fiscal years and quarters using a configurable first-quarter start month.</p></li>
-<li><p><strong>Correlation visualisation:</strong> create interactive correlation matrix with <code>plotly</code> and <code><a href="https://rdrr.io/r/stats/cor.html" class="external-link">stats::cor()</a></code>.</p></li>
 </ul>
 <p>See the <a href="https://rcpch.github.io/npdar/">package documentation</a> for full function references and examples.</p>
 </div>
@@ -131,10 +131,53 @@
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/RCPCH/npdar" class="external-link">npdar</a></span><span class="op">)</span></span></code></pre></div>
 <div class="section level3">
+<h3 id="raincloud-plot-with-plotly">Raincloud Plot with <code>plotly</code>
+<a class="anchor" aria-label="anchor" href="#raincloud-plot-with-plotly"></a>
+</h3>
+<p><code><a href="reference/plot_raincloud_ly.html">plot_raincloud_ly()</a></code> creates an interactive raincloud plot. Flip the orientation by swapping the <code>x</code> and <code>y</code> arguments:</p>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span></span>
+<span><span class="fu"><a href="reference/plot_raincloud_ly.html">plot_raincloud_ly</a></span><span class="op">(</span><span class="va">iris</span>,</span>
+<span>                  x <span class="op">=</span> <span class="st">"Species"</span>,</span>
+<span>                  y <span class="op">=</span> <span class="st">"Sepal.Length"</span>,</span>
+<span>                  scatter_layout <span class="op">=</span> <span class="st">"jitter"</span>,</span>
+<span>                  show_buttons <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
+<p>Customise the colours, use stacked dots instead of jitter, add a legend, and tweak further with <code>plotly::layout()</code>:</p>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="reference/plot_raincloud_ly.html">plot_raincloud_ly</a></span><span class="op">(</span><span class="va">iris</span>,</span>
+<span>                  x <span class="op">=</span> <span class="st">"Sepal.Length"</span>,</span>
+<span>                  y <span class="op">=</span> <span class="st">"Species"</span>,</span>
+<span>                  colors <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"#11A7F2"</span>, <span class="st">"#E00087"</span>, <span class="st">"#00bdaa"</span><span class="op">)</span>,</span>
+<span>                  scatter_layout <span class="op">=</span> <span class="st">"dots"</span>,</span>
+<span>                  show_legend <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">plotly</span><span class="fu">::</span><span class="fu">layout</span><span class="op">(</span>yaxis <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>showticklabels <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span>,</span>
+<span>                 legend <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fl">1</span>, y <span class="op">=</span> <span class="op">-</span><span class="fl">0.2</span>, xanchor <span class="op">=</span> <span class="st">"right"</span>,</span>
+<span>                               orientation <span class="op">=</span> <span class="st">"h"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<p>Hover for values, and use the buttons to show or hide each element:</p>
+<p><img src="reference/figures/plot_raincloud_ly.gif" width="700" alt="plot_raincloud_ly demo"></p>
+</div>
+<div class="section level3">
+<h3 id="correlation-matrix-with-plotly">Correlation Matrix with <code>plotly</code>
+<a class="anchor" aria-label="anchor" href="#correlation-matrix-with-plotly"></a>
+</h3>
+<p><code><a href="reference/plot_corrmat_ly.html">plot_corrmat_ly()</a></code> creates an interactive lower-triangle correlation heatmap:</p>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="reference/plot_corrmat_ly.html">plot_corrmat_ly</a></span><span class="op">(</span><span class="va">mtcars</span><span class="op">)</span></span></code></pre></div>
+<p>Customise the plot, for example with Spearman correlations and significance stars instead of values:</p>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="reference/plot_corrmat_ly.html">plot_corrmat_ly</a></span><span class="op">(</span><span class="va">mtcars</span>,</span>
+<span>                method <span class="op">=</span> <span class="st">"spearman"</span>,</span>
+<span>                show_values <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>                show_stars <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>                colorbar <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>title <span class="op">=</span> <span class="st">"Spearman Corr"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<p>Hover over a tile to see the correlation, p-value and sample size:</p>
+<p><img src="reference/figures/plot_corrmat_ly.gif" width="700" alt="plot_corrmat_ly demo"></p>
+</div>
+<div class="section level3">
 <h3 id="blood-pressure">Blood Pressure<a class="anchor" aria-label="anchor" href="#blood-pressure"></a>
 </h3>
 <p>It’s recommended to use the NHBPEP Fourth Report reference for children and adolescents aged 0-17 years. Height must already be expressed as a z-score, not in centimetres or other units. <code><a href="reference/bp_assess.html">bp_assess()</a></code> returns a tibble with the expected BP, z-score, percentile and category. The 25-year-old below is outside this reference’s age range, so returns <code>NA</code>.</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="reference/bp_assess.html">bp_assess</a></span><span class="op">(</span></span>
 <span>  bp_value <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">95</span>, <span class="fl">125</span>, <span class="fl">155</span><span class="op">)</span>,</span>
 <span>  bp_type <span class="op">=</span> <span class="st">"systolic"</span>,</span>
@@ -154,7 +197,7 @@
 <span><span class="co">#&gt; 2     112.  1.28        90.0 Prehypertension</span></span>
 <span><span class="co">#&gt; 3      NA  NA           NA   &lt;NA&gt;</span></span></code></pre></div>
 <p>For adults older than 17 years, it’s recommended to select the NICE/BHF reference explicitly. Ages outside the selected reference range return <code>NA</code>, and only <code>category</code> is defined for adults.</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="reference/bp_assess.html">bp_assess</a></span><span class="op">(</span></span>
 <span>  bp_value <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">155</span>, <span class="fl">155</span><span class="op">)</span>,</span>
 <span>  bp_type <span class="op">=</span> <span class="st">"systolic"</span>,</span>
@@ -173,21 +216,8 @@
 <span><span class="co">#&gt;      &lt;dbl&gt;  &lt;dbl&gt;      &lt;dbl&gt; &lt;chr&gt;               </span></span>
 <span><span class="co">#&gt; 1       NA     NA         NA &lt;NA&gt;                </span></span>
 <span><span class="co">#&gt; 2       NA     NA         NA Stage 1 hypertension</span></span></code></pre></div>
-<p>Apart from the <code><a href="reference/bp_assess.html">bp_assess()</a></code> function, <code><a href="reference/bp_category.html">bp_category()</a></code>, <code><a href="reference/bp_relative.html">bp_relative()</a></code>, and <code><a href="reference/bp_expected.html">bp_expected()</a></code> can be used separately to compute only the category, z score, percentile, or expected value respectively.</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="reference/bp_category.html">bp_category</a></span><span class="op">(</span></span>
-<span>  bp_value <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">155</span>, <span class="fl">155</span><span class="op">)</span>,</span>
-<span>  bp_type <span class="op">=</span> <span class="st">"systolic"</span>,</span>
-<span>  sex <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">1</span><span class="op">)</span>,</span>
-<span>  male_code <span class="op">=</span> <span class="fl">1</span>, female_code <span class="op">=</span> <span class="fl">2</span>,</span>
-<span>  height_z <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">0</span><span class="op">)</span>,</span>
-<span>  age_years <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">15</span>, <span class="fl">25</span><span class="op">)</span>,</span>
-<span>  ref <span class="op">=</span> <span class="st">"NICE/BHF"</span>,</span>
-<span>  .quiet <span class="op">=</span> <span class="cn">TRUE</span></span>
-<span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] NA                     "Stage 1 hypertension"</span></span></code></pre></div>
-<p>The <code>bp_family</code> functions can be used in a <code>dplyr</code> pipeline nicely.</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<p><code><a href="reference/bp_category.html">bp_category()</a></code>, <code><a href="reference/bp_relative.html">bp_relative()</a></code> and <code><a href="reference/bp_expected.html">bp_expected()</a></code> compute only the category, z-score/percentile or expected value respectively, and work well in a <code>dplyr</code> pipeline:</p>
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">df</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
 <span>  id <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">3</span>,</span>
 <span>  sex <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">2</span>, <span class="fl">1</span><span class="op">)</span>,</span>
@@ -216,21 +246,15 @@
 <div class="section level3">
 <h3 id="privacy-masking">Privacy Masking<a class="anchor" aria-label="anchor" href="#privacy-masking"></a>
 </h3>
-<p><code><a href="reference/get_masked.html">get_masked()</a></code> masks positive counts below <code>threshold</code> which you must specify: the right value depends on your reporting rules and the NPDA usually uses 3. By default, zeros and <code>NA</code>s are exempt from masking as they are usally meaningful and do not put privacy at risk, but you can choose to mask them too. At least two values are always masked, so that a masked count cannot be back-calculated from the denominator: if fewer are masked, the next smallest positive value is masked as well. The result is always a character vector, so it can be combined with a mask label. The default <code>mask_label</code> is “masked” for the masked values.</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<p><code><a href="reference/get_masked.html">get_masked()</a></code> masks positive counts below a <code>threshold</code> you must specify (the NPDA usually uses 3). Zeros and <code>NA</code>s are exempt by default. At least two values are always masked so that a masked count cannot be back-calculated from the denominator. The result is a character vector with a default <code>mask_label</code> of “masked”.</p>
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">vec1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">5</span>, <span class="fl">6</span>, <span class="fl">4</span>, <span class="fl">5</span>, <span class="fl">1</span>, <span class="fl">0</span>, <span class="fl">0</span>, <span class="cn">NA</span><span class="op">)</span></span>
 <span><span class="fu"><a href="reference/get_masked.html">get_masked</a></span><span class="op">(</span><span class="va">vec1</span>, threshold <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] "5"      "6"      "masked" "5"      "masked" "0"      "0"      NA</span></span></code></pre></div>
-<p>Customise the threshold and mask label:</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="reference/get_masked.html">get_masked</a></span><span class="op">(</span><span class="va">vec1</span>, threshold <span class="op">=</span> <span class="fl">6</span>, mask_label <span class="op">=</span> <span class="st">"*"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "*" "6" "*" "*" "*" "0" "0" NA</span></span></code></pre></div>
-<p>Use <code>mask_zero</code> and <code>mask_na</code> to mask zeros and <code>NA</code>s too. At least one positive value is still masked, otherwise the denominator would reveal that every masked value is zero or unknown:</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="reference/get_masked.html">get_masked</a></span><span class="op">(</span><span class="va">vec1</span>, threshold <span class="op">=</span> <span class="fl">3</span>, mask_label <span class="op">=</span> <span class="st">"*"</span>, mask_zero <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "5" "6" "4" "5" "*" "*" "*" NA</span></span>
-<span><span class="fu"><a href="reference/get_masked.html">get_masked</a></span><span class="op">(</span><span class="va">vec1</span>, threshold <span class="op">=</span> <span class="fl">3</span>, mask_label <span class="op">=</span> <span class="st">"*"</span>, mask_na <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "5" "6" "4" "5" "*" "0" "0" "*"</span></span>
+<p>Customise the label, and use <code>mask_zero</code> and <code>mask_na</code> to mask zeros and <code>NA</code>s too (at least one positive value is still masked):</p>
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="reference/get_masked.html">get_masked</a></span><span class="op">(</span><span class="va">vec1</span>, threshold <span class="op">=</span> <span class="fl">6</span>, mask_label <span class="op">=</span> <span class="st">"&lt;6"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] "&lt;6" "6"  "&lt;6" "&lt;6" "&lt;6" "0"  "0"  NA</span></span>
 <span><span class="fu"><a href="reference/get_masked.html">get_masked</a></span><span class="op">(</span><span class="va">vec1</span>, threshold <span class="op">=</span> <span class="fl">3</span>, mask_label <span class="op">=</span> <span class="st">"*"</span>, mask_zero <span class="op">=</span> <span class="cn">TRUE</span>, mask_na <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] "5" "6" "4" "5" "*" "*" "*" "*"</span></span></code></pre></div>
 </div>
@@ -238,24 +262,22 @@
 <h3 id="longitudinal-summaries">Longitudinal Summaries<a class="anchor" aria-label="anchor" href="#longitudinal-summaries"></a>
 </h3>
 <p><code><a href="reference/get_ultimate.html">get_ultimate()</a></code> uses vector order, so sort longitudinal records chronologically before selecting a most recent value. These examples exclude unknown and missing values and deliberately include tied modes; warnings explain which modes were not selected.</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">dat_long</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"A"</span>, <span class="st">"B"</span>, <span class="st">"C"</span>, <span class="st">"A"</span>, <span class="st">"A"</span>, <span class="st">"Unknown"</span>, <span class="st">"Unknown"</span>,</span>
 <span>              <span class="cn">NA</span>, <span class="st">"C"</span>, <span class="st">"C"</span>, <span class="st">"B"</span>, <span class="st">"B"</span>, <span class="st">"Unknown"</span>,</span>
 <span>              <span class="cn">NA</span>, <span class="cn">NA</span>, <span class="cn">NA</span><span class="op">)</span></span></code></pre></div>
-<p>Select the tied mode that occurs most recently:</p>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<p>Select the tied mode that occurs most recently, or use the <code>last_mode</code> rule instead:</p>
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="reference/get_ultimate.html">get_ultimate</a></span><span class="op">(</span><span class="va">dat_long</span>, find <span class="op">=</span> <span class="st">"uptodate_mode"</span>, exclude <span class="op">=</span> <span class="st">"Unknown"</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Warning in get_ultimate(dat_long, find = "uptodate_mode", exclude = "Unknown",</span></span>
 <span><span class="co">#&gt; : There are multiple modes, the remaining modes are: A, C</span></span>
-<span><span class="co">#&gt; [1] "B"</span></span></code></pre></div>
-<p>Use the package’s <code>last_mode</code> rule instead:</p>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="reference/get_ultimate.html">get_ultimate</a></span><span class="op">(</span><span class="va">dat_long</span>, find <span class="op">=</span> <span class="st">"last_mode"</span>, exclude <span class="op">=</span> <span class="st">"Unknown"</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] "B"</span></span>
+<span><span class="fu"><a href="reference/get_ultimate.html">get_ultimate</a></span><span class="op">(</span><span class="va">dat_long</span>, find <span class="op">=</span> <span class="st">"last_mode"</span>, exclude <span class="op">=</span> <span class="st">"Unknown"</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Warning in get_ultimate(dat_long, find = "last_mode", exclude = "Unknown", :</span></span>
 <span><span class="co">#&gt; There are multiple modes, the remaining modes are: A, B</span></span>
 <span><span class="co">#&gt; [1] "C"</span></span></code></pre></div>
-<p><code>NA</code>s are removed by default. Use <code>na.rm = FALSE</code> to treat <code>NA</code> as a meaningful value, e.g. when later visits were deliberately left unknown:</p>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<p><code>NA</code>s are removed by default; use <code>na.rm = FALSE</code> to treat <code>NA</code> as a meaningful value:</p>
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="reference/get_ultimate.html">get_ultimate</a></span><span class="op">(</span><span class="va">dat_long</span>, find <span class="op">=</span> <span class="st">"uptodate_mode"</span>, exclude <span class="op">=</span> <span class="st">"Unknown"</span>, na.rm <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] NA</span></span></code></pre></div>
 </div>
@@ -263,7 +285,7 @@
 <h3 id="categorical-frequencies">Categorical Frequencies<a class="anchor" aria-label="anchor" href="#categorical-frequencies"></a>
 </h3>
 <p>The following examples use synthetic data. <code><a href="reference/get_frequency.html">get_frequency()</a></code> returns a long table with a numerator, denominator and proportion (<code>percent</code>, on a 0-1 scale) for each category. Missing measure values are excluded by default; use <code>count_na = TRUE</code> to include them.</p>
-<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">1999</span><span class="op">)</span></span>
 <span><span class="va">dat_survey1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
 <span>  participant_id <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="fl">60</span><span class="op">)</span>,</span>
@@ -289,7 +311,7 @@
 <h4 id="separate-group-summary">Separate Group Summary<a class="anchor" aria-label="anchor" href="#separate-group-summary"></a>
 </h4>
 <p>With <code>nested = FALSE</code> (the default), each grouping variable is summarised separately. The special group name <code>"overall"</code> adds an overall summary.</p>
-<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sum_freq_eg1</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/get_frequency.html">get_frequency</a></span><span class="op">(</span></span>
 <span>  data <span class="op">=</span> <span class="va">dat_survey1</span>,</span>
 <span>  measures <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"q1_catq"</span>, <span class="st">"q2_catq"</span><span class="op">)</span>,</span>
@@ -320,7 +342,7 @@
 <h4 id="nested-group-summary">Nested Group Summary<a class="anchor" aria-label="anchor" href="#nested-group-summary"></a>
 </h4>
 <p>Use <code>nested = TRUE</code> to summarise combinations of grouping variables, such as sex within each audit year:</p>
-<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="reference/get_frequency.html">get_frequency</a></span><span class="op">(</span></span>
 <span>  data <span class="op">=</span> <span class="va">dat_survey2</span>,</span>
 <span>  measures <span class="op">=</span> <span class="st">"type"</span>,</span>
@@ -342,38 +364,12 @@
 <span><span class="co">#&gt; 10      2023 Female type    B                1           1     1  </span></span>
 <span><span class="co">#&gt; 11      2023 Male   type    A                0           2     0  </span></span>
 <span><span class="co">#&gt; 12      2023 Male   type    B                2           2     1</span></span></code></pre></div>
+<p>With <code>count_na = TRUE</code>, missing values are included in the denominator and reported as a separate <code>NA</code> category.</p>
 </div>
 <div class="section level4">
-<h4 id="count-nas">Count NAs<a class="anchor" aria-label="anchor" href="#count-nas"></a>
+<h4 id="plot-frequency">Plot Frequency<a class="anchor" aria-label="anchor" href="#plot-frequency"></a>
 </h4>
-<p>Use <code>count_na = TRUE</code> to include missing values in the denominator and report them as a separate <code>NA</code> category (only for measures that contain missing values).</p>
-<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">sum_freq_eg3</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/get_frequency.html">get_frequency</a></span><span class="op">(</span></span>
-<span>  data <span class="op">=</span> <span class="va">dat_survey1</span>,</span>
-<span>  measures <span class="op">=</span> <span class="st">"q1_catq"</span>,</span>
-<span>  groups <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"country"</span>, <span class="st">"region"</span><span class="op">)</span>,</span>
-<span>  nested <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>  count_na <span class="op">=</span> <span class="cn">TRUE</span></span>
-<span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">sum_freq_eg3</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">region</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"East England"</span>, <span class="st">"North Wales"</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt; # A tibble: 8 × 7</span></span>
-<span><span class="co">#&gt;   country region       measure category numerator denominator percent</span></span>
-<span><span class="co">#&gt;   &lt;chr&gt;   &lt;chr&gt;        &lt;chr&gt;   &lt;chr&gt;        &lt;int&gt;       &lt;int&gt;   &lt;dbl&gt;</span></span>
-<span><span class="co">#&gt; 1 England East England q1_catq A                2          10     0.2</span></span>
-<span><span class="co">#&gt; 2 England East England q1_catq B                4          10     0.4</span></span>
-<span><span class="co">#&gt; 3 England East England q1_catq C                1          10     0.1</span></span>
-<span><span class="co">#&gt; 4 England East England q1_catq &lt;NA&gt;             3          10     0.3</span></span>
-<span><span class="co">#&gt; 5 Wales   North Wales  q1_catq A                1          10     0.1</span></span>
-<span><span class="co">#&gt; 6 Wales   North Wales  q1_catq B                2          10     0.2</span></span>
-<span><span class="co">#&gt; 7 Wales   North Wales  q1_catq C                4          10     0.4</span></span>
-<span><span class="co">#&gt; 8 Wales   North Wales  q1_catq &lt;NA&gt;             3          10     0.3</span></span></code></pre></div>
-</div>
-<div class="section level4">
-<h4 id="static-plot-with-ggplot2">Static Plot with <code>ggplot2</code>
-<a class="anchor" aria-label="anchor" href="#static-plot-with-ggplot2"></a>
-</h4>
+<p>The long-format output can be easily visualised with <code>ggplot2</code>.</p>
 <div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span></span>
 <span></span>
@@ -384,11 +380,7 @@
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html" class="external-link">facet_wrap</a></span><span class="op">(</span><span class="op">~</span> <span class="va">measure</span>, nrow <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html" class="external-link">scale_y_continuous</a></span><span class="op">(</span>labels <span class="op">=</span> <span class="fu">scales</span><span class="fu">::</span><span class="va"><a href="https://scales.r-lib.org/reference/percent_format.html" class="external-link">percent</a></span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>x <span class="op">=</span> <span class="st">"Country"</span>, y <span class="op">=</span> <span class="st">"Percent"</span>, fill <span class="op">=</span> <span class="st">"Category"</span><span class="op">)</span></span></code></pre></div>
-</div>
-<div class="section level4">
-<h4 id="interactive-plot-with-plotly">Interactive Plot with <code>plotly</code>
-<a class="anchor" aria-label="anchor" href="#interactive-plot-with-plotly"></a>
-</h4>
+<p>The same long-format output works with <code>plotly</code>.</p>
 <div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://plotly-r.com" class="external-link">plotly</a></span><span class="op">)</span></span>
 <span></span>
@@ -409,18 +401,16 @@
 <div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="reference/audit_year.html">audit_year</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] "2026/27 Q3"</span></span></code></pre></div>
-<p>Fixed dates keep the rendered examples reproducible:</p>
+<p>Use fixed dates for reproducibility, and <code>start_month</code> for a different audit calendar:</p>
 <div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="reference/audit_year.html">audit_year</a></span><span class="op">(</span><span class="st">"2025-03-31"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] "2024/25 Q4"</span></span>
 <span><span class="fu"><a href="reference/audit_year.html">audit_year</a></span><span class="op">(</span><span class="st">"2025-03-31"</span>, format <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] 2024</span></span></code></pre></div>
-<p>Change the first-quarter start month for a different audit calendar:</p>
-<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="reference/audit_year.html">audit_year</a></span><span class="op">(</span><span class="st">"2025-03-31"</span>, start_month <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] 2024</span></span>
+<span><span class="fu"><a href="reference/audit_year.html">audit_year</a></span><span class="op">(</span><span class="st">"2025-03-31"</span>, start_month <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] "2025/26 Q1"</span></span></code></pre></div>
 <p>Generate an inclusive sequence of audit years:</p>
-<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
 <span>  audit_year <span class="op">=</span> <span class="fu"><a href="reference/audit_year_range.html">audit_year_range</a></span><span class="op">(</span><span class="fl">2010</span>, <span class="fl">2015</span><span class="op">)</span>,</span>
 <span>  audit_year_numeric <span class="op">=</span> <span class="fu"><a href="reference/audit_year_range.html">audit_year_range</a></span><span class="op">(</span><span class="fl">2010</span>, <span class="fl">2015</span>, format <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
@@ -432,57 +422,6 @@
 <span><span class="co">#&gt; 4    2013/14               2013</span></span>
 <span><span class="co">#&gt; 5    2014/15               2014</span></span>
 <span><span class="co">#&gt; 6    2015/16               2015</span></span></code></pre></div>
-</div>
-<div class="section level3">
-<h3 id="correlation-matrix-with-plotly">Correlation Matrix with <code>plotly</code>
-<a class="anchor" aria-label="anchor" href="#correlation-matrix-with-plotly"></a>
-</h3>
-<p><code><a href="reference/plot_corrmat_ly.html">plot_corrmat_ly()</a></code> creates an interactive lower-triangle correlation heatmap. Supply a data frame containing only numeric variables:</p>
-<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="reference/plot_corrmat_ly.html">plot_corrmat_ly</a></span><span class="op">(</span><span class="va">mtcars</span><span class="op">)</span></span></code></pre></div>
-<p>Customise the plot, for example by selecting Spearman correlations, hiding the values and customising the colour bar:</p>
-<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="reference/plot_corrmat_ly.html">plot_corrmat_ly</a></span><span class="op">(</span></span>
-<span>  <span class="va">mtcars</span>,</span>
-<span>  method <span class="op">=</span> <span class="st">"spearman"</span>,</span>
-<span>  show_values <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  show_stars <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>  colorbar <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>title <span class="op">=</span> <span class="st">"Spearman Corr"</span><span class="op">)</span></span>
-<span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu">plotly</span><span class="fu">::</span><span class="fu">layout</span><span class="op">(</span></span>
-<span>    margin <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>b <span class="op">=</span> <span class="fl">80</span><span class="op">)</span>,</span>
-<span>    annotations <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
-<span>      text <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="st">"&lt;i&gt;&lt;b&gt;Note:&lt;/b&gt; *: p&lt;0.05, **: p&lt;0.01, ***: p&lt;0.001.&lt;/i&gt;"</span><span class="op">)</span>,</span>
-<span>      x <span class="op">=</span> <span class="fl">1</span>, y <span class="op">=</span> <span class="op">-</span><span class="fl">0.15</span>, xref <span class="op">=</span> <span class="st">"paper"</span>, yref <span class="op">=</span> <span class="st">"paper"</span>,</span>
-<span>      xanchor <span class="op">=</span> <span class="st">"right"</span>, yanchor <span class="op">=</span> <span class="st">"top"</span>,</span>
-<span>      showarrow <span class="op">=</span> <span class="cn">FALSE</span></span>
-<span>    <span class="op">)</span><span class="op">)</span></span>
-<span>  <span class="op">)</span></span></code></pre></div>
-</div>
-<div class="section level3">
-<h3 id="raincloud-plot-with-plotly">Raincloud Plot with <code>plotly</code>
-<a class="anchor" aria-label="anchor" href="#raincloud-plot-with-plotly"></a>
-</h3>
-<p><code><a href="reference/plot_raincloud_ly.html">plot_raincloud_ly()</a></code> creates an interactive raincloud plot, combining a half-violin density, a boxplot and the raw data points for each group. The orientation follows the data: a numeric <code>x</code> with a categorical <code>y</code> gives a horizontal plot, and the reverse gives a vertical one.</p>
-<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span></span>
-<span><span class="fu"><a href="reference/plot_raincloud_ly.html">plot_raincloud_ly</a></span><span class="op">(</span><span class="va">iris</span>,</span>
-<span>                  x <span class="op">=</span> <span class="st">"Species"</span>,</span>
-<span>                  y <span class="op">=</span> <span class="st">"Sepal.Length"</span>,</span>
-<span>                  scatter_layout <span class="op">=</span> <span class="st">"jitter"</span>,</span>
-<span>                  show_buttons <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
-<p>Buttons below the plot show or hide the density, scatter and box elements. Customise the plot, for example by using a vertical layout with custom colours, stacked dots instead of jitter, no boxplot and a legend, and tweak it further with <code>plotly::layout()</code>:</p>
-<div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="reference/plot_raincloud_ly.html">plot_raincloud_ly</a></span><span class="op">(</span><span class="va">iris</span>,</span>
-<span>                  x <span class="op">=</span> <span class="st">"Sepal.Length"</span>,</span>
-<span>                  y <span class="op">=</span> <span class="st">"Species"</span>,</span>
-<span>                  colors <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"#11A7F2"</span>, <span class="st">"#E00087"</span>, <span class="st">"#00bdaa"</span><span class="op">)</span>,</span>
-<span>                  scatter_layout <span class="op">=</span> <span class="st">"dots"</span>,</span>
-<span>                  show_box <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>                  show_legend <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu">plotly</span><span class="fu">::</span><span class="fu">layout</span><span class="op">(</span>yaxis <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>showticklabels <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span>,</span>
-<span>                 legend <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fl">1</span>, y <span class="op">=</span> <span class="op">-</span><span class="fl">0.2</span>, xanchor <span class="op">=</span> <span class="st">"right"</span>,</span>
-<span>                               orientation <span class="op">=</span> <span class="st">"h"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 </div>
 </div>
 <div class="section level2">

@@ -9,6 +9,9 @@ Health (RCPCH)](https://www.rcpch.ac.uk/).
 
 The package supports:
 
+- **Interactive visualisation:** raincloud plots and correlation
+  matrices built with `plotly`.
+
 - **Blood pressure assessment:** calculate expected values, z-scores and
   percentiles, and categorise blood pressure using paediatric or adult
   references.
@@ -27,9 +30,6 @@ The package supports:
 
 - **Audit period identification:** identify audit/fiscal years and
   quarters using a configurable first-quarter start month.
-
-- **Correlation visualisation:** create interactive correlation matrix
-  with `plotly` and [`stats::cor()`](https://rdrr.io/r/stats/cor.html).
 
 See the [package documentation](https://rcpch.github.io/npdar/) for full
 function references and examples.
@@ -83,6 +83,68 @@ remotes::install_github("rcpch/npdar")
 
 library(npdar)
 ```
+
+### Raincloud Plot with `plotly`
+
+[`plot_raincloud_ly()`](https://rcpch.github.io/npdar/reference/plot_raincloud_ly.md)
+creates an interactive raincloud plot. Flip the orientation by swapping
+the `x` and `y` arguments:
+
+``` r
+
+set.seed(1)
+plot_raincloud_ly(iris,
+                  x = "Species",
+                  y = "Sepal.Length",
+                  scatter_layout = "jitter",
+                  show_buttons = FALSE)
+```
+
+Customise the colours, use stacked dots instead of jitter, add a legend,
+and tweak further with `plotly::layout()`:
+
+``` r
+
+plot_raincloud_ly(iris,
+                  x = "Sepal.Length",
+                  y = "Species",
+                  colors = c("#11A7F2", "#E00087", "#00bdaa"),
+                  scatter_layout = "dots",
+                  show_legend = TRUE) |>
+  plotly::layout(yaxis = list(showticklabels = FALSE),
+                 legend = list(x = 1, y = -0.2, xanchor = "right",
+                               orientation = "h"))
+```
+
+Hover for values, and use the buttons to show or hide each element:
+
+![plot_raincloud_ly demo](reference/figures/plot_raincloud_ly.gif)
+
+### Correlation Matrix with `plotly`
+
+[`plot_corrmat_ly()`](https://rcpch.github.io/npdar/reference/plot_corrmat_ly.md)
+creates an interactive lower-triangle correlation heatmap:
+
+``` r
+
+plot_corrmat_ly(mtcars)
+```
+
+Customise the plot, for example with Spearman correlations and
+significance stars instead of values:
+
+``` r
+
+plot_corrmat_ly(mtcars,
+                method = "spearman",
+                show_values = FALSE,
+                show_stars = TRUE,
+                colorbar = list(title = "Spearman Corr"))
+```
+
+Hover over a tile to see the correlation, p-value and sample size:
+
+![plot_corrmat_ly demo](reference/figures/plot_corrmat_ly.gif)
 
 ### Blood Pressure
 
@@ -142,32 +204,12 @@ bp_assess(
 #> 2       NA     NA         NA Stage 1 hypertension
 ```
 
-Apart from the
-[`bp_assess()`](https://rcpch.github.io/npdar/reference/bp_assess.md)
-function,
 [`bp_category()`](https://rcpch.github.io/npdar/reference/bp_category.md),
-[`bp_relative()`](https://rcpch.github.io/npdar/reference/bp_relative.md),
+[`bp_relative()`](https://rcpch.github.io/npdar/reference/bp_relative.md)
 and
 [`bp_expected()`](https://rcpch.github.io/npdar/reference/bp_expected.md)
-can be used separately to compute only the category, z score,
-percentile, or expected value respectively.
-
-``` r
-
-bp_category(
-  bp_value = c(155, 155),
-  bp_type = "systolic",
-  sex = c(1, 1),
-  male_code = 1, female_code = 2,
-  height_z = c(0, 0),
-  age_years = c(15, 25),
-  ref = "NICE/BHF",
-  .quiet = TRUE
-)
-#> [1] NA                     "Stage 1 hypertension"
-```
-
-The `bp_family` functions can be used in a `dplyr` pipeline nicely.
+compute only the category, z-score/percentile or expected value
+respectively, and work well in a `dplyr` pipeline:
 
 ``` r
 
@@ -200,15 +242,11 @@ df |>
 ### Privacy Masking
 
 [`get_masked()`](https://rcpch.github.io/npdar/reference/get_masked.md)
-masks positive counts below `threshold` which you must specify: the
-right value depends on your reporting rules and the NPDA usually uses 3.
-By default, zeros and `NA`s are exempt from masking as they are usally
-meaningful and do not put privacy at risk, but you can choose to mask
-them too. At least two values are always masked, so that a masked count
-cannot be back-calculated from the denominator: if fewer are masked, the
-next smallest positive value is masked as well. The result is always a
-character vector, so it can be combined with a mask label. The default
-`mask_label` is “masked” for the masked values.
+masks positive counts below a `threshold` you must specify (the NPDA
+usually uses 3). Zeros and `NA`s are exempt by default. At least two
+values are always masked so that a masked count cannot be
+back-calculated from the denominator. The result is a character vector
+with a default `mask_label` of “masked”.
 
 ``` r
 
@@ -217,24 +255,13 @@ get_masked(vec1, threshold = 3)
 #> [1] "5"      "6"      "masked" "5"      "masked" "0"      "0"      NA
 ```
 
-Customise the threshold and mask label:
+Customise the label, and use `mask_zero` and `mask_na` to mask zeros and
+`NA`s too (at least one positive value is still masked):
 
 ``` r
 
-get_masked(vec1, threshold = 6, mask_label = "*")
-#> [1] "*" "6" "*" "*" "*" "0" "0" NA
-```
-
-Use `mask_zero` and `mask_na` to mask zeros and `NA`s too. At least one
-positive value is still masked, otherwise the denominator would reveal
-that every masked value is zero or unknown:
-
-``` r
-
-get_masked(vec1, threshold = 3, mask_label = "*", mask_zero = TRUE)
-#> [1] "5" "6" "4" "5" "*" "*" "*" NA
-get_masked(vec1, threshold = 3, mask_label = "*", mask_na = TRUE)
-#> [1] "5" "6" "4" "5" "*" "0" "0" "*"
+get_masked(vec1, threshold = 6, mask_label = "<6")
+#> [1] "<6" "6"  "<6" "<6" "<6" "0"  "0"  NA
 get_masked(vec1, threshold = 3, mask_label = "*", mask_zero = TRUE, mask_na = TRUE)
 #> [1] "5" "6" "4" "5" "*" "*" "*" "*"
 ```
@@ -254,7 +281,8 @@ dat_long <- c("A", "B", "C", "A", "A", "Unknown", "Unknown",
               NA, NA, NA)
 ```
 
-Select the tied mode that occurs most recently:
+Select the tied mode that occurs most recently, or use the `last_mode`
+rule instead:
 
 ``` r
 
@@ -262,20 +290,14 @@ get_ultimate(dat_long, find = "uptodate_mode", exclude = "Unknown", na.rm = TRUE
 #> Warning in get_ultimate(dat_long, find = "uptodate_mode", exclude = "Unknown",
 #> : There are multiple modes, the remaining modes are: A, C
 #> [1] "B"
-```
-
-Use the package’s `last_mode` rule instead:
-
-``` r
-
 get_ultimate(dat_long, find = "last_mode", exclude = "Unknown", na.rm = TRUE)
 #> Warning in get_ultimate(dat_long, find = "last_mode", exclude = "Unknown", :
 #> There are multiple modes, the remaining modes are: A, B
 #> [1] "C"
 ```
 
-`NA`s are removed by default. Use `na.rm = FALSE` to treat `NA` as a
-meaningful value, e.g. when later visits were deliberately left unknown:
+`NA`s are removed by default; use `na.rm = FALSE` to treat `NA` as a
+meaningful value:
 
 ``` r
 
@@ -381,38 +403,12 @@ get_frequency(
 #> 12      2023 Male   type    B                2           2     1
 ```
 
-#### Count NAs
+With `count_na = TRUE`, missing values are included in the denominator
+and reported as a separate `NA` category.
 
-Use `count_na = TRUE` to include missing values in the denominator and
-report them as a separate `NA` category (only for measures that contain
-missing values).
+#### Plot Frequency
 
-``` r
-
-sum_freq_eg3 <- get_frequency(
-  data = dat_survey1,
-  measures = "q1_catq",
-  groups = c("country", "region"),
-  nested = TRUE,
-  count_na = TRUE
-)
-
-sum_freq_eg3 |>
-  dplyr::filter(region %in% c("East England", "North Wales"))
-#> # A tibble: 8 × 7
-#>   country region       measure category numerator denominator percent
-#>   <chr>   <chr>        <chr>   <chr>        <int>       <int>   <dbl>
-#> 1 England East England q1_catq A                2          10     0.2
-#> 2 England East England q1_catq B                4          10     0.4
-#> 3 England East England q1_catq C                1          10     0.1
-#> 4 England East England q1_catq <NA>             3          10     0.3
-#> 5 Wales   North Wales  q1_catq A                1          10     0.1
-#> 6 Wales   North Wales  q1_catq B                2          10     0.2
-#> 7 Wales   North Wales  q1_catq C                4          10     0.4
-#> 8 Wales   North Wales  q1_catq <NA>             3          10     0.3
-```
-
-#### Static Plot with `ggplot2`
+The long-format output can be easily visualised with `ggplot2`.
 
 ``` r
 
@@ -427,7 +423,7 @@ sum_freq_eg1 |>
   labs(x = "Country", y = "Percent", fill = "Category")
 ```
 
-#### Interactive Plot with `plotly`
+The same long-format output works with `plotly`.
 
 ``` r
 
@@ -455,7 +451,8 @@ audit_year()
 #> [1] "2026/27 Q3"
 ```
 
-Fixed dates keep the rendered examples reproducible:
+Use fixed dates for reproducibility, and `start_month` for a different
+audit calendar:
 
 ``` r
 
@@ -463,12 +460,6 @@ audit_year("2025-03-31")
 #> [1] "2024/25 Q4"
 audit_year("2025-03-31", format = FALSE)
 #> [1] 2024
-```
-
-Change the first-quarter start month for a different audit calendar:
-
-``` r
-
 audit_year("2025-03-31", start_month = 1)
 #> [1] "2025/26 Q1"
 ```
@@ -488,77 +479,6 @@ data.frame(
 #> 4    2013/14               2013
 #> 5    2014/15               2014
 #> 6    2015/16               2015
-```
-
-### Correlation Matrix with `plotly`
-
-[`plot_corrmat_ly()`](https://rcpch.github.io/npdar/reference/plot_corrmat_ly.md)
-creates an interactive lower-triangle correlation heatmap. Supply a data
-frame containing only numeric variables:
-
-``` r
-
-plot_corrmat_ly(mtcars)
-```
-
-Customise the plot, for example by selecting Spearman correlations,
-hiding the values and customising the colour bar:
-
-``` r
-
-plot_corrmat_ly(
-  mtcars,
-  method = "spearman",
-  show_values = FALSE,
-  show_stars = TRUE,
-  colorbar = list(title = "Spearman Corr")
-) |>
-  plotly::layout(
-    margin = list(b = 80),
-    annotations = list(list(
-      text = paste0("<i><b>Note:</b> *: p<0.05, **: p<0.01, ***: p<0.001.</i>"),
-      x = 1, y = -0.15, xref = "paper", yref = "paper",
-      xanchor = "right", yanchor = "top",
-      showarrow = FALSE
-    ))
-  )
-```
-
-### Raincloud Plot with `plotly`
-
-[`plot_raincloud_ly()`](https://rcpch.github.io/npdar/reference/plot_raincloud_ly.md)
-creates an interactive raincloud plot, combining a half-violin density,
-a boxplot and the raw data points for each group. The orientation
-follows the data: a numeric `x` with a categorical `y` gives a
-horizontal plot, and the reverse gives a vertical one.
-
-``` r
-
-set.seed(1)
-plot_raincloud_ly(iris,
-                  x = "Species",
-                  y = "Sepal.Length",
-                  scatter_layout = "jitter",
-                  show_buttons = FALSE)
-```
-
-Buttons below the plot show or hide the density, scatter and box
-elements. Customise the plot, for example by using a vertical layout
-with custom colours, stacked dots instead of jitter, no boxplot and a
-legend, and tweak it further with `plotly::layout()`:
-
-``` r
-
-plot_raincloud_ly(iris,
-                  x = "Sepal.Length",
-                  y = "Species",
-                  colors = c("#11A7F2", "#E00087", "#00bdaa"),
-                  scatter_layout = "dots",
-                  show_box = FALSE,
-                  show_legend = TRUE) |>
-  plotly::layout(yaxis = list(showticklabels = FALSE),
-                 legend = list(x = 1, y = -0.2, xanchor = "right",
-                               orientation = "h"))
 ```
 
 ## License

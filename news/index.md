@@ -1,5 +1,12 @@
 # Changelog
 
+## npdar 0.7.1
+
+- Adjust
+  [`plot_raincloud_ly()`](https://rcpch.github.io/npdar/reference/plot_raincloud_ly.md)
+  scatter position and hoverdistance so boxplot hover stays reachable.
+- Create plotly demo GIF in README and pkgdown site
+
 ## npdar 0.7.0
 
 - New
