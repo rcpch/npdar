@@ -104,8 +104,22 @@ test_that("plot_raincloud_ly respects factor order and drops unused levels", {
 test_that("plot_raincloud_ly dots layout gives distinct positions within a bin", {
   pos <- npdar:::.raincloud_scatter_positions(
     rep(1, 5), pos = 1, layout = "dots", side = "center",
-    jitter_width = 0.2, dot_binwidth = 0.2, dot_spacing = 0.1
+    jitter_width = 0.2, dot_binwidth = 0.2, dot_spacing = 0.1, box_width = 0.16
   )
 
   expect_equal(length(unique(pos)), 5)
+})
+
+test_that("plot_raincloud_ly center and dots layouts keep points clear of the box", {
+  for (layout in c("center", "dots")) {
+    for (side in c("left", "right")) {
+      pos <- npdar:::.raincloud_scatter_positions(
+        c(1, 1, 1, 2), pos = 1, layout = layout, side = side,
+        jitter_width = 0.2, dot_binwidth = 0.2, dot_spacing = 0.1, box_width = 0.16
+      )
+
+      expect_true(all(abs(pos - 1) > 0.08), info = paste(layout, side))
+      expect_equal(sign(pos - 1), rep(if (side == "right") 1 else -1, 4))
+    }
+  }
 })

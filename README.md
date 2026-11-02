@@ -94,6 +94,78 @@ remotes::install_github("rcpch/npdar")
 library(npdar)
 ```
 
+### Raincloud Plot with `plotly`
+
+`plot_raincloud_ly()` creates an interactive raincloud plot, combining a
+half-violin density, a boxplot and the raw data points for each group.
+The orientation follows the data: a numeric `x` with a categorical `y`
+gives a horizontal plot, and the reverse gives a vertical one.
+
+``` r
+set.seed(1)
+plot_raincloud_ly(
+  iris,
+  x = "Species",
+  y = "Sepal.Length",
+  scatter_layout = "jitter",
+  show_buttons = FALSE
+  )
+```
+
+Buttons below the plot show or hide the density, scatter and box
+elements. Customise the plot, for example by using a vertical layout
+with custom colours, stacked dots instead of jitter and a legend, and
+tweak it further with `plotly::layout()`:
+
+``` r
+plot_raincloud_ly(iris,
+                  x = "Sepal.Length",
+                  y = "Species",
+                  colors = c("#11A7F2", "#E00087", "#00bdaa"),
+                  scatter_layout = "dots",
+                  show_legend = TRUE) |>
+  plotly::layout(yaxis = list(showticklabels = FALSE),
+                 legend = list(x = 1, y = -0.2, xanchor = "right",
+                               orientation = "h"))
+```
+
+Hover over the points or boxes for values, and use the buttons to hide
+or show each element:
+
+<img src="man/figures/plot_raincloud_ly.gif" width="700"
+alt="plot_raincloud_ly demo" />
+
+### Correlation Matrix with `plotly`
+
+`plot_corrmat_ly()` creates an interactive lower-triangle correlation
+heatmap. Supply a data frame containing only numeric variables:
+
+``` r
+plot_corrmat_ly(mtcars)
+```
+
+Customise the plot, for example by selecting Spearman correlations,
+hiding the values and customising the colour bar:
+
+``` r
+plot_corrmat_ly(mtcars,
+                method = "spearman",
+                show_values = FALSE,
+                show_stars = TRUE,
+                colorbar = list(title = "Spearman Corr")) |>
+  plotly::layout(annotations = list(
+    text = paste0("<i><b>Note:</b>",
+                  "*: p<0.05, **: p<0.01, ***: p<0.001.</i>"),
+    x = 1, y = 1, xref = "paper", yref = "paper",
+    xanchor = "right", yanchor = "top",
+    showarrow = FALSE))
+```
+
+Hover over a tile to see the correlation, p-value and sample size:
+
+<img src="man/figures/plot_corrmat_ly.gif" width="700"
+alt="plot_corrmat_ly demo" />
+
 ### Blood Pressure
 
 It’s recommended to use the NHBPEP Fourth Report reference for children
@@ -466,71 +538,6 @@ data.frame(
 #> 4    2013/14               2013
 #> 5    2014/15               2014
 #> 6    2015/16               2015
-```
-
-### Correlation Matrix with `plotly`
-
-`plot_corrmat_ly()` creates an interactive lower-triangle correlation
-heatmap. Supply a data frame containing only numeric variables:
-
-``` r
-plot_corrmat_ly(mtcars)
-```
-
-Customise the plot, for example by selecting Spearman correlations,
-hiding the values and customising the colour bar:
-
-``` r
-plot_corrmat_ly(
-  mtcars,
-  method = "spearman",
-  show_values = FALSE,
-  show_stars = TRUE,
-  colorbar = list(title = "Spearman Corr")
-) |>
-  plotly::layout(
-    margin = list(b = 80),
-    annotations = list(list(
-      text = paste0("<i><b>Note:</b> *: p<0.05, **: p<0.01, ***: p<0.001.</i>"),
-      x = 1, y = -0.15, xref = "paper", yref = "paper",
-      xanchor = "right", yanchor = "top",
-      showarrow = FALSE
-    ))
-  )
-```
-
-### Raincloud Plot with `plotly`
-
-`plot_raincloud_ly()` creates an interactive raincloud plot, combining a
-half-violin density, a boxplot and the raw data points for each group.
-The orientation follows the data: a numeric `x` with a categorical `y`
-gives a horizontal plot, and the reverse gives a vertical one.
-
-``` r
-set.seed(1)
-plot_raincloud_ly(iris,
-                  x = "Species",
-                  y = "Sepal.Length",
-                  scatter_layout = "jitter",
-                  show_buttons = FALSE)
-```
-
-Buttons below the plot show or hide the density, scatter and box
-elements. Customise the plot, for example by using a vertical layout
-with custom colours, stacked dots instead of jitter, no boxplot and a
-legend, and tweak it further with `plotly::layout()`:
-
-``` r
-plot_raincloud_ly(iris,
-                  x = "Sepal.Length",
-                  y = "Species",
-                  colors = c("#11A7F2", "#E00087", "#00bdaa"),
-                  scatter_layout = "dots",
-                  show_box = FALSE,
-                  show_legend = TRUE) |>
-  plotly::layout(yaxis = list(showticklabels = FALSE),
-                 legend = list(x = 1, y = -0.2, xanchor = "right",
-                               orientation = "h"))
 ```
 
 ## License
