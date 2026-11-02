@@ -19,6 +19,14 @@
 #' without overlapping points. With `"jitter"` the positions are random, so use
 #' [set.seed()] for reproducible plots.
 #'
+#' Hovering a point shows its value and hovering inside a box shows its
+#' statistics. Plotly shows the nearest point within `hoverdistance` pixels
+#' before any box, so the plot sets `hoverdistance = 3`, which is about the
+#' marker radius. Points then only take over the hover when the cursor is almost
+#' on them. For `"dots"` and `"center"` layouts with points to the left or right
+#' of the group position, points also start slightly outside the box. To change
+#' the hover distance, use `plotly::layout(hoverdistance = ...)`.
+#'
 #' Elements switched off with `show_density`, `show_scatter` or `show_box` are
 #' still added to the plot, but start hidden, so that the buttons can reveal
 #' them.
@@ -249,7 +257,7 @@ plot_raincloud_ly <- function(data, x, y,
 
     cat_pos <- .raincloud_scatter_positions(
       vals, pos, scatter_layout, scatter_side,
-      jitter_width, dot_binwidth, dot_spacing
+      jitter_width, dot_binwidth, dot_spacing, box_width
     )
     co <- xy(cat_pos, vals)
 
@@ -318,7 +326,8 @@ plot_raincloud_ly <- function(data, x, y,
     fig,
     xaxis = if (horizontal) num_axis else cat_axis,
     yaxis = if (horizontal) cat_axis else num_axis,
-    hovermode = "closest"
+    hovermode = "closest",
+    hoverdistance = 3
   )
 
   #------ 7) Toggle buttons ------
@@ -387,11 +396,20 @@ plot_raincloud_ly <- function(data, x, y,
 #' Categorical-axis coordinates for the scatter points of one group
 #' @noRd
 .raincloud_scatter_positions <- function(vals, pos, layout, side,
-                                         jitter_width, dot_binwidth, dot_spacing) {
+                                         jitter_width, dot_binwidth, dot_spacing,
+                                         box_width) {
   n <- length(vals)
 
+  # `center` and `dots` start just outside the box so its hover stays reachable
+  start <- box_width / 2 + 0.03
+
   if (layout == "center") {
-    return(rep(pos, n))
+    return(switch(
+      side,
+      right = rep(pos + start, n),
+      left  = rep(pos - start, n),
+      rep(pos, n)
+    ))
   }
 
   if (layout == "jitter") {
@@ -411,8 +429,8 @@ plot_raincloud_ly <- function(data, x, y,
     k <- length(idx)
     offsets <- switch(
       side,
-      right = (seq_len(k) - 0.2) * dot_spacing,
-      left  = -(seq_len(k) - 0.2) * dot_spacing,
+      right = start + (seq_len(k) - 1) * dot_spacing,
+      left  = -start - (seq_len(k) - 1) * dot_spacing,
       # center: 0, 1, -1, 2, -2, ...
       c(0, rbind(seq_len(k), -seq_len(k)))[seq_len(k)] * dot_spacing
     )

@@ -105,6 +105,14 @@ stacked along the categorical axis, which approximates stacked-dot displays
 without overlapping points. With `"jitter"` the positions are random, so use
 [set.seed()] for reproducible plots.
 
+Hovering a point shows its value and hovering inside a box shows its
+statistics. Plotly shows the nearest point within `hoverdistance` pixels
+before any box, so the plot sets `hoverdistance = 3`, which is about the
+marker radius. Points then only take over the hover when the cursor is almost
+on them. For `"dots"` and `"center"` layouts with points to the left or right
+of the group position, points also start slightly outside the box. To change
+the hover distance, use `plotly::layout(hoverdistance = ...)`.
+
 Elements switched off with `show_density`, `show_scatter` or `show_box` are
 still added to the plot, but start hidden, so that the buttons can reveal
 them.
