@@ -1,3 +1,8 @@
+# npdar 0.7.1
+
+* Adjust `plot_raincloud_ly()` scatter position and hoverdistance so boxplot hover stays reachable.
+* Create plotly demo GIF in README and pkgdown site
+
 # npdar 0.7.0
 
 * New `plot_raincloud_ly()` draws an interactive plotly raincloud plot (#22).
@@ -13,6 +18,7 @@
 * Fix typo in `npdar-package.R`.
 
 # npdar 0.6.0
+
 * Rewrite `README.md` with `README.qmd` and update `.Rbuildignore`.
 * Add light switch and MathJax for math notations in pkgdown site.
 * Breaking: renamed functions to snake_case; the domain families drop `get_`, the utilities keep it:
@@ -43,6 +49,7 @@
 * Added a pkgdown website, <https://rcpch.github.io/npdar/>, with a grouped function reference (#11).
 
 # npdar 0.4.3
+
 * Added `get_corrMat()` function to create interactive correlation matrix with `plotly` (#23).
 * Added new feature for `get_frequency()` to summarise measures by nested groups. 
 * Consistent get_ + camelCase naming convention:
