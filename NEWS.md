@@ -1,3 +1,13 @@
+# npdar 0.7.2
+
+* `plot_raincloud_ly()` gains `scatter_box_gap` (default `box_width / 2 + 0.02`) to set the distance from the group position to the scatter; it is now the same for every `scatter_layout` (#41).
+* `plot_raincloud_ly()` gains `button_options` to customise the position and style of the toggle buttons (#40).
+* `plot_raincloud_ly()` `density_side` and `scatter_side` deprecated; the density is always drawn right/top of the group position and the scatter left/bottom of it.
+* `plot_raincloud_ly()` `scatter_layout` option `"dots"` is renamed to `"stacked"`, and `"center"` is removed; use `scatter_width = 0` instead.
+* `plot_raincloud_ly()` `jitter_width` is renamed to `scatter_width` and now also sets the width of `"stacked"` scatter, so `dot_spacing` is removed.
+* `plot_raincloud_ly()` `dot_binwidth` is renamed to `scatter_binwidth`.
+* `plot_raincloud_ly()` validates numeric arguments more thoroughly.
+
 # npdar 0.7.1
 
 * Adjust `plot_raincloud_ly()` scatter position and hoverdistance so boxplot hover stays reachable.
