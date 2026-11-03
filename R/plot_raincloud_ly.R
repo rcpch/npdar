@@ -22,10 +22,10 @@
 #' Hovering a point shows its value and hovering inside a box shows its
 #' statistics. Plotly shows the nearest point within `hoverdistance` pixels
 #' before any box, so the plot sets `hoverdistance = 3`, which is about the
-#' marker radius. Points then only take over the hover when the cursor is almost
-#' on them. For `"dots"` and `"center"` layouts with points to the left or right
-#' of the group position, points also start slightly outside the box. To change
-#' the hover distance, use `plotly::layout(hoverdistance = ...)`.
+#' marker radius.
+#' To change the hover distance, use `plotly::layout(hoverdistance = ...)`.
+#' For every layout with points to the left or right of the group
+#' position, points start `scatter_gap` away from the group position.
 #'
 #' Elements switched off with `show_density`, `show_scatter` or `show_box` are
 #' still added to the plot, but start hidden, so that the buttons can reveal
@@ -53,7 +53,13 @@
 #'   `"auto"` (opposite to the density), `"left"`, `"right"` or `"center"`.
 #' @param scatter_size Marker size.
 #' @param scatter_opacity Marker opacity, between 0 and 1.
-#' @param jitter_width Maximum jitter when `scatter_layout = "jitter"`.
+#' @param scatter_gap Distance from the group position to the nearest points,
+#'   in units of the distance between groups. The default, `box_width / 2 +
+#'   0.025`, starts points just outside the box edge.
+#'   Ignored when `scatter_side = "center"`.
+#' @param jitter_width Width of the band of random positions when
+#'   `scatter_layout = "jitter"`; with `scatter_side = "center"`, the maximum
+#'   jitter either side of the group position.
 #' @param dot_binwidth Bin width along the numeric axis when
 #'   `scatter_layout = "dots"`. If `NULL`, one thirtieth of the data range.
 #' @param dot_spacing Spacing between stacked dots when
@@ -105,6 +111,7 @@ plot_raincloud_ly <- function(data, x, y,
                               scatter_side = c("auto", "left", "right", "center"),
                               scatter_size = 6,
                               scatter_opacity = 0.65,
+                              scatter_gap = box_width / 2 + 0.025,
                               jitter_width = 0.2,
                               dot_binwidth = NULL,
                               dot_spacing = 0.035,
@@ -136,6 +143,10 @@ plot_raincloud_ly <- function(data, x, y,
     if (!is.logical(val) || length(val) != 1 || is.na(val)) {
       stop("`", arg, "` must be TRUE or FALSE.")
     }
+  }
+
+  if (!is.numeric(scatter_gap) || length(scatter_gap) != 1 || is.na(scatter_gap) || scatter_gap < 0) {
+    stop("`scatter_gap` must be a single non-negative number.")
   }
 
   x_numeric <- is.numeric(data[[x]])
@@ -257,7 +268,7 @@ plot_raincloud_ly <- function(data, x, y,
 
     cat_pos <- .raincloud_scatter_positions(
       vals, pos, scatter_layout, scatter_side,
-      jitter_width, dot_binwidth, dot_spacing, box_width
+      jitter_width, dot_binwidth, dot_spacing, scatter_gap
     )
     co <- xy(cat_pos, vals)
 
@@ -397,11 +408,11 @@ plot_raincloud_ly <- function(data, x, y,
 #' @noRd
 .raincloud_scatter_positions <- function(vals, pos, layout, side,
                                          jitter_width, dot_binwidth, dot_spacing,
-                                         box_width) {
+                                         gap) {
   n <- length(vals)
 
-  # `center` and `dots` start just outside the box so its hover stays reachable
-  start <- box_width / 2 + 0.03
+  # Distance of the nearest points from the group position
+  start <- gap
 
   if (layout == "center") {
     return(switch(
@@ -416,8 +427,8 @@ plot_raincloud_ly <- function(data, x, y,
     return(switch(
       side,
       center = pos + stats::runif(n, -jitter_width, jitter_width),
-      right  = pos + stats::runif(n, 0.01, jitter_width),
-      left   = pos - stats::runif(n, 0.01, jitter_width)
+      right  = pos + stats::runif(n, start, start + jitter_width),
+      left   = pos - stats::runif(n, start, start + jitter_width)
     ))
   }
 
