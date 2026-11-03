@@ -1,5 +1,30 @@
 # Changelog
 
+## npdar 0.7.2
+
+- [`plot_raincloud_ly()`](https://rcpch.github.io/npdar/reference/plot_raincloud_ly.md)
+  gains `scatter_box_gap` (default `box_width / 2 + 0.02`) to set the
+  distance from the group position to the scatter; it is now the same
+  for every `scatter_layout`
+  ([\#41](https://github.com/RCPCH/npdar/issues/41)).
+- [`plot_raincloud_ly()`](https://rcpch.github.io/npdar/reference/plot_raincloud_ly.md)
+  gains `button_options` to customise the position and style of the
+  toggle buttons ([\#40](https://github.com/RCPCH/npdar/issues/40)).
+- [`plot_raincloud_ly()`](https://rcpch.github.io/npdar/reference/plot_raincloud_ly.md)
+  `density_side` and `scatter_side` deprecated; the density is always
+  drawn right/top of the group position and the scatter left/bottom of
+  it.
+- [`plot_raincloud_ly()`](https://rcpch.github.io/npdar/reference/plot_raincloud_ly.md)
+  `scatter_layout` option `"dots"` is renamed to `"stacked"`, and
+  `"center"` is removed; use `scatter_width = 0` instead.
+- [`plot_raincloud_ly()`](https://rcpch.github.io/npdar/reference/plot_raincloud_ly.md)
+  `jitter_width` is renamed to `scatter_width` and now also sets the
+  width of `"stacked"` scatter, so `dot_spacing` is removed.
+- [`plot_raincloud_ly()`](https://rcpch.github.io/npdar/reference/plot_raincloud_ly.md)
+  `dot_binwidth` is renamed to `scatter_binwidth`.
+- [`plot_raincloud_ly()`](https://rcpch.github.io/npdar/reference/plot_raincloud_ly.md)
+  validates numeric arguments more thoroughly.
+
 ## npdar 0.7.1
 
 - Adjust

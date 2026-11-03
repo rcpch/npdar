@@ -16,12 +16,12 @@ Source:
 [`DESCRIPTION`](https://github.com/RCPCH/npdar/blob/master/DESCRIPTION)
 
 Fang Z (2026). *npdar: National Paediatric Diabetes Audit R Tools*. R
-package version 0.7.1, <https://github.com/RCPCH/npdar>.
+package version 0.7.2, <https://github.com/RCPCH/npdar>.
 
     @Manual{,
       title = {npdar: National Paediatric Diabetes Audit R Tools},
       author = {Zhaonan Fang},
       year = {2026},
-      note = {R package version 0.7.1},
+      note = {R package version 0.7.2},
       url = {https://github.com/RCPCH/npdar},
     }

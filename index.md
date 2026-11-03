@@ -109,7 +109,7 @@ plot_raincloud_ly(iris,
                   x = "Sepal.Length",
                   y = "Species",
                   colors = c("#11A7F2", "#E00087", "#00bdaa"),
-                  scatter_layout = "dots",
+                  scatter_layout = "stacked",
                   show_legend = TRUE) |>
   plotly::layout(yaxis = list(showticklabels = FALSE),
                  legend = list(x = 1, y = -0.2, xanchor = "right",
@@ -406,7 +406,7 @@ get_frequency(
 With `count_na = TRUE`, missing values are included in the denominator
 and reported as a separate `NA` category.
 
-#### Plot Frequency
+#### Visualise Frequencies
 
 The long-format output can be easily visualised with `ggplot2`.
 
@@ -439,7 +439,7 @@ sum_freq_eg1 |>
   subplot(nrows = 1, shareX = TRUE, shareY = TRUE)
 ```
 
-### Audit Periods
+### Audit Periods / Fiscal Years
 
 The default audit year starts in April. With no date supplied,
 [`audit_year()`](https://rcpch.github.io/npdar/reference/audit_year.md)

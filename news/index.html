@@ -13,7 +13,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">npdar</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.2</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -48,6 +48,23 @@
       <small>Source: <a href="https://github.com/RCPCH/npdar/blob/master/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.7.2" id="npdar-072">npdar 0.7.2<a class="anchor" aria-label="anchor" href="#npdar-072"></a></h2>
+<ul><li>
+<code><a href="../reference/plot_raincloud_ly.html">plot_raincloud_ly()</a></code> gains <code>scatter_box_gap</code> (default <code>box_width / 2 + 0.02</code>) to set the distance from the group position to the scatter; it is now the same for every <code>scatter_layout</code> (<a href="https://github.com/RCPCH/npdar/issues/41" class="external-link">#41</a>).</li>
+<li>
+<code><a href="../reference/plot_raincloud_ly.html">plot_raincloud_ly()</a></code> gains <code>button_options</code> to customise the position and style of the toggle buttons (<a href="https://github.com/RCPCH/npdar/issues/40" class="external-link">#40</a>).</li>
+<li>
+<code><a href="../reference/plot_raincloud_ly.html">plot_raincloud_ly()</a></code> <code>density_side</code> and <code>scatter_side</code> deprecated; the density is always drawn right/top of the group position and the scatter left/bottom of it.</li>
+<li>
+<code><a href="../reference/plot_raincloud_ly.html">plot_raincloud_ly()</a></code> <code>scatter_layout</code> option <code>"dots"</code> is renamed to <code>"stacked"</code>, and <code>"center"</code> is removed; use <code>scatter_width = 0</code> instead.</li>
+<li>
+<code><a href="../reference/plot_raincloud_ly.html">plot_raincloud_ly()</a></code> <code>jitter_width</code> is renamed to <code>scatter_width</code> and now also sets the width of <code>"stacked"</code> scatter, so <code>dot_spacing</code> is removed.</li>
+<li>
+<code><a href="../reference/plot_raincloud_ly.html">plot_raincloud_ly()</a></code> <code>dot_binwidth</code> is renamed to <code>scatter_binwidth</code>.</li>
+<li>
+<code><a href="../reference/plot_raincloud_ly.html">plot_raincloud_ly()</a></code> validates numeric arguments more thoroughly.</li>
+</ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.7.1" id="npdar-071">npdar 0.7.1<a class="anchor" aria-label="anchor" href="#npdar-071"></a></h2>
 <ul><li>Adjust <code><a href="../reference/plot_raincloud_ly.html">plot_raincloud_ly()</a></code> scatter position and hoverdistance so boxplot hover stays reachable.</li>
