@@ -17,7 +17,8 @@
 #' With `scatter_layout = "stacked"`, values are binned along the numeric axis and
 #' stacked along the categorical axis, which approximates stacked-dot displays
 #' without overlapping points. With `"jitter"` the positions are random, so use
-#' [set.seed()] for reproducible plots.
+#' [set.seed()] for reproducible plots. With `scatter_width = 0`, both layouts
+#' put all points in a single column.
 #'
 #' Hovering a point shows its value and hovering inside a box shows its
 #' statistics. Plotly shows the nearest point within `hoverdistance` pixels
@@ -43,19 +44,20 @@
 #' @param density_width Maximum width of the half-violin, in units of the
 #'   distance between groups.
 #' @param density_opacity Fill opacity of the density, between 0 and 1.
-#' @param scatter_layout Point placement: `"jitter"` (random), `"stacked"`
-#'   (stacked within bins) or `"aligned"` (all points in a single column).
+#' @param scatter_layout Point placement: `"jitter"` (random) or `"stacked"`
+#'   (stacked within bins).
 #' @param scatter_size Marker size.
 #' @param scatter_opacity Marker opacity, between 0 and 1.
 #' @param scatter_gap Distance from the group position to the nearest points,
 #'   in units of the distance between groups. The default, `box_width / 2 +
 #'   0.025`, starts points just outside the box edge.
-#' @param jitter_width Width of the band of random positions when
-#'   `scatter_layout = "jitter"`.
-#' @param dot_binwidth Bin width along the numeric axis when
+#' @param scatter_width Width of the scatter, measured from `scatter_gap`, in
+#'   units of the distance between groups. For `"jitter"` it is the width of the
+#'   band of random positions; for `"stacked"` the tallest stack spans exactly
+#'   this width, so dots are spaced further apart or closer together as it
+#'   changes. Use `0` to put all points in a single column.
+#' @param scatter_binwidth Bin width along the numeric axis when
 #'   `scatter_layout = "stacked"`. If `NULL`, one thirtieth of the data range.
-#' @param dot_spacing Spacing between stacked dots when
-#'   `scatter_layout = "stacked"`.
 #' @param box_width Width of the boxplot.
 #' @param boxpoints Passed to [plotly::add_boxplot()]; `FALSE`, `"outliers"`
 #'   or `"suspectedoutliers"`.
@@ -98,13 +100,12 @@ plot_raincloud_ly <- function(data, x, y,
                               density_width = 0.38,
                               density_opacity = 0.45,
                               # Scatter
-                              scatter_layout = c("jitter", "stacked", "aligned"),
+                              scatter_layout = c("jitter", "stacked"),
                               scatter_size = 6,
                               scatter_opacity = 0.65,
                               scatter_gap = box_width / 2 + 0.025,
-                              jitter_width = 0.2,
-                              dot_binwidth = NULL,
-                              dot_spacing = 0.035,
+                              scatter_width = 0.2,
+                              scatter_binwidth = NULL,
                               # Box
                               box_width = 0.16,
                               boxpoints = FALSE,
@@ -135,20 +136,19 @@ plot_raincloud_ly <- function(data, x, y,
 
   # Each numeric argument: a validity test and the requirement shown in the error
   num_checks <- list(
-    density_width   = list(function(v) v > 0, "greater than 0"),
-    density_opacity = list(function(v) v >= 0 && v <= 1, "between 0 and 1"),
-    box_width       = list(function(v) v > 0, "greater than 0"),
-    scatter_size    = list(function(v) v > 0, "greater than 0"),
-    scatter_opacity = list(function(v) v >= 0 && v <= 1, "between 0 and 1"),
-    scatter_gap     = list(function(v) TRUE, NULL),
-    jitter_width    = list(function(v) v >= 0, "at least 0"),
-    dot_binwidth    = list(function(v) v > 0, "greater than 0"),
-    dot_spacing     = list(function(v) v > 0, "greater than 0")
+    density_width    = list(function(v) v > 0, "greater than 0"),
+    density_opacity  = list(function(v) v >= 0 && v <= 1, "between 0 and 1"),
+    box_width        = list(function(v) v > 0, "greater than 0"),
+    scatter_size     = list(function(v) v > 0, "greater than 0"),
+    scatter_opacity  = list(function(v) v >= 0 && v <= 1, "between 0 and 1"),
+    scatter_gap      = list(function(v) TRUE, NULL),
+    scatter_width    = list(function(v) v >= 0, "at least 0"),
+    scatter_binwidth = list(function(v) v > 0, "greater than 0")
   )
 
   for (arg in names(num_checks)) {
     val <- get(arg)
-    if (arg == "dot_binwidth" && is.null(val)) next
+    if (arg == "scatter_binwidth" && is.null(val)) next
 
     ok <- is.numeric(val) && length(val) == 1 && is.finite(val) && num_checks[[arg]][[1]](val)
     if (!ok) {
@@ -207,12 +207,16 @@ plot_raincloud_ly <- function(data, x, y,
   }
 
   #------ 4) Defaults depending on the data ------
-  if (is.null(dot_binwidth)) {
-    dot_binwidth <- diff(range(plot_data$value)) / 30
-    if (!is.finite(dot_binwidth) || dot_binwidth <= 0) {
-      dot_binwidth <- 0.1
+  if (is.null(scatter_binwidth)) {
+    scatter_binwidth <- diff(range(plot_data$value)) / 30
+    if (!is.finite(scatter_binwidth) || scatter_binwidth <= 0) {
+      scatter_binwidth <- 0.1
     }
   }
+
+  # The tallest stack across all groups spans `scatter_width`
+  tallest <- max(table(plot_data$group, round(plot_data$value / scatter_binwidth)))
+  dot_spacing <- if (tallest > 1) scatter_width / (tallest - 1) else 0
 
   #------ 5) Build traces; remember which belong to which element ------
   fig <- plotly::plot_ly(...)
@@ -272,7 +276,7 @@ plot_raincloud_ly <- function(data, x, y,
 
     cat_pos <- .raincloud_scatter_positions(
       vals, pos, scatter_layout,
-      jitter_width, dot_binwidth, dot_spacing, scatter_gap
+      scatter_width, scatter_binwidth, dot_spacing, scatter_gap
     )
     co <- xy(cat_pos, vals)
 
@@ -408,22 +412,18 @@ plot_raincloud_ly <- function(data, x, y,
 #' Categorical-axis coordinates for the scatter points of one group, left of `pos`
 #' @noRd
 .raincloud_scatter_positions <- function(vals, pos, layout,
-                                         jitter_width, dot_binwidth, dot_spacing,
+                                         width, scatter_binwidth, dot_spacing,
                                          gap) {
   n <- length(vals)
 
-  if (layout == "aligned") {
-    return(rep(pos - gap, n))
-  }
-
   if (layout == "jitter") {
-    return(pos - stats::runif(n, gap, gap + jitter_width))
+    return(pos - stats::runif(n, gap, gap + width))
   }
 
   # stacked: points sharing a bin are stacked along the categorical axis
-  out <- numeric(n)
-  bins <- split(seq_len(n), round(vals / dot_binwidth))
+  bins <- split(seq_len(n), round(vals / scatter_binwidth))
 
+  out <- numeric(n)
   for (idx in bins) {
     out[idx] <- pos - gap - (seq_along(idx) - 1) * dot_spacing
   }

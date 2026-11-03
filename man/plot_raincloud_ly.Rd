@@ -16,13 +16,12 @@ plot_raincloud_ly(
   show_legend = FALSE,
   density_width = 0.38,
   density_opacity = 0.45,
-  scatter_layout = c("jitter", "stacked", "aligned"),
+  scatter_layout = c("jitter", "stacked"),
   scatter_size = 6,
   scatter_opacity = 0.65,
   scatter_gap = box_width/2 + 0.025,
-  jitter_width = 0.2,
-  dot_binwidth = NULL,
-  dot_spacing = 0.035,
+  scatter_width = 0.2,
+  scatter_binwidth = NULL,
   box_width = 0.16,
   boxpoints = FALSE,
   boxmean = TRUE,
@@ -51,8 +50,8 @@ distance between groups.}
 
 \item{density_opacity}{Fill opacity of the density, between 0 and 1.}
 
-\item{scatter_layout}{Point placement: `"jitter"` (random), `"stacked"`
-(stacked within bins) or `"aligned"` (all points in a single column).}
+\item{scatter_layout}{Point placement: `"jitter"` (random) or `"stacked"`
+(stacked within bins).}
 
 \item{scatter_size}{Marker size.}
 
@@ -62,14 +61,14 @@ distance between groups.}
 in units of the distance between groups. The default, `box_width / 2 +
 0.025`, starts points just outside the box edge.}
 
-\item{jitter_width}{Width of the band of random positions when
-`scatter_layout = "jitter"`.}
+\item{scatter_width}{Width of the scatter, measured from `scatter_gap`, in
+units of the distance between groups. For `"jitter"` it is the width of the
+band of random positions; for `"stacked"` the tallest stack spans exactly
+this width, so dots are spaced further apart or closer together as it
+changes. Use `0` to put all points in a single column.}
 
-\item{dot_binwidth}{Bin width along the numeric axis when
+\item{scatter_binwidth}{Bin width along the numeric axis when
 `scatter_layout = "stacked"`. If `NULL`, one thirtieth of the data range.}
-
-\item{dot_spacing}{Spacing between stacked dots when
-`scatter_layout = "stacked"`.}
 
 \item{box_width}{Width of the boxplot.}
 
@@ -100,7 +99,8 @@ appearance. Each group uses one colour across all three elements.
 With `scatter_layout = "stacked"`, values are binned along the numeric axis and
 stacked along the categorical axis, which approximates stacked-dot displays
 without overlapping points. With `"jitter"` the positions are random, so use
-[set.seed()] for reproducible plots.
+[set.seed()] for reproducible plots. With `scatter_width = 0`, both layouts
+put all points in a single column.
 
 Hovering a point shows its value and hovering inside a box shows its
 statistics. Plotly shows the nearest point within `hoverdistance` pixels
