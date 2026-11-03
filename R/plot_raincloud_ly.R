@@ -14,18 +14,18 @@
 #' the factor levels (unused levels are dropped), otherwise the order of first
 #' appearance. Each group uses one colour across all three elements.
 #'
-#' With `scatter_layout = "dots"`, values are binned along the numeric axis and
+#' With `scatter_layout = "stacked"`, values are binned along the numeric axis and
 #' stacked along the categorical axis, which approximates stacked-dot displays
 #' without overlapping points. With `"jitter"` the positions are random, so use
-#' [set.seed()] for reproducible plots.
+#' [set.seed()] for reproducible plots. With `scatter_width = 0`, both layouts
+#' put all points in a single column.
 #'
 #' Hovering a point shows its value and hovering inside a box shows its
 #' statistics. Plotly shows the nearest point within `hoverdistance` pixels
 #' before any box, so the plot sets `hoverdistance = 3`, which is about the
-#' marker radius. Points then only take over the hover when the cursor is almost
-#' on them. For `"dots"` and `"center"` layouts with points to the left or right
-#' of the group position, points also start slightly outside the box. To change
-#' the hover distance, use `plotly::layout(hoverdistance = ...)`.
+#' marker radius.
+#' To change the hover distance, use `plotly::layout(hoverdistance = ...)`.
+#' For every layout, points start `scatter_box_gap` away from the group position.
 #'
 #' Elements switched off with `show_density`, `show_scatter` or `show_box` are
 #' still added to the plot, but start hidden, so that the buttons can reveal
@@ -39,29 +39,37 @@
 #'   colours come from [grDevices::hcl.colors()].
 #' @param show_density,show_scatter,show_box Logical; whether each element is
 #'   initially visible.
-#' @param show_buttons Logical; add buttons that toggle each element.
 #' @param show_legend Logical; show one legend entry per group.
-#' @param density_side Side of the group position on which the half-violin is
-#'   drawn: `"right"` or `"left"`. For horizontal plots these are the upper and
-#'   lower sides.
+#' @param show_buttons Logical; add buttons that toggle each element.
 #' @param density_width Maximum width of the half-violin, in units of the
 #'   distance between groups.
 #' @param density_opacity Fill opacity of the density, between 0 and 1.
-#' @param scatter_layout Point placement: `"jitter"` (random), `"dots"`
-#'   (stacked within bins) or `"center"` (on the group position).
-#' @param scatter_side Side of the group position on which points are placed:
-#'   `"auto"` (opposite to the density), `"left"`, `"right"` or `"center"`.
+#' @param scatter_layout Point placement: `"jitter"` (random) or `"stacked"`
+#'   (stacked within bins).
 #' @param scatter_size Marker size.
 #' @param scatter_opacity Marker opacity, between 0 and 1.
-#' @param jitter_width Maximum jitter when `scatter_layout = "jitter"`.
-#' @param dot_binwidth Bin width along the numeric axis when
-#'   `scatter_layout = "dots"`. If `NULL`, one thirtieth of the data range.
-#' @param dot_spacing Spacing between stacked dots when
-#'   `scatter_layout = "dots"`.
+#' @param scatter_box_gap Distance from the group position to the nearest points,
+#'   in units of the distance between groups. The default, `box_width / 2 +
+#'   0.025`, starts points just outside the box edge.
+#' @param scatter_width Width of the scatter, measured from `scatter_box_gap`, in
+#'   units of the distance between groups. For `"jitter"` it is the width of the
+#'   band of random positions; for `"stacked"` the tallest stack spans exactly
+#'   this width, so dots are spaced further apart or closer together as it
+#'   changes. Use `0` to put all points in a single column.
+#' @param scatter_binwidth Bin width along the numeric axis when
+#'   `scatter_layout = "stacked"`. If `NULL`, one thirtieth of the data range.
 #' @param box_width Width of the boxplot.
 #' @param boxpoints Passed to [plotly::add_boxplot()]; `FALSE`, `"outliers"`
 #'   or `"suspectedoutliers"`.
 #' @param boxmean Passed to [plotly::add_boxplot()]; `TRUE`, `FALSE` or `"sd"`.
+#' @param button_options Named list of plotly `updatemenus` attributes applied
+#'   to every button, such as `x`, `y`, `xanchor`, `yanchor`, `bgcolor` or
+#'   `font`; see [plotly::layout()]. The buttons sit below the bottom left of the
+#'   plot by default and are spread 80 pixels apart, so `x` and `y` place the
+#'   first button. A `pad` is merged with the defaults, and its `l` is added to
+#'   that spacing. If `y` is given, the default top padding and the extra bottom
+#'   margin are dropped; adjust the margin with `plotly::layout(margin = ...)`.
+#'   `type`, `buttons`, `active` and `showactive` cannot be set.
 #' @param ... Additional arguments passed to [plotly::plot_ly()].
 #'
 #' @return A \pkg{plotly} object.
@@ -74,11 +82,18 @@
 #'                   scatter_layout = "jitter",
 #'                   show_buttons = FALSE)
 #'
+#' # Buttons along the top left of the plot
+#' plot_raincloud_ly(iris,
+#'                   x = "Species",
+#'                   y = "Sepal.Length",
+#'                   button_options = list(y = 1.15, yanchor = "top")) |>
+#'   plotly::layout(margin = list(t = 80))
+#'
 #' plot_raincloud_ly(iris,
 #'                   x = "Sepal.Length",
 #'                   y = "Species",
 #'                   colors = c("#11A7F2", "#E00087", "#00bdaa"),
-#'                   scatter_layout = "dots",
+#'                   scatter_layout = "stacked",
 #'                   show_box = FALSE,
 #'                   show_legend = TRUE) |>
 #'   plotly::layout(yaxis = list(showticklabels = FALSE),
@@ -95,19 +110,18 @@ plot_raincloud_ly <- function(data, x, y,
                               show_scatter = TRUE,
                               show_box = TRUE,
                               show_buttons = TRUE,
+                              button_options = list(),
                               show_legend = FALSE,
                               # Density
-                              density_side = c("right", "left"),
                               density_width = 0.38,
                               density_opacity = 0.45,
                               # Scatter
-                              scatter_layout = c("jitter", "dots", "center"),
-                              scatter_side = c("auto", "left", "right", "center"),
+                              scatter_layout = c("jitter", "stacked"),
                               scatter_size = 6,
                               scatter_opacity = 0.65,
-                              jitter_width = 0.2,
-                              dot_binwidth = NULL,
-                              dot_spacing = 0.035,
+                              scatter_box_gap = box_width / 2 + 0.025,
+                              scatter_width = 0.2,
+                              scatter_binwidth = NULL,
                               # Box
                               box_width = 0.16,
                               boxpoints = FALSE,
@@ -115,9 +129,7 @@ plot_raincloud_ly <- function(data, x, y,
                               ...                        # other plotly arguments
 ) {
 
-  density_side <- match.arg(density_side)
   scatter_layout <- match.arg(scatter_layout)
-  scatter_side <- match.arg(scatter_side)
 
   #------ 1) Check input ------
   if (!is.data.frame(data)) {
@@ -135,6 +147,39 @@ plot_raincloud_ly <- function(data, x, y,
     val <- get(arg)
     if (!is.logical(val) || length(val) != 1 || is.na(val)) {
       stop("`", arg, "` must be TRUE or FALSE.")
+    }
+  }
+
+  if (!is.list(button_options) ||
+      (length(button_options) > 0 && (is.null(names(button_options)) || !all(nzchar(names(button_options)))))) {
+    stop("`button_options` must be a named list of plotly `updatemenus` attributes.")
+  }
+
+  reserved <- intersect(names(button_options), c("type", "buttons", "active", "showactive"))
+  if (length(reserved) > 0) {
+    stop("`button_options` cannot set: ", paste0("`", reserved, "`", collapse = ", "), ".")
+  }
+
+  # Each numeric argument: a validity test and the requirement shown in the error
+  num_checks <- list(
+    density_width    = list(function(v) v > 0, "greater than 0"),
+    density_opacity  = list(function(v) v >= 0 && v <= 1, "between 0 and 1"),
+    box_width        = list(function(v) v > 0, "greater than 0"),
+    scatter_size     = list(function(v) v > 0, "greater than 0"),
+    scatter_opacity  = list(function(v) v >= 0 && v <= 1, "between 0 and 1"),
+    scatter_box_gap  = list(function(v) TRUE, NULL),
+    scatter_width    = list(function(v) v >= 0, "at least 0"),
+    scatter_binwidth = list(function(v) v > 0, "greater than 0")
+  )
+
+  for (arg in names(num_checks)) {
+    val <- get(arg)
+    if (arg == "scatter_binwidth" && is.null(val)) next
+
+    ok <- is.numeric(val) && length(val) == 1 && is.finite(val) && num_checks[[arg]][[1]](val)
+    if (!ok) {
+      stop("`", arg, "` must be a single number",
+           if (!is.null(num_checks[[arg]][[2]])) paste0(" ", num_checks[[arg]][[2]]), ".")
     }
   }
 
@@ -188,16 +233,16 @@ plot_raincloud_ly <- function(data, x, y,
   }
 
   #------ 4) Defaults depending on the data ------
-  if (is.null(dot_binwidth)) {
-    dot_binwidth <- diff(range(plot_data$value)) / 30
-    if (!is.finite(dot_binwidth) || dot_binwidth <= 0) {
-      dot_binwidth <- 0.1
+  if (is.null(scatter_binwidth)) {
+    scatter_binwidth <- diff(range(plot_data$value)) / 30
+    if (!is.finite(scatter_binwidth) || scatter_binwidth <= 0) {
+      scatter_binwidth <- 0.1
     }
   }
 
-  if (scatter_side == "auto") {
-    scatter_side <- if (density_side == "right") "left" else "right"
-  }
+  # The tallest stack across all groups spans `scatter_width`
+  tallest <- max(table(plot_data$group, round(plot_data$value / scatter_binwidth)))
+  dot_spacing <- if (tallest > 1) scatter_width / (tallest - 1) else 0
 
   #------ 5) Build traces; remember which belong to which element ------
   fig <- plotly::plot_ly(...)
@@ -231,7 +276,7 @@ plot_raincloud_ly <- function(data, x, y,
     }
 
     if (length(vals) > 1) {
-      dens <- .raincloud_half_density(vals, pos, density_side, density_width)
+      dens <- .raincloud_half_density(vals, pos, density_width)
       co <- xy(dens$cat, dens$num)
 
       fig <- plotly::add_trace(
@@ -256,8 +301,8 @@ plot_raincloud_ly <- function(data, x, y,
     }
 
     cat_pos <- .raincloud_scatter_positions(
-      vals, pos, scatter_layout, scatter_side,
-      jitter_width, dot_binwidth, dot_spacing, box_width
+      vals, pos, scatter_layout,
+      scatter_width, scatter_binwidth, dot_spacing, scatter_box_gap
     )
     co <- xy(cat_pos, vals)
 
@@ -341,28 +386,40 @@ plot_raincloud_ly <- function(data, x, y,
     # Indices are 0-based in plotly.js; `active = -1` makes the first click use `args`.
     # `pad` is in pixels, so the buttons keep their spacing and sit below the axis title
     # whatever the plot size.
+    custom_y <- "y" %in% names(button_options)
+
     menus <- lapply(seq_along(layers), function(i) {
       layer <- layers[i]
       idx <- as.list(layer_idx[[layer]] - 1L)
-      list(
+
+      pad <- list(t = if (custom_y) 0 else 70, l = 0)
+      pad[names(button_options$pad)] <- button_options$pad
+      pad$l <- pad$l + (i - 1) * 80
+
+      menu <- list(
         type = "buttons",
         active = -1,
         showactive = FALSE,
         x = 0,
         xanchor = "left",
         y = 0,
-        yanchor = "top",
-        pad = list(t = 70, l = (i - 1) * 80),
-        buttons = list(list(
-          label = labels[[layer]],
-          method = "restyle",
-          args = list("visible", !initial[[layer]], idx),
-          args2 = list("visible", initial[[layer]], idx)
-        ))
+        yanchor = "top"
       )
+      menu[names(button_options)] <- button_options
+      menu$pad <- pad
+      menu$buttons <- list(list(
+        label = labels[[layer]],
+        method = "restyle",
+        args = list("visible", !initial[[layer]], idx),
+        args2 = list("visible", initial[[layer]], idx)
+      ))
+      menu
     })
 
-    fig <- plotly::layout(fig, margin = list(b = 120), updatemenus = menus)
+    fig <- plotly::layout(fig, updatemenus = menus)
+    if (!custom_y) {
+      fig <- plotly::layout(fig, margin = list(b = 120))
+    }
   }
 
   fig
@@ -379,12 +436,9 @@ plot_raincloud_ly <- function(data, x, y,
 
 #' Half-violin polygon: `cat` is the categorical-axis coordinate, `num` the numeric one
 #' @noRd
-.raincloud_half_density <- function(vals, pos, side, width) {
+.raincloud_half_density <- function(vals, pos, width) {
   dens <- stats::density(vals)
   offset <- dens$y / max(dens$y) * width
-  if (side == "left") {
-    offset <- -offset
-  }
 
   data.frame(
     cat = c(pos, pos + offset, pos),
@@ -393,48 +447,23 @@ plot_raincloud_ly <- function(data, x, y,
 }
 
 
-#' Categorical-axis coordinates for the scatter points of one group
+#' Categorical-axis coordinates for the scatter points of one group, left of `pos`
 #' @noRd
-.raincloud_scatter_positions <- function(vals, pos, layout, side,
-                                         jitter_width, dot_binwidth, dot_spacing,
-                                         box_width) {
+.raincloud_scatter_positions <- function(vals, pos, layout,
+                                         width, scatter_binwidth, dot_spacing,
+                                         gap) {
   n <- length(vals)
 
-  # `center` and `dots` start just outside the box so its hover stays reachable
-  start <- box_width / 2 + 0.03
-
-  if (layout == "center") {
-    return(switch(
-      side,
-      right = rep(pos + start, n),
-      left  = rep(pos - start, n),
-      rep(pos, n)
-    ))
-  }
-
   if (layout == "jitter") {
-    return(switch(
-      side,
-      center = pos + stats::runif(n, -jitter_width, jitter_width),
-      right  = pos + stats::runif(n, 0.01, jitter_width),
-      left   = pos - stats::runif(n, 0.01, jitter_width)
-    ))
+    return(pos - stats::runif(n, gap, gap + width))
   }
 
-  # dots: stack points sharing a bin along the categorical axis
-  out <- numeric(n)
-  bins <- split(seq_len(n), round(vals / dot_binwidth))
+  # stacked: points sharing a bin are stacked along the categorical axis
+  bins <- split(seq_len(n), round(vals / scatter_binwidth))
 
+  out <- numeric(n)
   for (idx in bins) {
-    k <- length(idx)
-    offsets <- switch(
-      side,
-      right = start + (seq_len(k) - 1) * dot_spacing,
-      left  = -start - (seq_len(k) - 1) * dot_spacing,
-      # center: 0, 1, -1, 2, -2, ...
-      c(0, rbind(seq_len(k), -seq_len(k)))[seq_len(k)] * dot_spacing
-    )
-    out[idx] <- pos + offsets
+    out[idx] <- pos - gap - (seq_along(idx) - 1) * dot_spacing
   }
 
   out

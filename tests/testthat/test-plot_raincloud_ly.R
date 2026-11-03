@@ -51,6 +51,66 @@ test_that("plot_raincloud_ly buttons toggle the right traces", {
   expect_true(all(vapply(menus, function(m) m$active == -1, logical(1))))
 })
 
+test_that("plot_raincloud_ly places buttons bottom left by default", {
+  p <- plotly::plotly_build(plot_raincloud_ly(iris, "Species", "Sepal.Length"))
+  menus <- p$x$layout$updatemenus
+
+  expect_equal(unique(vapply(menus, function(m) m$x, numeric(1))), 0)
+  expect_equal(unique(vapply(menus, function(m) m$y, numeric(1))), 0)
+  expect_equal(vapply(menus, function(m) m$pad$l, numeric(1)), c(0, 80, 160))
+  expect_equal(unique(vapply(menus, function(m) m$pad$t, numeric(1))), 70)
+  expect_equal(p$x$layout$margin$b, 120)
+})
+
+test_that("plot_raincloud_ly button_options customise every button", {
+  p <- plotly::plotly_build(plot_raincloud_ly(
+    iris, "Species", "Sepal.Length",
+    button_options = list(x = 1, xanchor = "right", y = 1.1, yanchor = "bottom", bgcolor = "white")
+  ))
+  menus <- p$x$layout$updatemenus
+
+  expect_length(menus, 3)
+  for (m in menus) {
+    expect_equal(m$x, 1)
+    expect_equal(m$xanchor, "right")
+    expect_equal(m$y, 1.1)
+    expect_equal(m$yanchor, "bottom")
+    expect_equal(m$bgcolor, "white")
+    expect_equal(m$type, "buttons")
+    expect_equal(m$active, -1)
+  }
+
+  # Custom `y` drops the top padding and the extra bottom margin; spacing stays
+  expect_equal(vapply(menus, function(m) m$pad$t, numeric(1)), c(0, 0, 0))
+  expect_equal(vapply(menus, function(m) m$pad$l, numeric(1)), c(0, 80, 160))
+  expect_false(identical(p$x$layout$margin$b, 120))
+})
+
+test_that("plot_raincloud_ly button_options merges pad with the defaults", {
+  p <- plotly::plotly_build(plot_raincloud_ly(
+    iris, "Species", "Sepal.Length", button_options = list(pad = list(l = 10, r = 5))
+  ))
+  menus <- p$x$layout$updatemenus
+
+  expect_equal(vapply(menus, function(m) m$pad$l, numeric(1)), c(10, 90, 170))
+  expect_equal(unique(vapply(menus, function(m) m$pad$r, numeric(1))), 5)
+  expect_equal(unique(vapply(menus, function(m) m$pad$t, numeric(1))), 70)
+})
+
+test_that("plot_raincloud_ly validates button_options", {
+  args <- list(iris, "Species", "Sepal.Length")
+
+  expect_error(do.call(plot_raincloud_ly, c(args, list(button_options = "a"))),
+               "`button_options` must be a named list")
+  expect_error(do.call(plot_raincloud_ly, c(args, list(button_options = list(1)))),
+               "`button_options` must be a named list")
+  expect_error(do.call(plot_raincloud_ly, c(args, list(button_options = list(type = "dropdown")))),
+               "cannot set: `type`")
+  expect_error(do.call(plot_raincloud_ly, c(args, list(button_options = list(buttons = list())))),
+               "cannot set: `buttons`")
+  expect_s3_class(do.call(plot_raincloud_ly, c(args, list(button_options = list()))), "plotly")
+})
+
 test_that("plot_raincloud_ly hides elements switched off but keeps their buttons", {
   p <- plotly::plotly_build(
     plot_raincloud_ly(iris, "Species", "Sepal.Length", show_box = FALSE, show_legend = TRUE)
@@ -101,25 +161,92 @@ test_that("plot_raincloud_ly respects factor order and drops unused levels", {
   expect_equal(p$x$layout$xaxis$ticktext, c("b", "a"))
 })
 
-test_that("plot_raincloud_ly dots layout gives distinct positions within a bin", {
+test_that("plot_raincloud_ly stacked layout gives distinct positions within a bin", {
   pos <- npdar:::.raincloud_scatter_positions(
-    rep(1, 5), pos = 1, layout = "dots", side = "center",
-    jitter_width = 0.2, dot_binwidth = 0.2, dot_spacing = 0.1, box_width = 0.16
+    rep(1, 5), pos = 1, layout = "stacked",
+    width = 1, scatter_binwidth = 0.2, dot_spacing = 0.1, gap = 0.1
   )
 
   expect_equal(length(unique(pos)), 5)
 })
 
-test_that("plot_raincloud_ly center and dots layouts keep points clear of the box", {
-  for (layout in c("center", "dots")) {
-    for (side in c("left", "right")) {
-      pos <- npdar:::.raincloud_scatter_positions(
-        c(1, 1, 1, 2), pos = 1, layout = layout, side = side,
-        jitter_width = 0.2, dot_binwidth = 0.2, dot_spacing = 0.1, box_width = 0.16
-      )
+test_that("plot_raincloud_ly stacked layout: tallest stack spans scatter_width exactly", {
+  df <- data.frame(g = rep(c("a", "b"), c(6, 3)), v = 1)
 
-      expect_true(all(abs(pos - 1) > 0.08), info = paste(layout, side))
-      expect_equal(sign(pos - 1), rep(if (side == "right") 1 else -1, 4))
+  for (w in c(0.1, 0.3, 0.8)) {
+    p <- plotly::plotly_build(plot_raincloud_ly(
+      df, "g", "v", scatter_layout = "stacked", scatter_binwidth = 1,
+      scatter_box_gap = 0.1, scatter_width = w
+    ))
+    scatter <- Filter(function(t) identical(t$mode, "markers"), p$x$data)
+    a <- 1 - scatter[[1]]$x
+    b <- 2 - scatter[[2]]$x
+
+    expect_equal(range(a), c(0.1, 0.1 + w), info = w)
+    # same spacing in every group, so a shorter stack is narrower
+    expect_equal(max(b) - min(b), w * 2 / 5, info = w)
+  }
+})
+
+test_that("plot_raincloud_ly scatter_box_gap sets the same gap for every layout", {
+  for (gap in c(0.05, 0.1, 0.3)) {
+    for (layout in c("stacked", "jitter")) {
+      pos <- npdar:::.raincloud_scatter_positions(
+        c(1, 1, 1, 2), pos = 1, layout = layout,
+        width = 0.2, scatter_binwidth = 0.2, dot_spacing = 0.1, gap = gap
+      )
+      info <- paste(layout, gap)
+
+      expect_true(all(1 - pos >= gap - 1e-12), info = info)
+      if (layout == "stacked") {
+        expect_equal(min(1 - pos), gap, info = info)
+      }
     }
   }
+})
+
+test_that("plot_raincloud_ly scatter_box_gap defaults to just outside the box edge", {
+  p <- plotly::plotly_build(plot_raincloud_ly(
+    iris, "Species", "Sepal.Length",
+    scatter_layout = "stacked", scatter_width = 0, box_width = 0.2
+  ))
+  scatter <- Filter(function(t) identical(t$mode, "markers") && !is.na(t$x[[1]]), p$x$data)
+
+  expect_equal(1 - max(scatter[[1]]$x), 0.1 + 0.025)
+})
+
+test_that("plot_raincloud_ly scatter_width = 0 gives a single column in both layouts", {
+  for (layout in c("stacked", "jitter")) {
+    p <- plotly::plotly_build(plot_raincloud_ly(
+      data.frame(g = "a", v = c(1, 1, 2)), "g", "v",
+      scatter_layout = layout, scatter_box_gap = 0.1, scatter_width = 0
+    ))
+    scatter <- Filter(function(t) identical(t$mode, "markers"), p$x$data)
+
+    expect_equal(as.numeric(scatter[[1]]$x), rep(0.9, 3), info = layout)
+  }
+})
+
+test_that("plot_raincloud_ly only accepts jitter and stacked layouts", {
+  expect_error(plot_raincloud_ly(iris, "Species", "Sepal.Length", scatter_layout = "aligned"))
+})
+
+test_that("plot_raincloud_ly validates numeric arguments", {
+  bad <- list(
+    scatter_box_gap = NA, scatter_box_gap = "a", scatter_box_gap = c(0, 1),
+    box_width = 0, scatter_size = -1, density_width = 0,
+    scatter_binwidth = 0, scatter_width = -0.1,
+    density_opacity = 1.5, scatter_opacity = -0.1, scatter_opacity = Inf
+  )
+
+  for (i in seq_along(bad)) {
+    arg <- names(bad)[i]
+    args <- c(list(iris, "Species", "Sepal.Length"), bad[i])
+    expect_error(do.call(plot_raincloud_ly, args), paste0("`", arg, "` must be a single number"),
+                 info = paste(arg, format(bad[[i]])))
+  }
+
+  expect_s3_class(plot_raincloud_ly(iris, "Species", "Sepal.Length", scatter_box_gap = 0), "plotly")
+  expect_s3_class(plot_raincloud_ly(iris, "Species", "Sepal.Length", scatter_box_gap = -0.1), "plotly")
+  expect_s3_class(plot_raincloud_ly(iris, "Species", "Sepal.Length", scatter_binwidth = NULL), "plotly")
 })
