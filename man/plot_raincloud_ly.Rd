@@ -13,6 +13,7 @@ plot_raincloud_ly(
   show_scatter = TRUE,
   show_box = TRUE,
   show_buttons = TRUE,
+  button_options = list(),
   show_legend = FALSE,
   density_width = 0.38,
   density_opacity = 0.45,
@@ -42,6 +43,15 @@ colours come from [grDevices::hcl.colors()].}
 initially visible.}
 
 \item{show_buttons}{Logical; add buttons that toggle each element.}
+
+\item{button_options}{Named list of plotly `updatemenus` attributes applied
+to every button, such as `x`, `y`, `xanchor`, `yanchor`, `bgcolor` or
+`font`; see [plotly::layout()]. The buttons sit below the bottom left of the
+plot by default and are spread 80 pixels apart, so `x` and `y` place the
+first button. A `pad` is merged with the defaults, and its `l` is added to
+that spacing. If `y` is given, the default top padding and the extra bottom
+margin are dropped; adjust the margin with `plotly::layout(margin = ...)`.
+`type`, `buttons`, `active` and `showactive` cannot be set.}
 
 \item{show_legend}{Logical; show one legend entry per group.}
 
@@ -120,6 +130,13 @@ plot_raincloud_ly(iris,
                   y = "Sepal.Length",
                   scatter_layout = "jitter",
                   show_buttons = FALSE)
+
+# Buttons along the top left of the plot
+plot_raincloud_ly(iris,
+                  x = "Species",
+                  y = "Sepal.Length",
+                  button_options = list(y = 1.15, yanchor = "top")) |>
+  plotly::layout(margin = list(t = 80))
 
 plot_raincloud_ly(iris,
                   x = "Sepal.Length",

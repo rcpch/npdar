@@ -39,8 +39,8 @@
 #'   colours come from [grDevices::hcl.colors()].
 #' @param show_density,show_scatter,show_box Logical; whether each element is
 #'   initially visible.
-#' @param show_buttons Logical; add buttons that toggle each element.
 #' @param show_legend Logical; show one legend entry per group.
+#' @param show_buttons Logical; add buttons that toggle each element.
 #' @param density_width Maximum width of the half-violin, in units of the
 #'   distance between groups.
 #' @param density_opacity Fill opacity of the density, between 0 and 1.
@@ -62,6 +62,14 @@
 #' @param boxpoints Passed to [plotly::add_boxplot()]; `FALSE`, `"outliers"`
 #'   or `"suspectedoutliers"`.
 #' @param boxmean Passed to [plotly::add_boxplot()]; `TRUE`, `FALSE` or `"sd"`.
+#' @param button_options Named list of plotly `updatemenus` attributes applied
+#'   to every button, such as `x`, `y`, `xanchor`, `yanchor`, `bgcolor` or
+#'   `font`; see [plotly::layout()]. The buttons sit below the bottom left of the
+#'   plot by default and are spread 80 pixels apart, so `x` and `y` place the
+#'   first button. A `pad` is merged with the defaults, and its `l` is added to
+#'   that spacing. If `y` is given, the default top padding and the extra bottom
+#'   margin are dropped; adjust the margin with `plotly::layout(margin = ...)`.
+#'   `type`, `buttons`, `active` and `showactive` cannot be set.
 #' @param ... Additional arguments passed to [plotly::plot_ly()].
 #'
 #' @return A \pkg{plotly} object.
@@ -73,6 +81,13 @@
 #'                   y = "Sepal.Length",
 #'                   scatter_layout = "jitter",
 #'                   show_buttons = FALSE)
+#'
+#' # Buttons along the top left of the plot
+#' plot_raincloud_ly(iris,
+#'                   x = "Species",
+#'                   y = "Sepal.Length",
+#'                   button_options = list(y = 1.15, yanchor = "top")) |>
+#'   plotly::layout(margin = list(t = 80))
 #'
 #' plot_raincloud_ly(iris,
 #'                   x = "Sepal.Length",
@@ -95,6 +110,7 @@ plot_raincloud_ly <- function(data, x, y,
                               show_scatter = TRUE,
                               show_box = TRUE,
                               show_buttons = TRUE,
+                              button_options = list(),
                               show_legend = FALSE,
                               # Density
                               density_width = 0.38,
@@ -132,6 +148,16 @@ plot_raincloud_ly <- function(data, x, y,
     if (!is.logical(val) || length(val) != 1 || is.na(val)) {
       stop("`", arg, "` must be TRUE or FALSE.")
     }
+  }
+
+  if (!is.list(button_options) ||
+      (length(button_options) > 0 && (is.null(names(button_options)) || !all(nzchar(names(button_options)))))) {
+    stop("`button_options` must be a named list of plotly `updatemenus` attributes.")
+  }
+
+  reserved <- intersect(names(button_options), c("type", "buttons", "active", "showactive"))
+  if (length(reserved) > 0) {
+    stop("`button_options` cannot set: ", paste0("`", reserved, "`", collapse = ", "), ".")
   }
 
   # Each numeric argument: a validity test and the requirement shown in the error
@@ -360,28 +386,40 @@ plot_raincloud_ly <- function(data, x, y,
     # Indices are 0-based in plotly.js; `active = -1` makes the first click use `args`.
     # `pad` is in pixels, so the buttons keep their spacing and sit below the axis title
     # whatever the plot size.
+    custom_y <- "y" %in% names(button_options)
+
     menus <- lapply(seq_along(layers), function(i) {
       layer <- layers[i]
       idx <- as.list(layer_idx[[layer]] - 1L)
-      list(
+
+      pad <- list(t = if (custom_y) 0 else 70, l = 0)
+      pad[names(button_options$pad)] <- button_options$pad
+      pad$l <- pad$l + (i - 1) * 80
+
+      menu <- list(
         type = "buttons",
         active = -1,
         showactive = FALSE,
         x = 0,
         xanchor = "left",
         y = 0,
-        yanchor = "top",
-        pad = list(t = 70, l = (i - 1) * 80),
-        buttons = list(list(
-          label = labels[[layer]],
-          method = "restyle",
-          args = list("visible", !initial[[layer]], idx),
-          args2 = list("visible", initial[[layer]], idx)
-        ))
+        yanchor = "top"
       )
+      menu[names(button_options)] <- button_options
+      menu$pad <- pad
+      menu$buttons <- list(list(
+        label = labels[[layer]],
+        method = "restyle",
+        args = list("visible", !initial[[layer]], idx),
+        args2 = list("visible", initial[[layer]], idx)
+      ))
+      menu
     })
 
-    fig <- plotly::layout(fig, margin = list(b = 120), updatemenus = menus)
+    fig <- plotly::layout(fig, updatemenus = menus)
+    if (!custom_y) {
+      fig <- plotly::layout(fig, margin = list(b = 120))
+    }
   }
 
   fig
