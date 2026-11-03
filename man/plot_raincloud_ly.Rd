@@ -19,7 +19,7 @@ plot_raincloud_ly(
   scatter_layout = c("jitter", "stacked"),
   scatter_size = 6,
   scatter_opacity = 0.65,
-  scatter_gap = box_width/2 + 0.025,
+  scatter_box_gap = box_width/2 + 0.025,
   scatter_width = 0.2,
   scatter_binwidth = NULL,
   box_width = 0.16,
@@ -57,11 +57,11 @@ distance between groups.}
 
 \item{scatter_opacity}{Marker opacity, between 0 and 1.}
 
-\item{scatter_gap}{Distance from the group position to the nearest points,
+\item{scatter_box_gap}{Distance from the group position to the nearest points,
 in units of the distance between groups. The default, `box_width / 2 +
 0.025`, starts points just outside the box edge.}
 
-\item{scatter_width}{Width of the scatter, measured from `scatter_gap`, in
+\item{scatter_width}{Width of the scatter, measured from `scatter_box_gap`, in
 units of the distance between groups. For `"jitter"` it is the width of the
 band of random positions; for `"stacked"` the tallest stack spans exactly
 this width, so dots are spaced further apart or closer together as it
@@ -107,7 +107,7 @@ statistics. Plotly shows the nearest point within `hoverdistance` pixels
 before any box, so the plot sets `hoverdistance = 3`, which is about the
 marker radius.
 To change the hover distance, use `plotly::layout(hoverdistance = ...)`.
-For every layout, points start `scatter_gap` away from the group position.
+For every layout, points start `scatter_box_gap` away from the group position.
 
 Elements switched off with `show_density`, `show_scatter` or `show_box` are
 still added to the plot, but start hidden, so that the buttons can reveal

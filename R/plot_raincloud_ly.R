@@ -25,7 +25,7 @@
 #' before any box, so the plot sets `hoverdistance = 3`, which is about the
 #' marker radius.
 #' To change the hover distance, use `plotly::layout(hoverdistance = ...)`.
-#' For every layout, points start `scatter_gap` away from the group position.
+#' For every layout, points start `scatter_box_gap` away from the group position.
 #'
 #' Elements switched off with `show_density`, `show_scatter` or `show_box` are
 #' still added to the plot, but start hidden, so that the buttons can reveal
@@ -48,10 +48,10 @@
 #'   (stacked within bins).
 #' @param scatter_size Marker size.
 #' @param scatter_opacity Marker opacity, between 0 and 1.
-#' @param scatter_gap Distance from the group position to the nearest points,
+#' @param scatter_box_gap Distance from the group position to the nearest points,
 #'   in units of the distance between groups. The default, `box_width / 2 +
 #'   0.025`, starts points just outside the box edge.
-#' @param scatter_width Width of the scatter, measured from `scatter_gap`, in
+#' @param scatter_width Width of the scatter, measured from `scatter_box_gap`, in
 #'   units of the distance between groups. For `"jitter"` it is the width of the
 #'   band of random positions; for `"stacked"` the tallest stack spans exactly
 #'   this width, so dots are spaced further apart or closer together as it
@@ -103,7 +103,7 @@ plot_raincloud_ly <- function(data, x, y,
                               scatter_layout = c("jitter", "stacked"),
                               scatter_size = 6,
                               scatter_opacity = 0.65,
-                              scatter_gap = box_width / 2 + 0.025,
+                              scatter_box_gap = box_width / 2 + 0.025,
                               scatter_width = 0.2,
                               scatter_binwidth = NULL,
                               # Box
@@ -141,7 +141,7 @@ plot_raincloud_ly <- function(data, x, y,
     box_width        = list(function(v) v > 0, "greater than 0"),
     scatter_size     = list(function(v) v > 0, "greater than 0"),
     scatter_opacity  = list(function(v) v >= 0 && v <= 1, "between 0 and 1"),
-    scatter_gap      = list(function(v) TRUE, NULL),
+    scatter_box_gap  = list(function(v) TRUE, NULL),
     scatter_width    = list(function(v) v >= 0, "at least 0"),
     scatter_binwidth = list(function(v) v > 0, "greater than 0")
   )
@@ -276,7 +276,7 @@ plot_raincloud_ly <- function(data, x, y,
 
     cat_pos <- .raincloud_scatter_positions(
       vals, pos, scatter_layout,
-      scatter_width, scatter_binwidth, dot_spacing, scatter_gap
+      scatter_width, scatter_binwidth, dot_spacing, scatter_box_gap
     )
     co <- xy(cat_pos, vals)
 
