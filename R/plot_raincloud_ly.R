@@ -133,8 +133,28 @@ plot_raincloud_ly <- function(data, x, y,
     }
   }
 
-  if (!is.numeric(scatter_gap) || length(scatter_gap) != 1 || is.na(scatter_gap) || scatter_gap < 0) {
-    stop("`scatter_gap` must be a single non-negative number.")
+  # Each numeric argument: a validity test and the requirement shown in the error
+  num_checks <- list(
+    density_width   = list(function(v) v > 0, "greater than 0"),
+    density_opacity = list(function(v) v >= 0 && v <= 1, "between 0 and 1"),
+    box_width       = list(function(v) v > 0, "greater than 0"),
+    scatter_size    = list(function(v) v > 0, "greater than 0"),
+    scatter_opacity = list(function(v) v >= 0 && v <= 1, "between 0 and 1"),
+    scatter_gap     = list(function(v) TRUE, NULL),
+    jitter_width    = list(function(v) v >= 0, "at least 0"),
+    dot_binwidth    = list(function(v) v > 0, "greater than 0"),
+    dot_spacing     = list(function(v) v > 0, "greater than 0")
+  )
+
+  for (arg in names(num_checks)) {
+    val <- get(arg)
+    if (arg == "dot_binwidth" && is.null(val)) next
+
+    ok <- is.numeric(val) && length(val) == 1 && is.finite(val) && num_checks[[arg]][[1]](val)
+    if (!ok) {
+      stop("`", arg, "` must be a single number",
+           if (!is.null(num_checks[[arg]][[2]])) paste0(" ", num_checks[[arg]][[2]]), ".")
+    }
   }
 
   x_numeric <- is.numeric(data[[x]])
