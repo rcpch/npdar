@@ -14,7 +14,7 @@
 #' the factor levels (unused levels are dropped), otherwise the order of first
 #' appearance. Each group uses one colour across all three elements.
 #'
-#' With `scatter_layout = "dots"`, values are binned along the numeric axis and
+#' With `scatter_layout = "stacked"`, values are binned along the numeric axis and
 #' stacked along the categorical axis, which approximates stacked-dot displays
 #' without overlapping points. With `"jitter"` the positions are random, so use
 #' [set.seed()] for reproducible plots.
@@ -43,8 +43,8 @@
 #' @param density_width Maximum width of the half-violin, in units of the
 #'   distance between groups.
 #' @param density_opacity Fill opacity of the density, between 0 and 1.
-#' @param scatter_layout Point placement: `"jitter"` (random), `"dots"`
-#'   (stacked within bins) or `"center"` (a single column).
+#' @param scatter_layout Point placement: `"jitter"` (random), `"stacked"`
+#'   (stacked within bins) or `"aligned"` (all points in a single column).
 #' @param scatter_size Marker size.
 #' @param scatter_opacity Marker opacity, between 0 and 1.
 #' @param scatter_gap Distance from the group position to the nearest points,
@@ -53,9 +53,9 @@
 #' @param jitter_width Width of the band of random positions when
 #'   `scatter_layout = "jitter"`.
 #' @param dot_binwidth Bin width along the numeric axis when
-#'   `scatter_layout = "dots"`. If `NULL`, one thirtieth of the data range.
+#'   `scatter_layout = "stacked"`. If `NULL`, one thirtieth of the data range.
 #' @param dot_spacing Spacing between stacked dots when
-#'   `scatter_layout = "dots"`.
+#'   `scatter_layout = "stacked"`.
 #' @param box_width Width of the boxplot.
 #' @param boxpoints Passed to [plotly::add_boxplot()]; `FALSE`, `"outliers"`
 #'   or `"suspectedoutliers"`.
@@ -76,7 +76,7 @@
 #'                   x = "Sepal.Length",
 #'                   y = "Species",
 #'                   colors = c("#11A7F2", "#E00087", "#00bdaa"),
-#'                   scatter_layout = "dots",
+#'                   scatter_layout = "stacked",
 #'                   show_box = FALSE,
 #'                   show_legend = TRUE) |>
 #'   plotly::layout(yaxis = list(showticklabels = FALSE),
@@ -98,7 +98,7 @@ plot_raincloud_ly <- function(data, x, y,
                               density_width = 0.38,
                               density_opacity = 0.45,
                               # Scatter
-                              scatter_layout = c("jitter", "dots", "center"),
+                              scatter_layout = c("jitter", "stacked", "aligned"),
                               scatter_size = 6,
                               scatter_opacity = 0.65,
                               scatter_gap = box_width / 2 + 0.025,
@@ -392,7 +392,7 @@ plot_raincloud_ly <- function(data, x, y,
                                          gap) {
   n <- length(vals)
 
-  if (layout == "center") {
+  if (layout == "aligned") {
     return(rep(pos - gap, n))
   }
 
@@ -400,7 +400,7 @@ plot_raincloud_ly <- function(data, x, y,
     return(pos - stats::runif(n, gap, gap + jitter_width))
   }
 
-  # dots: stack points sharing a bin along the categorical axis
+  # stacked: points sharing a bin are stacked along the categorical axis
   out <- numeric(n)
   bins <- split(seq_len(n), round(vals / dot_binwidth))
 

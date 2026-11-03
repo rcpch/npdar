@@ -16,7 +16,7 @@ plot_raincloud_ly(
   show_legend = FALSE,
   density_width = 0.38,
   density_opacity = 0.45,
-  scatter_layout = c("jitter", "dots", "center"),
+  scatter_layout = c("jitter", "stacked", "aligned"),
   scatter_size = 6,
   scatter_opacity = 0.65,
   scatter_gap = box_width/2 + 0.025,
@@ -51,8 +51,8 @@ distance between groups.}
 
 \item{density_opacity}{Fill opacity of the density, between 0 and 1.}
 
-\item{scatter_layout}{Point placement: `"jitter"` (random), `"dots"`
-(stacked within bins) or `"center"` (a single column).}
+\item{scatter_layout}{Point placement: `"jitter"` (random), `"stacked"`
+(stacked within bins) or `"aligned"` (all points in a single column).}
 
 \item{scatter_size}{Marker size.}
 
@@ -60,17 +60,16 @@ distance between groups.}
 
 \item{scatter_gap}{Distance from the group position to the nearest points,
 in units of the distance between groups. The default, `box_width / 2 +
-0.025`, starts points just outside the box edge. Use `0` to start points
-at the group position, so they overlap the box.}
+0.025`, starts points just outside the box edge.}
 
 \item{jitter_width}{Width of the band of random positions when
 `scatter_layout = "jitter"`.}
 
 \item{dot_binwidth}{Bin width along the numeric axis when
-`scatter_layout = "dots"`. If `NULL`, one thirtieth of the data range.}
+`scatter_layout = "stacked"`. If `NULL`, one thirtieth of the data range.}
 
 \item{dot_spacing}{Spacing between stacked dots when
-`scatter_layout = "dots"`.}
+`scatter_layout = "stacked"`.}
 
 \item{box_width}{Width of the boxplot.}
 
@@ -98,7 +97,7 @@ Rows with missing values in either column are dropped. Group order follows
 the factor levels (unused levels are dropped), otherwise the order of first
 appearance. Each group uses one colour across all three elements.
 
-With `scatter_layout = "dots"`, values are binned along the numeric axis and
+With `scatter_layout = "stacked"`, values are binned along the numeric axis and
 stacked along the categorical axis, which approximates stacked-dot displays
 without overlapping points. With `"jitter"` the positions are random, so use
 [set.seed()] for reproducible plots.
@@ -126,7 +125,7 @@ plot_raincloud_ly(iris,
                   x = "Sepal.Length",
                   y = "Species",
                   colors = c("#11A7F2", "#E00087", "#00bdaa"),
-                  scatter_layout = "dots",
+                  scatter_layout = "stacked",
                   show_box = FALSE,
                   show_legend = TRUE) |>
   plotly::layout(yaxis = list(showticklabels = FALSE),
