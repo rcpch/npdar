@@ -14,11 +14,9 @@ plot_raincloud_ly(
   show_box = TRUE,
   show_buttons = TRUE,
   show_legend = FALSE,
-  density_side = c("right", "left"),
   density_width = 0.38,
   density_opacity = 0.45,
   scatter_layout = c("jitter", "dots", "center"),
-  scatter_side = c("auto", "left", "right", "center"),
   scatter_size = 6,
   scatter_opacity = 0.65,
   scatter_gap = box_width/2 + 0.025,
@@ -48,20 +46,13 @@ initially visible.}
 
 \item{show_legend}{Logical; show one legend entry per group.}
 
-\item{density_side}{Side of the group position on which the half-violin is
-drawn: `"right"` or `"left"`. For horizontal plots these are the upper and
-lower sides.}
-
 \item{density_width}{Maximum width of the half-violin, in units of the
 distance between groups.}
 
 \item{density_opacity}{Fill opacity of the density, between 0 and 1.}
 
 \item{scatter_layout}{Point placement: `"jitter"` (random), `"dots"`
-(stacked within bins) or `"center"` (on the group position).}
-
-\item{scatter_side}{Side of the group position on which points are placed:
-`"auto"` (opposite to the density), `"left"`, `"right"` or `"center"`.}
+(stacked within bins) or `"center"` (a single column).}
 
 \item{scatter_size}{Marker size.}
 
@@ -69,12 +60,11 @@ distance between groups.}
 
 \item{scatter_gap}{Distance from the group position to the nearest points,
 in units of the distance between groups. The default, `box_width / 2 +
-0.025`, starts points just outside the box edge.
-Ignored when `scatter_side = "center"`.}
+0.025`, starts points just outside the box edge. Use `0` to start points
+at the group position, so they overlap the box.}
 
 \item{jitter_width}{Width of the band of random positions when
-`scatter_layout = "jitter"`; with `scatter_side = "center"`, the maximum
-jitter either side of the group position.}
+`scatter_layout = "jitter"`.}
 
 \item{dot_binwidth}{Bin width along the numeric axis when
 `scatter_layout = "dots"`. If `NULL`, one thirtieth of the data range.}
@@ -118,8 +108,7 @@ statistics. Plotly shows the nearest point within `hoverdistance` pixels
 before any box, so the plot sets `hoverdistance = 3`, which is about the
 marker radius.
 To change the hover distance, use `plotly::layout(hoverdistance = ...)`.
-For every layout with points to the left or right of the group
-position, points start `scatter_gap` away from the group position.
+For every layout, points start `scatter_gap` away from the group position.
 
 Elements switched off with `show_density`, `show_scatter` or `show_box` are
 still added to the plot, but start hidden, so that the buttons can reveal

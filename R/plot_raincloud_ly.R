@@ -24,8 +24,7 @@
 #' before any box, so the plot sets `hoverdistance = 3`, which is about the
 #' marker radius.
 #' To change the hover distance, use `plotly::layout(hoverdistance = ...)`.
-#' For every layout with points to the left or right of the group
-#' position, points start `scatter_gap` away from the group position.
+#' For every layout, points start `scatter_gap` away from the group position.
 #'
 #' Elements switched off with `show_density`, `show_scatter` or `show_box` are
 #' still added to the plot, but start hidden, so that the buttons can reveal
@@ -41,25 +40,18 @@
 #'   initially visible.
 #' @param show_buttons Logical; add buttons that toggle each element.
 #' @param show_legend Logical; show one legend entry per group.
-#' @param density_side Side of the group position on which the half-violin is
-#'   drawn: `"right"` or `"left"`. For horizontal plots these are the upper and
-#'   lower sides.
 #' @param density_width Maximum width of the half-violin, in units of the
 #'   distance between groups.
 #' @param density_opacity Fill opacity of the density, between 0 and 1.
 #' @param scatter_layout Point placement: `"jitter"` (random), `"dots"`
-#'   (stacked within bins) or `"center"` (on the group position).
-#' @param scatter_side Side of the group position on which points are placed:
-#'   `"auto"` (opposite to the density), `"left"`, `"right"` or `"center"`.
+#'   (stacked within bins) or `"center"` (a single column).
 #' @param scatter_size Marker size.
 #' @param scatter_opacity Marker opacity, between 0 and 1.
 #' @param scatter_gap Distance from the group position to the nearest points,
 #'   in units of the distance between groups. The default, `box_width / 2 +
 #'   0.025`, starts points just outside the box edge.
-#'   Ignored when `scatter_side = "center"`.
 #' @param jitter_width Width of the band of random positions when
-#'   `scatter_layout = "jitter"`; with `scatter_side = "center"`, the maximum
-#'   jitter either side of the group position.
+#'   `scatter_layout = "jitter"`.
 #' @param dot_binwidth Bin width along the numeric axis when
 #'   `scatter_layout = "dots"`. If `NULL`, one thirtieth of the data range.
 #' @param dot_spacing Spacing between stacked dots when
@@ -103,12 +95,10 @@ plot_raincloud_ly <- function(data, x, y,
                               show_buttons = TRUE,
                               show_legend = FALSE,
                               # Density
-                              density_side = c("right", "left"),
                               density_width = 0.38,
                               density_opacity = 0.45,
                               # Scatter
                               scatter_layout = c("jitter", "dots", "center"),
-                              scatter_side = c("auto", "left", "right", "center"),
                               scatter_size = 6,
                               scatter_opacity = 0.65,
                               scatter_gap = box_width / 2 + 0.025,
@@ -122,9 +112,7 @@ plot_raincloud_ly <- function(data, x, y,
                               ...                        # other plotly arguments
 ) {
 
-  density_side <- match.arg(density_side)
   scatter_layout <- match.arg(scatter_layout)
-  scatter_side <- match.arg(scatter_side)
 
   #------ 1) Check input ------
   if (!is.data.frame(data)) {
@@ -206,10 +194,6 @@ plot_raincloud_ly <- function(data, x, y,
     }
   }
 
-  if (scatter_side == "auto") {
-    scatter_side <- if (density_side == "right") "left" else "right"
-  }
-
   #------ 5) Build traces; remember which belong to which element ------
   fig <- plotly::plot_ly(...)
   n_traces <- 0L
@@ -242,7 +226,7 @@ plot_raincloud_ly <- function(data, x, y,
     }
 
     if (length(vals) > 1) {
-      dens <- .raincloud_half_density(vals, pos, density_side, density_width)
+      dens <- .raincloud_half_density(vals, pos, density_width)
       co <- xy(dens$cat, dens$num)
 
       fig <- plotly::add_trace(
@@ -267,7 +251,7 @@ plot_raincloud_ly <- function(data, x, y,
     }
 
     cat_pos <- .raincloud_scatter_positions(
-      vals, pos, scatter_layout, scatter_side,
+      vals, pos, scatter_layout,
       jitter_width, dot_binwidth, dot_spacing, scatter_gap
     )
     co <- xy(cat_pos, vals)
@@ -390,12 +374,9 @@ plot_raincloud_ly <- function(data, x, y,
 
 #' Half-violin polygon: `cat` is the categorical-axis coordinate, `num` the numeric one
 #' @noRd
-.raincloud_half_density <- function(vals, pos, side, width) {
+.raincloud_half_density <- function(vals, pos, width) {
   dens <- stats::density(vals)
   offset <- dens$y / max(dens$y) * width
-  if (side == "left") {
-    offset <- -offset
-  }
 
   data.frame(
     cat = c(pos, pos + offset, pos),
@@ -404,32 +385,19 @@ plot_raincloud_ly <- function(data, x, y,
 }
 
 
-#' Categorical-axis coordinates for the scatter points of one group
+#' Categorical-axis coordinates for the scatter points of one group, left of `pos`
 #' @noRd
-.raincloud_scatter_positions <- function(vals, pos, layout, side,
+.raincloud_scatter_positions <- function(vals, pos, layout,
                                          jitter_width, dot_binwidth, dot_spacing,
                                          gap) {
   n <- length(vals)
 
-  # Distance of the nearest points from the group position
-  start <- gap
-
   if (layout == "center") {
-    return(switch(
-      side,
-      right = rep(pos + start, n),
-      left  = rep(pos - start, n),
-      rep(pos, n)
-    ))
+    return(rep(pos - gap, n))
   }
 
   if (layout == "jitter") {
-    return(switch(
-      side,
-      center = pos + stats::runif(n, -jitter_width, jitter_width),
-      right  = pos + stats::runif(n, start, start + jitter_width),
-      left   = pos - stats::runif(n, start, start + jitter_width)
-    ))
+    return(pos - stats::runif(n, gap, gap + jitter_width))
   }
 
   # dots: stack points sharing a bin along the categorical axis
@@ -437,15 +405,7 @@ plot_raincloud_ly <- function(data, x, y,
   bins <- split(seq_len(n), round(vals / dot_binwidth))
 
   for (idx in bins) {
-    k <- length(idx)
-    offsets <- switch(
-      side,
-      right = start + (seq_len(k) - 1) * dot_spacing,
-      left  = -start - (seq_len(k) - 1) * dot_spacing,
-      # center: 0, 1, -1, 2, -2, ...
-      c(0, rbind(seq_len(k), -seq_len(k)))[seq_len(k)] * dot_spacing
-    )
-    out[idx] <- pos + offsets
+    out[idx] <- pos - gap - (seq_along(idx) - 1) * dot_spacing
   }
 
   out
