@@ -96,6 +96,11 @@ A \pkg{plotly} object.
 Draws an interactive raincloud plot using \pkg{plotly}. With option to show
 or hide each of half-violin density plots, boxplots, and scatter plots
 of the raw values.
+
+Popularised by \insertCite{raincloud_allen_2021;textual}{npdar}, a raincloud plot combines the distribution,
+raw data points, and summary statistics in one figure. It is designed
+to provide a more transparent view of the data than traditional
+visualisations such as box plots.
 }
 \details{
 Exactly one of `x` or `y` must be numeric and the other categorical:
@@ -149,4 +154,7 @@ plot_raincloud_ly(iris,
                  legend = list(x = 1, y = -0.2, xanchor = "right",
                                orientation = "h"))
 
+}
+\references{
+\insertAllCited{}
 }

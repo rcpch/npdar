@@ -78,5 +78,6 @@
 #'   \item RCPCH GitHub: \url{https://github.com/RCPCH}
 #' }
 #'
+#' @importFrom Rdpack reprompt
 #' @keywords internal
 "_PACKAGE"

@@ -18,6 +18,7 @@ Imports:
     dplyr,
     grDevices,
     purrr,
+    Rdpack,
     rlang,
     stats,
     tibble,
@@ -36,4 +37,5 @@ URL: https://rcpch.github.io/npdar/, https://github.com/RCPCH/npdar
 BugReports: https://github.com/RCPCH/npdar/issues
 Config/roxygen2/version: 8.0.0
 VignetteBuilder: knitr, quarto
+RdMacros: Rdpack
 RoxygenNote: 7.3.3

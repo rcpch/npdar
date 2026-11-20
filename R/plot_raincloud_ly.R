@@ -5,6 +5,11 @@
 #' or hide each of half-violin density plots, boxplots, and scatter plots
 #' of the raw values.
 #'
+#' Popularised by \insertCite{raincloud_allen_2021;textual}{npdar}, a raincloud plot combines the distribution,
+#' raw data points, and summary statistics in one figure. It is designed
+#' to provide a more transparent view of the data than traditional
+#' visualisations such as box plots.
+#'
 #' @details
 #' Exactly one of `x` or `y` must be numeric and the other categorical:
 #' * categorical `x` and numeric `y` give a vertical plot;
@@ -71,6 +76,9 @@
 #'   margin are dropped; adjust the margin with `plotly::layout(margin = ...)`.
 #'   `type`, `buttons`, `active` and `showactive` cannot be set.
 #' @param ... Additional arguments passed to [plotly::plot_ly()].
+#'
+#' @references
+#' \insertAllCited{}
 #'
 #' @return A \pkg{plotly} object.
 #'
