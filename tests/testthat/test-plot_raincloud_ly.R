@@ -144,6 +144,22 @@ test_that("plot_raincloud_ly hover text omits the group name", {
   expect_equal(unique(as.vector(p$x$data[[4]]$hoverinfo)), "x")
 })
 
+test_that("plot_raincloud_ly density hover follows the curve and shows the kde", {
+  p <- plotly::plotly_build(plot_raincloud_ly(iris, "Species", "Sepal.Length", show_legend = TRUE))
+  d <- p$x$data[[2]]
+
+  expect_equal(d$hoveron, "points")
+  expect_equal(unique(as.vector(d$hovertemplate)), "%{text}<extra></extra>")
+  expect_true(all(grepl("<br>Density: ", d$text, fixed = TRUE)))
+  expect_equal(length(d$text), length(d$x))
+
+  # The density shown is stats::density(), not the rescaled curve width
+  kde <- stats::density(iris$Sepal.Length[iris$Species == "setosa"])
+  peak <- which.max(kde$y)
+  expect_equal(as.numeric(sub(".*Density: ", "", d$text[peak + 1])), signif(kde$y[peak], 3))
+  expect_equal(as.numeric(sub("<br>.*", "", d$text[peak + 1])), signif(kde$x[peak], 4))
+})
+
 test_that("plot_raincloud_ly can omit buttons and legend entries", {
   p <- plotly::plotly_build(
     plot_raincloud_ly(iris, "Species", "Sepal.Length", show_buttons = FALSE, show_legend = FALSE)

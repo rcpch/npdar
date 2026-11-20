@@ -5,9 +5,9 @@
 #' or hide each of half-violin density plots, boxplots, and scatter plots
 #' of the raw values.
 #'
-#' Popularised by \insertCite{raincloud_allen_2021;textual}{npdar}, a raincloud plot combines the distribution,
-#' raw data points, and summary statistics in one figure. It is designed
-#' to provide a more transparent view of the data than traditional
+#' Popularised by \insertCite{raincloud_allen_2021;textual}{npdar}, a raincloud plot
+#' combines the distribution, raw data points, and summary statistics in one figure.
+#' It is designed to provide a more transparent view of the data than traditional
 #' visualisations such as box plots.
 #'
 #' @details
@@ -25,8 +25,9 @@
 #' [set.seed()] for reproducible plots. With `scatter_width = 0`, both layouts
 #' put all points in a single column.
 #'
-#' Hovering a point shows its value and hovering inside a box shows its
-#' statistics. Plotly shows the nearest point within `hoverdistance` pixels
+#' Hovering a point shows its value, hovering the density curve shows the value
+#' and its kernel density estimate (from [stats::density()]), and hovering inside
+#' a box shows its statistics. Plotly shows the nearest point within `hoverdistance` pixels
 #' before any box, so the plot sets `hoverdistance = 3`, which is about the
 #' marker radius.
 #' To change the hover distance, use `plotly::layout(hoverdistance = ...)`.
@@ -299,7 +300,10 @@ plot_raincloud_ly <- function(data, x, y,
         name = g,
         legendgroup = g,
         showlegend = FALSE,
-        hoverinfo = "skip",
+        hoveron = "points",
+        text = paste0(.raincloud_fmt(dens$num, 4), ", kde: ",
+                      .raincloud_fmt(dens$density, 3)),
+        hovertemplate = "%{text}<extra></extra>",
         visible = show_density
       )
       n_traces <- n_traces + 1L
@@ -442,7 +446,8 @@ plot_raincloud_ly <- function(data, x, y,
 }
 
 
-#' Half-violin polygon: `cat` is the categorical-axis coordinate, `num` the numeric one
+#' Half-violin polygon: `cat` is the categorical-axis coordinate, `num` the numeric one,
+#' and `density` the kernel density estimate there (0 on the two baseline corners)
 #' @noRd
 .raincloud_half_density <- function(vals, pos, width) {
   dens <- stats::density(vals)
@@ -450,8 +455,17 @@ plot_raincloud_ly <- function(data, x, y,
 
   data.frame(
     cat = c(pos, pos + offset, pos),
-    num = c(dens$x[1], dens$x, dens$x[length(dens$x)])
+    num = c(dens$x[1], dens$x, dens$x[length(dens$x)]),
+    density = c(0, dens$y, 0)
   )
+}
+
+
+#' Round to significant digits without scientific notation, for hover text
+#' @noRd
+.raincloud_fmt <- function(v, digits) {
+  vapply(v, function(z) format(signif(z, digits), scientific = FALSE, trim = TRUE),
+         character(1))
 }
 
 
