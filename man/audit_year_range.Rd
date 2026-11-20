@@ -87,8 +87,8 @@ data.frame(
 \seealso{
 \code{\link{audit_year}} for determining a single audit year from a date.
 
-Other Audit year functions:
-\code{\link[=audit_year]{audit_year()}},
+Other Audit year functions: 
+\code{\link{audit_year}()},
 \code{\link{audit_year_family}}
 }
 \concept{Audit year functions}

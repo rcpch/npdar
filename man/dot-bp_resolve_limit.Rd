@@ -12,14 +12,14 @@ it is the default \code{c(-Inf, Inf)}, in which case the NPDA (Fourth Report)
 or NDA (NICE/BHF) range for \code{valid$bp_type} is used.
 }
 \seealso{
-Other BP functions:
-\code{\link[=.bp_message]{.bp_message()}},
-\code{\link[=.bp_validate_demo_input]{.bp_validate_demo_input()}},
-\code{\link[=bp_assess]{bp_assess()}},
-\code{\link[=bp_category]{bp_category()}},
-\code{\link[=bp_expected]{bp_expected()}},
+Other BP functions: 
+\code{\link{.bp_message}()},
+\code{\link{.bp_validate_demo_input}()},
+\code{\link{bp_assess}()},
+\code{\link{bp_category}()},
+\code{\link{bp_expected}()},
 \code{\link{bp_family}},
-\code{\link[=bp_relative]{bp_relative()}}
+\code{\link{bp_relative}()}
 }
 \concept{BP functions}
 \keyword{internal}

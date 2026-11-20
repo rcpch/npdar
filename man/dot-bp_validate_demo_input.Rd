@@ -51,14 +51,14 @@ for blood pressure calculations. Checks age ranges, sex coding, and height
 z-scores against specified limits.
 }
 \seealso{
-Other BP functions:
-\code{\link[=.bp_message]{.bp_message()}},
-\code{\link[=.bp_resolve_limit]{.bp_resolve_limit()}},
-\code{\link[=bp_assess]{bp_assess()}},
-\code{\link[=bp_category]{bp_category()}},
-\code{\link[=bp_expected]{bp_expected()}},
+Other BP functions: 
+\code{\link{.bp_message}()},
+\code{\link{.bp_resolve_limit}()},
+\code{\link{bp_assess}()},
+\code{\link{bp_category}()},
+\code{\link{bp_expected}()},
 \code{\link{bp_family}},
-\code{\link[=bp_relative]{bp_relative()}}
+\code{\link{bp_relative}()}
 }
 \concept{BP functions}
 \keyword{internal}

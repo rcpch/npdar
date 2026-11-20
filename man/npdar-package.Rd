@@ -72,6 +72,7 @@ National Paediatric Diabetes Audit (NPDA) data.
 \seealso{
 Useful links:
 \itemize{
+  \item Package website: \url{https://rcpch.github.io/npdar/}
   \item Report bugs: \url{https://github.com/RCPCH/npdar/issues}
   \item RCPCH GitHub: \url{https://github.com/RCPCH}
 }

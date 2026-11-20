@@ -47,8 +47,8 @@ For example:
 }
 
 \seealso{
-Other Audit year functions:
-\code{\link[=audit_year]{audit_year()}},
-\code{\link[=audit_year_range]{audit_year_range()}}
+Other Audit year functions: 
+\code{\link{audit_year}()},
+\code{\link{audit_year_range}()}
 }
 \concept{Audit year functions}

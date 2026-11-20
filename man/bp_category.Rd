@@ -13,7 +13,7 @@ bp_category(bp_value, bp_limit = c(-Inf, Inf), ..., .quiet = FALSE)
 Defaults to \code{c(-Inf, Inf)}; if left as-is, NPDA/NDA defaults are applied based on \code{ref}.}
 
 \item{...}{
-  Arguments passed on to \code{\link{.bp_validate_demo_input}}, \code{\link{bp_expected}}
+  Arguments passed on to \code{\link[=.bp_validate_demo_input]{.bp_validate_demo_input}}, \code{\link[=bp_expected]{bp_expected}}
   \describe{
     \item{\code{bp_type}}{Character; \code{"systolic"} or \code{"diastolic"}.}
     \item{\code{sex}}{Vector of sex codes in your data. Will be mapped to \code{"male"} or \code{"female"}
@@ -101,13 +101,13 @@ bp_category(
 }
 }
 \seealso{
-Other BP functions:
-\code{\link[=.bp_message]{.bp_message()}},
-\code{\link[=.bp_resolve_limit]{.bp_resolve_limit()}},
-\code{\link[=.bp_validate_demo_input]{.bp_validate_demo_input()}},
-\code{\link[=bp_assess]{bp_assess()}},
-\code{\link[=bp_expected]{bp_expected()}},
+Other BP functions: 
+\code{\link{.bp_message}()},
+\code{\link{.bp_resolve_limit}()},
+\code{\link{.bp_validate_demo_input}()},
+\code{\link{bp_assess}()},
+\code{\link{bp_expected}()},
 \code{\link{bp_family}},
-\code{\link[=bp_relative]{bp_relative()}}
+\code{\link{bp_relative}()}
 }
 \concept{BP functions}

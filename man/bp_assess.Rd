@@ -13,7 +13,7 @@ bp_assess(bp_value, bp_limit = c(-Inf, Inf), ..., .quiet = FALSE)
 categorisation. See \code{\link{bp_category}}.}
 
 \item{...}{
-  Arguments passed on to \code{\link{.bp_validate_demo_input}}
+  Arguments passed on to \code{\link[=.bp_validate_demo_input]{.bp_validate_demo_input}}
   \describe{
     \item{\code{bp_type}}{Character; \code{"systolic"} or \code{"diastolic"}.}
     \item{\code{sex}}{Vector of sex codes in your data. Will be mapped to \code{"male"} or \code{"female"}
@@ -52,13 +52,13 @@ bp_assess(
 
 }
 \seealso{
-Other BP functions:
-\code{\link[=.bp_message]{.bp_message()}},
-\code{\link[=.bp_resolve_limit]{.bp_resolve_limit()}},
-\code{\link[=.bp_validate_demo_input]{.bp_validate_demo_input()}},
-\code{\link[=bp_category]{bp_category()}},
-\code{\link[=bp_expected]{bp_expected()}},
+Other BP functions: 
+\code{\link{.bp_message}()},
+\code{\link{.bp_resolve_limit}()},
+\code{\link{.bp_validate_demo_input}()},
+\code{\link{bp_category}()},
+\code{\link{bp_expected}()},
 \code{\link{bp_family}},
-\code{\link[=bp_relative]{bp_relative()}}
+\code{\link{bp_relative}()}
 }
 \concept{BP functions}
