@@ -4,7 +4,7 @@
 \alias{get_ultimate}
 \title{Get the up-to-date/first/last mode or first/last entry from a vector}
 \usage{
-get_ultimate(x, find, exclude = NULL, warn = TRUE, na.rm = TRUE)
+get_ultimate(x, find, exclude = NULL, na.rm = TRUE, warn = TRUE)
 }
 \arguments{
 \item{x}{A vector of values to be evaluated. Can be numeric, character, but date (POSIXct) is currently not supported.}
@@ -23,14 +23,14 @@ Can be a single value (e.g., 99, "Unknown") or multiple values (e.g., \code{c(99
 Must not contain \code{NA} (an error is thrown); use \code{na.rm} to control how \code{NA}s are handled.
 Default is \code{NULL} (nothing is excluded).}
 
+\item{na.rm}{Logical. Whether to exclude \code{NA}s before evaluating.
+Default is \code{TRUE}. If \code{FALSE}, \code{NA} will be considered
+as a valid candidate and treated like any other value.}
+
 \item{warn}{Logical. Whether to display warning messages. Warnings are shown when
 multiple modal values exist, showing the remaining modes apart from the one designated in \code{find},
 or when \code{x} contains \code{NA}s and \code{na.rm} is not specified (they are removed by default).
 Default is \code{TRUE}.}
-
-\item{na.rm}{Logical. Whether to exclude \code{NA}s before evaluating.
-Default is \code{TRUE}. If \code{FALSE}, \code{NA} will be considered
-as a valid candidate and treated like any other value.}
 }
 \value{
 The result based on the \code{find}, \code{exclude} and \code{na.rm} parameters.

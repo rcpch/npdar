@@ -75,7 +75,7 @@
 #' get_ultimate(x, find = "first_entry", exclude = "Unknown",
 #'              warn = FALSE)           # "F"
 #'
-get_ultimate <- function(x, find, exclude = NULL, warn = TRUE, na.rm = TRUE) {
+get_ultimate <- function(x, find, exclude = NULL, na.rm = TRUE, warn = TRUE) {
   if (anyNA(exclude)) {
     stop("`exclude` must not contain NA. Use `na.rm` to control how NAs are handled.")
   }
