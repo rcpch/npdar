@@ -85,19 +85,14 @@
 #'
 #' @examples
 #' set.seed(1)
+#' # The default
 #' plot_raincloud_ly(iris,
 #'                   x = "Species",
 #'                   y = "Sepal.Length",
 #'                   scatter_layout = "jitter",
 #'                   show_buttons = FALSE)
 #'
-#' # Buttons along the top left of the plot
-#' plot_raincloud_ly(iris,
-#'                   x = "Species",
-#'                   y = "Sepal.Length",
-#'                   button_options = list(y = 1.15, yanchor = "top")) |>
-#'   plotly::layout(margin = list(t = 80))
-#'
+#' # Customisation
 #' plot_raincloud_ly(iris,
 #'                   x = "Sepal.Length",
 #'                   y = "Species",

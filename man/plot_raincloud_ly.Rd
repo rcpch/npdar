@@ -97,9 +97,9 @@ Draws an interactive raincloud plot using \pkg{plotly}. With option to show
 or hide each of half-violin density plots, boxplots, and scatter plots
 of the raw values.
 
-Popularised by \insertCite{raincloud_allen_2021;textual}{npdar}, a raincloud plot combines the distribution,
-raw data points, and summary statistics in one figure. It is designed
-to provide a more transparent view of the data than traditional
+Popularised by \insertCite{raincloud_allen_2021;textual}{npdar}, a raincloud plot
+combines the distribution, raw data points, and summary statistics in one figure.
+It is designed to provide a more transparent view of the data than traditional
 visualisations such as box plots.
 }
 \details{
@@ -117,8 +117,9 @@ without overlapping points. With `"jitter"` the positions are random, so use
 [set.seed()] for reproducible plots. With `scatter_width = 0`, both layouts
 put all points in a single column.
 
-Hovering a point shows its value and hovering inside a box shows its
-statistics. Plotly shows the nearest point within `hoverdistance` pixels
+Hovering a point shows its value, hovering the density curve shows the value
+and its kernel density estimate (from [stats::density()]), and hovering inside
+a box shows its statistics. Plotly shows the nearest point within `hoverdistance` pixels
 before any box, so the plot sets `hoverdistance = 3`, which is about the
 marker radius.
 To change the hover distance, use `plotly::layout(hoverdistance = ...)`.
@@ -130,19 +131,14 @@ them.
 }
 \examples{
 set.seed(1)
+# The default
 plot_raincloud_ly(iris,
                   x = "Species",
                   y = "Sepal.Length",
                   scatter_layout = "jitter",
                   show_buttons = FALSE)
 
-# Buttons along the top left of the plot
-plot_raincloud_ly(iris,
-                  x = "Species",
-                  y = "Sepal.Length",
-                  button_options = list(y = 1.15, yanchor = "top")) |>
-  plotly::layout(margin = list(t = 80))
-
+# Customisation
 plot_raincloud_ly(iris,
                   x = "Sepal.Length",
                   y = "Species",
